@@ -1,0 +1,5 @@
+python-dotenv
+schedule
+Flask>=0.12
+twilio~=6.0.0
+pandas
