@@ -9,7 +9,7 @@ import os
 import settings
 from flask import Flask, request, session # how does Flask just know this stuff?
 from twilio.twiml.messaging_response import MessagingResponse
-from responses import first_contact_df
+from response_db import first_contact_df
 
 
 SECRET_KEY = os.environ.get('FLASK_SECRET_KEY')
