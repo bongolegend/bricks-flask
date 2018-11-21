@@ -5,27 +5,32 @@ https://www.twilio.com/docs/sms/tutorials/how-to-create-sms-conversations-python
 remember that you need to set the ngrok URL every time you restart the ngrok server
 https://dashboard.ngrok.com/get-started
 '''
-import os
+
 import logging
-import settings
 from flask import Flask
-import send_notifications
-import handle_inputs 
+from flask_sqlalchemy import SQLAlchemy
+from apscheduler.schedulers.background import BackgroundScheduler
+from config import Config
 
 
-SECRET_KEY = os.environ.get('FLASK_SECRET_KEY')
-app = Flask(__name__)
-app.config.from_object(__name__)
+db = SQLAlchemy()
+scheduler = BackgroundScheduler(daemon=True)
+scheduler.start()
 
-# run the scheduler to send notifications on a schedule
-send_notifications.main()
+def create_app():
+    app = Flask(__name__)
+    app.config.from_object(Config)
 
-# use a decorator that extends the below func. give it a URL api endpoint with two REST methods
-# notice this func is getting tacked on to the Flask app. the app is calling it under the hood
-# when the api gets hit
-@app.route( "/sms", methods=['GET', 'POST']) 
-def handle_inputs_wrapper():
-    return handle_inputs.main()
+    db.init_app(app)
+
+    from views import main as main_blueprint
+    app.register_blueprint(main_blueprint)
+
+    import send_notifications
+    send_notifications.main(scheduler=scheduler)
+
+    return app
+
 
 
 if __name__ == "__main__":
@@ -33,4 +38,5 @@ if __name__ == "__main__":
     logging.basicConfig(format='%(asctime)s - %(message)s')
     logger.setLevel(logging.INFO)
 
+    app = create_app()
     app.run(debug=True)

@@ -1,11 +1,16 @@
+import datetime as dt
 from flask import request, session
 from twilio.twiml.messaging_response import MessagingResponse
 from response_db import first_contact_df
+from models import User, Notification
+from run import db, scheduler
+from send_notifications import add_notif_to_scheduler
 
 def main():
     """Respond to input with appropriate output based on conversation state and response_db.py"""
 
-    # TODO (Nico) create permanent storage
+    user = query_or_insert_user(request.values.get('From'))
+
     # get values from session storage
     counter = session.get('counter', 0)
     last_output = session.get('last_output', None)
@@ -20,6 +25,27 @@ def main():
 
     resp = MessagingResponse() # initialize twilio's response tool. it works under the hood
     resp.message(output)
+
+    if output_id == 2 and len(Notification.query.filter_by(user=user, tag='checkin').all()) == 0:
+            # set a notification for tonight, recurring
+            notif = Notification(tag='checkin',
+                body="DID you stack your brick today?",
+                trigger_type='cron',
+                day_of_week='mon-fri',
+                hour=21,
+                minute=55,
+                jitter=0,
+                end_date=dt.datetime(2018,11,30),
+                timezone='America/Denver',
+                user=user)
+            
+            # TODO(Nico) it could be problematic to schedule this before committing to db
+            add_notif_to_scheduler(scheduler, notif, user)
+            db.session.add(notif)
+            db.session.commit()
+            
+
+        # TODO(Nico) set a notification for tomorrow morning, recurring
 
     # save new values to session
     counter += 1
@@ -50,5 +76,24 @@ def choose_output(last_output_id, input, first_contact_df):
 
     return filtered.response.iloc[0], int(filtered.index.values[0])
 
+
+def query_or_insert_user(phone_number):
+    '''
+    use phone number to find user in db, else add to db
+    returns the user object
+    '''
+    user = User.query.filter_by(phone_number=phone_number).first()
+
+    if user is not None:
+        print(f"user already exists: {user}")
+        return user
+    else:
+        new_user = User(phone_number=phone_number)
+        db.session.add(new_user)
+        db.session.commit()
+        print(f"created new user: {new_user}")
+        return new_user
+
 # TODO(Nico) implement this
 # def update_user_state(...):
+

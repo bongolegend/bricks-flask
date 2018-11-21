@@ -6,14 +6,27 @@ from twilio.rest import Client
 from apscheduler.schedulers.background import BackgroundScheduler
 # inspiration: https://github.com/agronholm/apscheduler/blob/master/examples/schedulers/background.py
 from notification_db import notifications_df
+from models import User, Notification
 
 
-def main(test=False):
+CRON_KEYS = [
+    'day_of_week',
+    'hour',
+    'minute',
+    'jitter',
+    'end_date',
+    'timezone',
+]
+
+def main(scheduler=None, test=False):
     '''start the scheduler on a separate thread. seed it with stored notifications'''
     # enable daemonic mode to terminate scheduler when app terminates
-    scheduler = BackgroundScheduler(daemon=True)
+    if scheduler is None:
+        scheduler = BackgroundScheduler(daemon=True)
+        scheduler.start()
+
     seed_scheduler(scheduler, os.environ.get('TEST_PHONE_NUMBER'))
-    scheduler.start()
+    
     # TODO(Nico) add a listener for new notifications getting added to db
 
     # this is an easy way to send notifications without running the whole app
@@ -54,6 +67,17 @@ def notify(to_number, output):
     client.messages.create(from_=os.environ.get('TWILIO_PHONE_NUMBER'),
                         to=to_number,
                         body=output)
+
+
+def add_notif_to_scheduler(scheduler, notif, user):
+    # convert notif to dict
+    notif_dict = {key: val for key, val in notif.__dict__.items() if key in CRON_KEYS}
+    
+    scheduler.add_job(notify,
+        notif.trigger_type,
+        args=[user.phone_number, notif.body],
+        **notif_dict)
+    
 
 
 if __name__ == '__main__':
