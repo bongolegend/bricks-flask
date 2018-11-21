@@ -2,22 +2,31 @@
 import pandas as pd
 
 NOTIFICATIONS = {
-    0: [
+    2: [
         "3124505311",
-        "Whats your brick for today?",
-        "interval",
+        "Testing the time zone and clock",
+        "cron",
         dict(
-            seconds=3
+            day_of_week='mon-fri',
+            hour=17,
+            minute=28,
+            jitter=30,
+            end_date='2018-11-30',
+            timezone='America/Denver'
         )
     ],
-    1: [
+    3: [
         "3124505311",
         "Did you finish your brick?",
-        "interval",
+        "cron",
         dict(
-            seconds=2
+            day_of_week='mon-fri',
+            hour=21,
+            jitter=30,
+            end_date='2018-11-30',
+            timezone='America/Denver'
         )
-    ], 
+    ],  
 }
 
 notifications_df = pd.DataFrame.from_dict(NOTIFICATIONS, 
