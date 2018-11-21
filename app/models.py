@@ -1,5 +1,5 @@
-from datetime import datetime
-from run import db
+from datetime import datetime as dt
+from app import db
 
 
 class User(db.Model):
@@ -23,7 +23,7 @@ class Notification(db.Model):
     end_date = db.Column(db.DateTime)
     timezone = db.Column(db.String(32), nullable=False)
     created = db.Column(db.DateTime, nullable=False,
-        default=datetime.utcnow)
+        default=dt.utcnow)
     # TODO(Nico) implement updated
 
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'),

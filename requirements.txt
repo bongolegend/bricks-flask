@@ -5,3 +5,7 @@ twilio~=6.0.0
 pandas
 apscheduler
 Flask-SQLAlchemy
+
+
+# development
+jupyter

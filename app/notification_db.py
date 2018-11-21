@@ -31,4 +31,4 @@ NOTIFICATIONS = {
 
 notifications_df = pd.DataFrame.from_dict(NOTIFICATIONS, 
     orient='index',
-    columns=['to_number', 'output', 'trigger_type', 'kwargs'])
+    columns=['to_number', 'outbound', 'trigger_type', 'kwargs'])

@@ -1,5 +1,6 @@
-from models import User, Notification
-from run import db, create_app
+'''dumping grounds for testing stuff'''
+from app import db, create_app
+from app.models import User, Notification
 import datetime as dt
 
 app = create_app()

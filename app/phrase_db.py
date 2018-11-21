@@ -34,5 +34,5 @@ FIRST_CONTACT = {
 
 first_contact_df = pd.DataFrame.from_dict(FIRST_CONTACT, 
     orient='index',
-    columns=['last_output_id', 'input', 'response']
+    columns=['last_outbound_id', 'inbound', 'response']
 )
