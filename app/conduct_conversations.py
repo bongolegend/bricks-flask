@@ -32,7 +32,7 @@ def main():
     ############
     ### set notifications to scheduler as appropriate
 
-    # set a notification for tonight, recurring
+    # set a recurring notification for tonight - as long as it doesnt already exist
     if outbound_id == 2 and len(Notification.query.filter_by(user=user, tag='checkin').all()) == 0:
             
             notif = Notification(tag='checkin',
