@@ -6,7 +6,6 @@ pandas
 apscheduler
 Flask-SQLAlchemy
 psycopg2-binary
-alembic
 Flask-Migrate
 Flask-Script
 
