@@ -17,20 +17,21 @@ db = SQLAlchemy()
 scheduler = BackgroundScheduler(daemon=True)
 scheduler.start()
 
-def create_app(config_name=None):
-    if config_name is None:
-        config_name = Config
+def create_app(config=None):
+    if config is None:
+        config = Config
         
     app = Flask(__name__)
-    app.config.from_object(config_name)
+    app.config.from_object(config)
 
     db.init_app(app) # connects sqlalchemy to flask
 
-    from app.views import main as main_blueprint
-    app.register_blueprint(main_blueprint)
+    with app.app_context():
+        from app.views import main as main_blueprint
+        app.register_blueprint(main_blueprint)
 
-    from app.send_notifications import main as send_notifications
-    send_notifications(scheduler=scheduler)
+        from app.send_notifications import main as send_notifications
+        send_notifications(db, scheduler=scheduler)
 
     return app
 

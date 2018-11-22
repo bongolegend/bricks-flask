@@ -5,7 +5,10 @@ twilio~=6.0.0
 pandas
 apscheduler
 Flask-SQLAlchemy
-
+psycopg2-binary
+alembic
+Flask-Migrate
+Flask-Script
 
 # development
 jupyter

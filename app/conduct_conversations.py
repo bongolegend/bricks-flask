@@ -6,6 +6,8 @@ from app import db, scheduler
 from app.phrase_db import first_contact_df
 from app.models import User, Notification
 from app.send_notifications import add_notif_to_scheduler
+from config import Config # TODO(Nico) find a cleaner way to access config. with create_app? or current_app?
+
 
 def main():
     """Respond to SMS inbound with appropriate SMS outbound based on conversation state and response_db.py"""
@@ -45,7 +47,7 @@ def main():
                 user=user)
             
             # TODO(Nico) it could be problematic to schedule this before committing to db
-            add_notif_to_scheduler(scheduler, notif, user)
+            add_notif_to_scheduler(scheduler, notif, user.phone_number, Config)
             db.session.add(notif)
             db.session.commit()
             
