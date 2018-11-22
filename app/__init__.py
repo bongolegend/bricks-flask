@@ -8,6 +8,7 @@ https://dashboard.ngrok.com/get-started
 import logging
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
 from apscheduler.schedulers.background import BackgroundScheduler
 from config import Config
 
@@ -16,6 +17,11 @@ from config import Config
 db = SQLAlchemy()
 scheduler = BackgroundScheduler(daemon=True)
 scheduler.start()
+'''
+The duplicate output from your function can be explained by the reloader. The first thing it does is start 
+the main function in a new thread so it can monitor the source files and restart the thread when they change. 
+Disable this with the use_reloader=False option.
+'''
 
 def create_app(config=None):
     if config is None:
@@ -26,12 +32,16 @@ def create_app(config=None):
 
     db.init_app(app) # connects sqlalchemy to flask
 
+    migrate = Migrate(app, db) # connects flask_migrate (alembic ext) to flask
+
     with app.app_context():
         from app.views import main as main_blueprint
         app.register_blueprint(main_blueprint)
 
-        from app.send_notifications import main as send_notifications
-        send_notifications(db, scheduler=scheduler)
+        from app.send_notifications import seed_scheduler as seed
+        @app.cli.command()
+        def seed_scheduler():
+            return seed(db, scheduler=scheduler)
 
     return app
 

@@ -9,7 +9,8 @@ from app.notification_db import notifications_df
 from app.models import User, Notification
 from config import Config # TODO(Nico) find a cleaner way to access config. with create_app? or current_app?
 
-def main(db, scheduler=None, test=False):
+
+def seed_scheduler(db, scheduler=None, test=False):
     '''scheduler starts on a separate thread (initialized in __init__). seed it with stored notifications'''
     # enable daemonic mode to terminate scheduler when app terminates
 
@@ -17,7 +18,13 @@ def main(db, scheduler=None, test=False):
         scheduler = BackgroundScheduler(daemon=True)
         scheduler.start()
 
-    seed_scheduler(scheduler, db, Config) 
+    result = db.session.query(Notification, User).join(User).all()
+    
+    print('QURY RESULT', result)
+
+    for row in result:
+        notif, user = row
+        add_notif_to_scheduler(scheduler, notif, user.phone_number, Config)
 
     # this is an easy way to send notifications without running the whole app
     if test:
@@ -25,16 +32,6 @@ def main(db, scheduler=None, test=False):
             pass
     else:
         return scheduler
-
-
-def seed_scheduler(scheduler, db, config):
-    '''get stored notifications from db and add to scheduler'''
-   
-    result = db.session.query(Notification, User).join(User).all()
-
-    for row in result:
-        notif, user = row
-        add_notif_to_scheduler(scheduler, notif, user.phone_number, config)
 
 
 def add_notif_to_scheduler(scheduler, notif, phone_number, config):
