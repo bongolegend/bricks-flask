@@ -48,6 +48,8 @@ def main():
             
             # TODO(Nico) it could be problematic to schedule this before committing to db
             add_notif_to_scheduler(scheduler, notif, user.phone_number, Config)
+
+            print('CONDUCT CONVO SCHEDULER', scheduler.get_jobs())
             db.session.add(notif)
             db.session.commit()
             

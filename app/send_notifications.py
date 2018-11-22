@@ -26,6 +26,9 @@ def seed_scheduler(db, scheduler=None, test=False):
         notif, user = row
         add_notif_to_scheduler(scheduler, notif, user.phone_number, Config)
 
+    scheduler.add_job(free)
+
+    print('CONDUCT CONVO SCHEDULER', scheduler.get_jobs())
     # this is an easy way to send notifications without running the whole app
     if test:
         while True:
@@ -56,7 +59,10 @@ def notify(to_number, outbound):
                         to=to_number,
                         body=outbound)
 
+def free():
+    print('FREE!!!!')
 
+    
 if __name__ == '__main__':
     logger = logging.getLogger()
     logging.basicConfig(format='%(asctime)s - %(message)s')

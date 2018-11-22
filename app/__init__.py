@@ -17,6 +17,11 @@ from config import Config
 db = SQLAlchemy()
 scheduler = BackgroundScheduler(daemon=True)
 scheduler.start()
+logging.getLogger('apscheduler.executors.default').setLevel(logging.INFO)
+def me():
+    print("ME!!!!")
+
+scheduler.add_job(me)
 '''
 The duplicate output from your function can be explained by the reloader. The first thing it does is start 
 the main function in a new thread so it can monitor the source files and restart the thread when they change. 
