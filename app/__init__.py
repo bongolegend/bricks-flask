@@ -13,15 +13,15 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from config import Config
 
 
+# initialize logging so that `flask run` logs the scheduler
+logger = logging.getLogger()
+logging.basicConfig(format='%(asctime)s - %(message)s')
+logger.setLevel(logging.INFO)
+
 # initialize sqlalchemy and scheduler before app, these are imported into downstream modules
 db = SQLAlchemy()
 scheduler = BackgroundScheduler(daemon=True)
 scheduler.start()
-logging.getLogger('apscheduler.executors.default').setLevel(logging.INFO)
-def me():
-    print("ME!!!!")
-
-scheduler.add_job(me)
 '''
 The duplicate output from your function can be explained by the reloader. The first thing it does is start 
 the main function in a new thread so it can monitor the source files and restart the thread when they change. 
@@ -52,9 +52,6 @@ def create_app(config=None):
 
 
 if __name__ == "__main__":
-    logger = logging.getLogger()
-    logging.basicConfig(format='%(asctime)s - %(message)s')
-    logger.setLevel(logging.INFO)
 
     app = create_app(Config)
     app.run(debug=True)
