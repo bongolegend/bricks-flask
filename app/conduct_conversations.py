@@ -1,8 +1,7 @@
 import datetime as dt
 from flask import request, session
 from twilio.twiml.messaging_response import MessagingResponse
-
-from app import db, scheduler
+from app import scheduler, db
 from app.phrase_db import first_contact_df
 from app.models import User, Notification
 from app.send_notifications import add_notif_to_scheduler
@@ -48,8 +47,6 @@ def main():
             
             # TODO(Nico) it could be problematic to schedule this before committing to db
             add_notif_to_scheduler(scheduler, notif, user.phone_number, Config)
-
-            print('CONDUCT CONVO SCHEDULER', scheduler.get_jobs())
             db.session.add(notif)
             db.session.commit()
             

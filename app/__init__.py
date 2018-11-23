@@ -6,10 +6,7 @@ remember that you need to set the ngrok URL every time you restart the ngrok ser
 https://dashboard.ngrok.com/get-started
 '''
 import logging
-from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
-from flask_migrate import Migrate
-from apscheduler.schedulers.background import BackgroundScheduler
+from app.base_init import init_scheduler, init_db, init_app
 from config import Config
 
 
@@ -18,35 +15,23 @@ logger = logging.getLogger()
 logging.basicConfig(format='%(asctime)s - %(message)s')
 logger.setLevel(logging.INFO)
 
-# initialize sqlalchemy and scheduler before app, these are imported into downstream modules
-db = SQLAlchemy()
-scheduler = BackgroundScheduler(daemon=True)
-scheduler.start()
-'''
-The duplicate output from your function can be explained by the reloader. The first thing it does is start 
-the main function in a new thread so it can monitor the source files and restart the thread when they change. 
-Disable this with the use_reloader=False option.
-'''
+
+scheduler = init_scheduler() # needs to be instantiated here for imports to get the same scheduler instance
+db = init_db() # this needs to be instantiated here, else the manage.py and models.py import different `db`
 
 def create_app(config=None):
     if config is None:
         config = Config
-        
-    app = Flask(__name__)
-    app.config.from_object(config)
-
-    db.init_app(app) # connects sqlalchemy to flask
-
-    migrate = Migrate(app, db) # connects flask_migrate (alembic ext) to flask
+    
+    app = init_app()
+    db.init_app(app)
 
     with app.app_context():
         from app.views import main as main_blueprint
         app.register_blueprint(main_blueprint)
 
-        from app.send_notifications import seed_scheduler as seed
-        @app.cli.command()
-        def seed_scheduler():
-            return seed(db, scheduler=scheduler)
+        from app.send_notifications import seed_scheduler
+        seed_scheduler()
 
     return app
 

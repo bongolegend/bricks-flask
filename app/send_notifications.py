@@ -5,30 +5,20 @@ import settings
 from twilio.rest import Client
 from apscheduler.schedulers.background import BackgroundScheduler
 # inspiration: https://github.com/agronholm/apscheduler/blob/master/examples/schedulers/background.py
+from app import scheduler, db
 from app.notification_db import notifications_df
 from app.models import User, Notification
 from config import Config # TODO(Nico) find a cleaner way to access config. with create_app? or current_app?
 
 
-def seed_scheduler(db, scheduler=None, test=False):
+def seed_scheduler(test=False):
     '''scheduler starts on a separate thread (initialized in __init__). seed it with stored notifications'''
-    # enable daemonic mode to terminate scheduler when app terminates
-
-    if scheduler is None:
-        scheduler = BackgroundScheduler(daemon=True)
-        scheduler.start()
-
     result = db.session.query(Notification, User).join(User).all()
-    
-    print('QURY RESULT', result)
 
     for row in result:
         notif, user = row
         add_notif_to_scheduler(scheduler, notif, user.phone_number, Config)
 
-    scheduler.add_job(free)
-
-    print('CONDUCT CONVO SCHEDULER', scheduler.get_jobs())
     # this is an easy way to send notifications without running the whole app
     if test:
         while True:
@@ -40,6 +30,9 @@ def seed_scheduler(db, scheduler=None, test=False):
 def add_notif_to_scheduler(scheduler, notif, phone_number, config):
     '''add notification instance to the running scheduler'''
     notif_dict = {key: val for key, val in notif.__dict__.items() if key in config.CRON_KEYS}
+
+    # TODO(Nico) you might want to use a persistent job store
+    # https://apscheduler.readthedocs.io/en/latest/modules/jobstores/sqlalchemy.html#apscheduler.jobstores.sqlalchemy.SQLAlchemyJobStore
     
     scheduler.add_job(notify,
         notif.trigger_type,
@@ -58,9 +51,6 @@ def notify(to_number, outbound):
     client.messages.create(from_=os.environ.get('TWILIO_PHONE_NUMBER'),
                         to=to_number,
                         body=outbound)
-
-def free():
-    print('FREE!!!!')
 
     
 if __name__ == '__main__':
