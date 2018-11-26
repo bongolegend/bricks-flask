@@ -7,7 +7,6 @@ https://dashboard.ngrok.com/get-started
 '''
 import logging
 from app.base_init import init_scheduler, init_db, init_app
-from config import Config
 
 
 # initialize logging so that `flask run` logs the scheduler
@@ -19,9 +18,7 @@ logger.setLevel(logging.INFO)
 scheduler = init_scheduler() # needs to be instantiated here for imports to get the same scheduler instance
 db = init_db() # this needs to be instantiated here, else the manage.py and models.py import different `db`
 
-def create_app(config=None):
-    if config is None:
-        config = Config
+def create_app():
     
     app = init_app()
     db.init_app(app)
@@ -38,5 +35,5 @@ def create_app(config=None):
 
 if __name__ == "__main__":
 
-    app = create_app(Config)
+    app = create_app()
     app.run(debug=True)

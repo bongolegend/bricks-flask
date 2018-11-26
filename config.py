@@ -16,3 +16,11 @@ class Config:
         'end_date',
         'timezone',
     ]
+
+class ProdConfig(Config):
+    # further sqlalchemy config options: http://flask-sqlalchemy.pocoo.org/2.3/config/
+    db_user = os.environ.get('CLOUD_SQL_USERNAME')
+    db_password = os.environ.get('CLOUD_SQL_PASSWORD')
+    db_name = os.environ.get('CLOUD_SQL_DATABASE_NAME')
+    host = f'cloudsql/{os.environ.get('CLOUD_SQL_CONNECTION_NAME')}'
+    SQLALCHEMY_DATABASE_URI = f'postgres://{db_user}:{db_password}@{host}/{db_name}'
