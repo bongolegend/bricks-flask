@@ -5,7 +5,9 @@ from app import db
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(64))
-    phone_number = db.Column(db.String(32), unique=True, nullable=True)
+    phone_number = db.Column(db.String(32), unique=True)
+    timezone = db.Column(db.String(32))
+    created = db.Column(db.DateTime, nullable=False, default=dt.utcnow)
 
     def __repr__(self):
         return '<User %r>' % self.phone_number
@@ -22,8 +24,7 @@ class Notification(db.Model):
     jitter = db.Column(db.Integer)
     end_date = db.Column(db.DateTime)
     timezone = db.Column(db.String(32), nullable=False)
-    created = db.Column(db.DateTime, nullable=False,
-        default=dt.utcnow)
+    created = db.Column(db.DateTime, nullable=False, default=dt.utcnow)
     # TODO(Nico) implement updated
 
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'),

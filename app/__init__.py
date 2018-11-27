@@ -17,6 +17,7 @@ logger.setLevel(logging.INFO)
 
 scheduler = init_scheduler() # needs to be instantiated here for imports to get the same scheduler instance
 db = init_db() # this needs to be instantiated here, else the manage.py and models.py import different `db`
+import app.models
 
 def create_app():
     
