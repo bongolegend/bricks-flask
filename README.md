@@ -1,3 +1,14 @@
+# Intro
+This is a chatbot app that reminds you once a day via text to decide the most important thing you want to get done. At the end of the day, it asks you if you followed through. If you did, you get a point. Keep stacking those bricks and build a strong life.
+
+This project is built on Flask, using the Twilio API.
+* DB: PostgreSQL
+* DB manager: Alembic
+* scheduler: APScheduler
+* deployment: GAE and Cloud SQL (by Google)
+
+# Running Flask Locally
+I chose to use gunicorn as the server, because that matches what GAE uses: `gunicorn main:app`. This runs the app from the `main.py` file. You can specify a port like this: `gunicorn -b 5000 main:app`
 
 # Flask App Deployment
 
@@ -18,7 +29,7 @@
 ### Testing your deployment locally
 
 * If  you want to run the GAE SDK dev server locally, run `dev_appserver.py --application=bricks-app app.yaml --port=5000`. 
-`dev_appserver.py` exists in some random folder but for some reason it was on my path, as I could run it from my repo. If you get an error about Python 3 not being supported, that's just because dev_appserver.py is written in python 2.7. The dirty fix is to change the shebang (in the file) to call up the python3 interpreter.
+`dev_appserver.py` exists in some random folder but for some reason it was on my path, as I could run it from my repo. If you get an error about Python 3 not being supported, that's just because dev_appserver.py is written in python 2.7. The dirty fix is to change the shebang in `dev_appserver.py` to call up the python3 interpreter.
 
 ### Managing your deployed app
 [Shut your app down](https://console.cloud.google.com/appengine/settings?project=bricks-app&serviceId=default) so it can't incur expenses.
@@ -28,10 +39,10 @@
 
 ### Deploying the DB to Google Cloud SQL
 * The name of the db is `bricks-db` (subject to change).
-* Follow these [steps](https://cloud.google.com/sql/docs/postgres/create-instance) to create a Postgres instanceon Cloud SQL. 
+* Follow these [steps](https://cloud.google.com/sql/docs/postgres/create-instance) to create a Postgres instance on Cloud SQL. 
 
 ### Connect the App to the DB in Google Cloud
-https://cloud.google.com/appengine/docs/standard/python3/using-cloud-sql
+Follow these [instructions](https://cloud.google.com/appengine/docs/standard/python3/using-cloud-sql).
 
 ### Connecting Local App to Deployed DB
 The point of this is to be able to run migrations. I haven't succeeded in accessing the console for the GAE instance to run the migrations from there.
