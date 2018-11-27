@@ -5,14 +5,14 @@ from app import scheduler, db
 from app.phrase_db import first_contact_df
 from app.models import User, Notification
 from app.send_notifications import add_notif_to_scheduler
-from config import Config # TODO(Nico) find a cleaner way to access config. with create_app? or current_app?
+from config import Config # TODO(Nico) access the config that has been initialized on the app 
 
 
 def main():
     """Respond to SMS inbound with appropriate SMS outbound based on conversation state and response_db.py"""
 
     user = query_or_insert_user(request.values.get('From'))
-
+    
     # get values from session storage
     counter = session.get('counter', 0)
     last_outbound = session.get('last_outbound', None)
@@ -20,38 +20,19 @@ def main():
 
     # process inbound
     inbound = request.values.get('Body')
-    print('USER SMS INBOUND: ', inbound,' - ', type(inbound))
+    print('SMS INBOUND: ', user, inbound)
 
     # decide on outbound
     outbound, outbound_id = choose_phrase(last_outbound_id, inbound, first_contact_df)
 
+    # all logic on scheduler and db
+    if last_outbound_id == 2:
+        user = update_timezone(last_outbound_id, user, inbound)
+        schedule_reminders(last_outbound_id, user)
+
+    # send outbound    
     resp = MessagingResponse() # initialize twilio's response tool. it works under the hood
     resp.message(outbound)
-
-    ############
-    ### set notifications to scheduler as appropriate
-
-    # set a recurring notification for tonight - as long as it doesnt already exist
-    if outbound_id == 2 and len(Notification.query.filter_by(user=user, tag='checkin').all()) == 0:
-            
-            notif = Notification(tag='checkin',
-                body="DID you stack your brick today?",
-                trigger_type='cron',
-                day_of_week='mon-fri',
-                hour=21,
-                minute=0,
-                jitter=30,
-                end_date=dt.datetime(2018,11,30),
-                timezone='America/Denver',
-                user=user)
-            
-            # TODO(Nico) it could be problematic to schedule this before committing to db
-            add_notif_to_scheduler(scheduler, notif, user.phone_number, Config)
-            db.session.add(notif)
-            db.session.commit()
-            
-
-    # TODO(Nico) set a notification for tomorrow morning, recurring
 
     # save new values to session
     counter += 1
@@ -60,6 +41,8 @@ def main():
     session['last_outbound_id'] = outbound_id
 
     return str(resp)
+
+
 
 
 def choose_phrase(last_outbound_id, inbound, first_contact_df):
@@ -100,3 +83,54 @@ def query_or_insert_user(phone_number):
         print(f"CREATING NEW USER: {new_user}")
         return new_user
 
+
+def schedule_reminders(last_outbound_id, user):
+    # set a recurring notification for tonight - as long as it doesnt already exist
+    if last_outbound_id == 2 and len(Notification.query.filter_by(user=user, tag='evening_checkin').all()) == 0:
+            
+        notif = Notification(tag='evening_checkin',
+            body="Did you stack your brick today?",
+            trigger_type='cron',
+            day_of_week='mon-fri',
+            hour=21,
+            minute=0,
+            jitter=30,
+            end_date=dt.datetime(2018,11,30),
+            timezone=getattr(user, 'timezone', 'America/Los_Angeles'),
+            user=user)
+        
+        # TODO(Nico) it could be problematic to schedule this before committing to db
+        add_notif_to_scheduler(scheduler, notif, user.phone_number, Config)
+        db.session.add(notif)
+        db.session.commit()
+
+    # TODO(Nico) set a notification for tomorrow morning, recurring
+    if last_outbound_id == 2 and len(Notification.query.filter_by(user=user, tag='morning_ask').all()) == 0:
+            
+        notif = Notification(tag='morning_ask',
+            body="What is your brick for today?",
+            trigger_type='cron',
+            day_of_week='mon-fri',
+            hour=8,
+            minute=0,
+            jitter=30,
+            end_date=dt.datetime(2018,11,30),
+            timezone=getattr(user, 'timezone', 'America/Los_Angeles'),
+            user=user)
+        
+        # TODO(Nico) it could be problematic to schedule this before committing to db
+        add_notif_to_scheduler(scheduler, notif, user.phone_number, Config)
+        db.session.add(notif)
+        db.session.commit()
+    
+
+def update_timezone(last_outbound_id, user, inbound):
+    if last_outbound_id == 2:
+        tz = Config.US_TIMEZONES.get(inbound, None)
+        if tz is None:
+            raise ValueError('TZ Selection not recognized.')
+    
+    user.timezone = tz
+    db.session.commit()
+
+    return user
