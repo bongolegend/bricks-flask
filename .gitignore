@@ -4,5 +4,4 @@ __pycache__
 venv
 *.ipynb
 .DS_Store
-app.yaml
 cloud_sql_proxy
