@@ -6,7 +6,6 @@ from twilio.rest import Client
 from apscheduler.schedulers.background import BackgroundScheduler
 # inspiration: https://github.com/agronholm/apscheduler/blob/master/examples/schedulers/background.py
 from app import scheduler, db
-from app.notification_db import notifications_df
 from app.models import User, Notification
 from config import Config # TODO(Nico) find a cleaner way to access config. with create_app? or current_app?
 
