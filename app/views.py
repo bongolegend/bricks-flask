@@ -17,10 +17,10 @@ def landing_page():
 
    welcome to Bricks.
 
-     _______ _____
-  __/______/_____/|___  
-/___|__ ___|__ __|/__/|
-|______|______|______|/
+         _______
+      __/______/|___  
+    /___|__ ___|/__/|
+    |______|_______|/
 
 
 Please text {os.environ.get('TWILIO_PHONE_NUMBER')} to get started.
