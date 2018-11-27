@@ -1,11 +1,8 @@
 # this file is used by google cloud platform to configure the env for this app
 # inspiration: https://cloud.google.com/appengine/docs/standard/python3/config/appref
-
 runtime: python37
 
 # command that is executed to start the app
 # you don't need to specify this if you conform to these rules
 # https://cloud.google.com/appengine/docs/standard/python3/runtime#application_startup
-entrypoint: gunicorn -b :$PORT main:app
-
-# can I import these from my .env file?
+# entrypoint: gunicorn -b :$PORT main:app
