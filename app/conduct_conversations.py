@@ -39,8 +39,8 @@ def main():
                 trigger_type='cron',
                 day_of_week='mon-fri',
                 hour=21,
-                minute=55,
-                jitter=0,
+                minute=0,
+                jitter=30,
                 end_date=dt.datetime(2018,11,30),
                 timezone='America/Denver',
                 user=user)
