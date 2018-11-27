@@ -4,7 +4,7 @@ import settings
 class Config:
     SECRET_KEY = os.environ.get('FLASK_SECRET_KEY')
     # SQLALCHEMY_DATABASE_URI = 'sqlite:////tmp/test.db'
-    SQLALCHEMY_DATABASE_URI = os.environ['LOCAL_DB_URL']
+    SQLALCHEMY_DATABASE_URI = os.environ.get('LOCAL_DB_URL')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     HOST = 'local'
     # for setting notifications to scheduler

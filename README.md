@@ -34,3 +34,8 @@ Remember that if you're ever connecting to a prod instance, you should use a pub
 
 Set GAE_ENV to `standard` in your env. Now anything you run, such as `gunicorn` to launch the app, or `python manage.py db upgrade`
 will connect to the Cloud SQL Proxy
+
+# Connect locally via command line to Prod DB
+start the Cloud SQL proxy: `./cloud_sql_proxy -dir=/cloudsql &`
+
+Connect your local psql: `psql "sslmode=disable host=/cloudsql/bricks-app:us-west2:bricks-db user=postgres"`
