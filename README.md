@@ -8,7 +8,14 @@ This project is built on Flask, using the Twilio API.
 * deployment: GAE and Cloud SQL (by Google)
 
 # Running Flask Locally
-I chose to use gunicorn as the server, because that matches what GAE uses: `gunicorn main:app`. This runs the app from the `main.py` file. You can specify a port like this: `gunicorn -b 5000 main:app`
+To run locally, you need to set up the DB first:
+* install Postgres.
+* create a new DB called `bricks`.
+* run migrations on the DB: `python manage.py db upgrade`.
+
+To run the dev server, `flask run` with env var FLASK_ENV set to "development".
+
+To test the production server tool: `gunicorn main:app`. This runs the app from the `main.py` file. You can specify a port like this: `gunicorn -b 5000 main:app`. I chose to use gunicorn as the server, because that matches what GAE uses. Though if you really want to test the GAE environment, see "Testing your deployment locally" below.
 
 # Flask App Deployment
 
