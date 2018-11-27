@@ -63,3 +63,7 @@ The point of this is to be able to run migrations. I haven't succeeded in access
 * Remember that if you're ever connecting to a prod instance, you should use a public/private key (which isnt the default).
 
 * When your Flask app is deployed, GAE sets GAE_ENV to `standard` in your env as a way for your app to know it is deployed. You can use this trick to use the deployed connection (set in `config.py`), because the specs to connect to Cloud SQL from GAE are the same as the specs to connect your local app to Cloud SQL Proxy. Now anything you run, such as `gunicorn` to launch the app, or `python manage.py db upgrade` will connect to the Cloud SQL Proxy, ie to the prod instance of your app.
+
+# Twilio
+
+To whitelist phone numbers, go to https://www.twilio.com/console/phone-numbers/verified
