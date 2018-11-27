@@ -1,5 +1,6 @@
 '''A module to initialize db and Flask() without the rest of the logic, fo ruse with cli commands'''
 import os
+import logging
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -13,6 +14,8 @@ def init_app():
         app.config.from_object(ProdConfig)
     else:
         app.config.from_object(Config)
+    logging.info(f'CONNECTING TO DB VIA {app.config["HOST"]}')
+
     return app
 
 

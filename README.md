@@ -25,3 +25,12 @@ https://cloud.google.com/appengine/docs/standard/python3/using-cloud-sql
 # Managing your deployed app
 To shut your app down:
 https://console.cloud.google.com/appengine/settings?project=bricks-app&serviceId=default
+
+# Connecting local app to Deployed DB
+Use the Google Cloud Proxy service instructions:
+https://cloud.google.com/sql/docs/postgres/connect-admin-proxy
+
+Remember that if you're ever connecting to a prod instance, you should use a public/private key (which isnt the default).
+
+Set GAE_ENV to `standard` in your env. Now anything you run, such as `gunicorn` to launch the app, or `python manage.py db upgrade`
+will connect to the Cloud SQL Proxy
