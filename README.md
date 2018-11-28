@@ -67,3 +67,10 @@ The point of this is to be able to run migrations. I haven't succeeded in access
 # Twilio
 
 To whitelist phone numbers, go to https://www.twilio.com/console/phone-numbers/verified
+
+# Open Questions
+When do you close a sqlalchemy session, if ever?
+
+https://docs.sqlalchemy.org/en/latest/orm/session_basics.html#when-do-i-construct-a-session-when-do-i-commit-it-and-when-do-i-close-it
+
+https://groups.google.com/forum/#!topic/sqlalchemy/4mj8zQy_Lr0
