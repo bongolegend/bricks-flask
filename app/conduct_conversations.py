@@ -17,14 +17,14 @@ def main():
     # get values from session storage
     # TODO(Nico) how does this work? when does it expire? can it handle multiple users? I don't think so
     last_outbound = session.get('last_outbound', None)
-    last_outbound_id = session.get('last_outbound_id', 0)
+    last_router_id = session.get('last_router_id', 0)
 
     # ingest inbound message  
     inbound = request.values.get('Body')
     print('SMS INBOUND: ', user, inbound)
 
     # decide on outbound message and func calls
-    outbound, outbound_id = pick_response_and_logic(last_outbound_id, inbound, user)
+    outbound, router_id = pick_response_and_logic(last_router_id, inbound, user)
 
     # send outbound    
     resp = MessagingResponse() # initialize twilio's response tool. it works under the hood
@@ -32,22 +32,22 @@ def main():
 
     # save new values to session
     session['last_outbound'] = outbound
-    session['last_outbound_id'] = outbound_id
+    session['last_router_id'] = router_id
 
     return str(resp)
 
 
-def pick_response_and_logic(last_outbound_id, inbound, user):
+def pick_response_and_logic(last_router_id, inbound, user):
     '''Query the static router table to find the right outbound message and action'''
     routers = router_df.copy()
-    print("INPUTS", last_outbound_id, inbound, user)
+    print("INPUTS", last_router_id, inbound, user)
     
-    # match on last_outbound_id
-    routers = routers[routers.last_outbound_id == last_outbound_id]
+    # match on last_router_id
+    routers = routers[routers.last_router_id == last_router_id]
     print("LAST OUTBOUND", len(routers))
     # match on inbound
     # TODO(Nico) include a parser of user's inbound messages to standardize them 
-    if inbound in routers.inbound.values: # ASSUME that each last_outbound_id, inbound pair is unique
+    if inbound in routers.inbound.values: # ASSUME that each last_router_id, inbound pair is unique
         routers = routers[routers.inbound == inbound]
     else: # by default, return the router that accepts any input
         routers = routers[routers.inbound == '*']
@@ -57,16 +57,18 @@ def pick_response_and_logic(last_outbound_id, inbound, user):
     elif len(routers) > 1:
         raise NotImplementedError("The routers are ambiguous - too many matches. fix your data.")
 
+    router = routers.iloc[0]
+
     # trigger actions
-    for action_name in routers.actions.iloc[0]:
+    for action_name in router.actions:
         if action_name is not None:
             action = ACTIONS.get(action_name, None)
             assert action is not None, 'action does not match any key in ACTIONS'
-            action(last_outbound_id=last_outbound_id, 
+            action(last_router_id=last_router_id, 
                 inbound=inbound, 
                 user=user)
 
-    return routers.response.iloc[0], int(routers.index.values[0])
+    return router.response, int(router.router_id)
 
 
 def query_or_insert_user(phone_number):

@@ -21,43 +21,41 @@ c) CT
 d) ET
 """
 
-ROUTERS = {
-    1: [
-        0,
-        '*',
-        WELCOME,
-        (None,)        
-    ],
-    2: [
-        1,
-        'a',
-        "Ok, so what’s the most important thing you want to get done today?",
-        (None,)
-    ],
-    3: [
-        2,
-        '*',
-        f"gotcha. {TZ_QUESTION}",
-        (None,)
-    ],
-    4: [
-        1,
-        'b',
-        HOW_IT_WORKS,
-        (None,)
-    ],
-    5: [
-        3,
-        '*',
-        "I’ll text you tonight at 9 pm to follow up and make sure you did that.",
-        ('update_timezone','schedule_reminders' ) # these get executed in order
-    ]
-}
+ROUTERS = [
+    {
+        'router_id': 1,
+        'last_router_id': 0, 
+        'inbound': '*', 
+        'response': WELCOME, 
+        'actions': (None,)
+    }, {
+        'router_id': 2,
+        'last_router_id': 1, 
+        'inbound': 'a', 
+        'response': "Ok, so what’s the most important thing you want to get done today?", 
+        'actions': (None,)
+    }, {
+        'router_id': 3,
+        'last_router_id': 2, 
+        'inbound': '*', 
+        'response': f"gotcha. {TZ_QUESTION}", 
+        'actions': (None,)
+    }, {
+        'router_id': 4,
+        'last_router_id': 1, 
+        'inbound': 'b', 
+        'response': HOW_IT_WORKS, 
+        'actions': (None,)
+    }, {
+        'router_id': 5,
+        'last_router_id': 3, 
+        'inbound': '*', 
+        'response': "I’ll text you tonight at 9 pm to follow up and make sure you did that.", 
+        'actions': ('update_timezone','schedule_reminders' ) # these get executed in order
+    }
+]
 
-router_df = pd.DataFrame.from_dict(ROUTERS, 
-    orient='index',
-    columns=['last_outbound_id', 'inbound', 'response', 'actions']
-)
+router_df = pd.DataFrame.from_dict(ROUTERS)
 
 ACTIONS = {
     'schedule_reminders': actions.schedule_reminders,
