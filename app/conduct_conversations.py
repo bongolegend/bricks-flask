@@ -2,7 +2,7 @@ import datetime as dt
 from flask import request, session
 from twilio.twiml.messaging_response import MessagingResponse
 from app import scheduler, db
-from app.phrase_db import first_contact_df
+from app.router_table import router_df, ACTIONS
 from app.models import User, Notification
 from app.send_notifications import add_notif_to_scheduler
 from config import Config # TODO(Nico) access the config that has been initialized on the app 
@@ -11,59 +11,62 @@ from config import Config # TODO(Nico) access the config that has been initializ
 def main():
     """Respond to SMS inbound with appropriate SMS outbound based on conversation state and response_db.py"""
 
+    # identify the user
     user = query_or_insert_user(request.values.get('From'))
     
     # get values from session storage
-    counter = session.get('counter', 0)
+    # TODO(Nico) how does this work? when does it expire? can it handle multiple users? I don't think so
     last_outbound = session.get('last_outbound', None)
-    last_outbound_id = session.get('last_outbound_id', None)
+    last_outbound_id = session.get('last_outbound_id', 0)
 
-    # process inbound
+    # ingest inbound message  
     inbound = request.values.get('Body')
     print('SMS INBOUND: ', user, inbound)
 
-    # decide on outbound
-    outbound, outbound_id = choose_phrase(last_outbound_id, inbound, first_contact_df)
-
-    # all logic on scheduler and db
-    if last_outbound_id == 2:
-        user = update_timezone(last_outbound_id, user, inbound)
-        schedule_reminders(last_outbound_id, user)
+    # decide on outbound message and func calls
+    outbound, outbound_id = pick_response_and_logic(last_outbound_id, inbound, user)
 
     # send outbound    
     resp = MessagingResponse() # initialize twilio's response tool. it works under the hood
     resp.message(outbound)
 
     # save new values to session
-    counter += 1
-    session['counter'] = counter
     session['last_outbound'] = outbound
     session['last_outbound_id'] = outbound_id
 
     return str(resp)
 
 
-
-
-def choose_phrase(last_outbound_id, inbound, first_contact_df):
-    phrases = first_contact_df.copy()
+def pick_response_and_logic(last_outbound_id, inbound, user):
+    '''Query the static router table to find the right outbound message and action'''
+    routers = router_df.copy()
+    print("INPUTS", last_outbound_id, inbound, user)
     
-    # check last_outbound_id matches
-    if last_outbound_id is not None:
-        filtered = phrases[phrases.last_outbound_id == last_outbound_id]
-    else:
-        filtered = phrases[phrases.last_outbound_id.isnull()]
+    # match on last_outbound_id
+    routers = routers[routers.last_outbound_id == last_outbound_id]
+    print("LAST OUTBOUND", len(routers))
+    # match on inbound
+    # TODO(Nico) include a parser of user's inbound messages to standardize them 
+    if inbound in routers.inbound.values: # ASSUME that each last_outbound_id, inbound pair is unique
+        routers = routers[routers.inbound == inbound]
+    else: # by default, return the router that accepts any input
+        routers = routers[routers.inbound == '*']
 
-    # check inbound matches
-    if inbound in filtered.inbound.values: # ASSUME that each last_outbound_id, inbound pair is unique
-        filtered = filtered[filtered.inbound == inbound]
-    else: # if there is no matching key, use Null as the wildcard
-        filtered = filtered[filtered.inbound.isnull()] # if there are no wildcard options for this key, you get an empty df
+    if len(routers) == 0:
+        return "No valid response in our db. Restarting the chat from the beginning.", 0
+    elif len(routers) > 1:
+        raise NotImplementedError("The routers are ambiguous - too many matches. fix your data.")
 
-    if len(filtered) == 0:
-        return "No valid response in our db. Restarting the chat from the beginning.", None
+    # trigger actions
+    for action_name in routers.actions.iloc[0]:
+        if action_name is not None:
+            action = ACTIONS.get(action_name, None)
+            assert action is not None, 'action does not match any key in ACTIONS'
+            action(last_outbound_id=last_outbound_id, 
+                inbound=inbound, 
+                user=user)
 
-    return filtered.response.iloc[0], int(filtered.index.values[0])
+    return routers.response.iloc[0], int(routers.index.values[0])
 
 
 def query_or_insert_user(phone_number):
@@ -82,55 +85,3 @@ def query_or_insert_user(phone_number):
         db.session.commit()
         print(f"CREATING NEW USER: {new_user}")
         return new_user
-
-
-def schedule_reminders(last_outbound_id, user):
-    # set a recurring notification for tonight - as long as it doesnt already exist
-    if last_outbound_id == 2 and len(Notification.query.filter_by(user=user, tag='evening_checkin').all()) == 0:
-            
-        notif = Notification(tag='evening_checkin',
-            body="Did you stack your brick today?",
-            trigger_type='cron',
-            day_of_week='mon-fri',
-            hour=21,
-            minute=0,
-            jitter=30,
-            end_date=dt.datetime(2018,11,30),
-            timezone=getattr(user, 'timezone', 'America/Los_Angeles'),
-            user=user)
-        
-        # TODO(Nico) it could be problematic to schedule this before committing to db
-        add_notif_to_scheduler(scheduler, notif, user.phone_number, Config)
-        db.session.add(notif)
-        db.session.commit()
-
-    # TODO(Nico) set a notification for tomorrow morning, recurring
-    if last_outbound_id == 2 and len(Notification.query.filter_by(user=user, tag='morning_ask').all()) == 0:
-            
-        notif = Notification(tag='morning_ask',
-            body="What is your brick for today?",
-            trigger_type='cron',
-            day_of_week='mon-fri',
-            hour=8,
-            minute=0,
-            jitter=30,
-            end_date=dt.datetime(2018,11,30),
-            timezone=getattr(user, 'timezone', 'America/Los_Angeles'),
-            user=user)
-        
-        # TODO(Nico) it could be problematic to schedule this before committing to db
-        add_notif_to_scheduler(scheduler, notif, user.phone_number, Config)
-        db.session.add(notif)
-        db.session.commit()
-    
-
-def update_timezone(last_outbound_id, user, inbound):
-    if last_outbound_id == 2:
-        tz = Config.US_TIMEZONES.get(inbound, None)
-        if tz is None:
-            raise ValueError('TZ Selection not recognized.')
-    
-    user.timezone = tz
-    db.session.commit()
-
-    return user
