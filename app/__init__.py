@@ -17,13 +17,13 @@ logger.setLevel(logging.INFO)
 
 scheduler = init_scheduler() # needs to be instantiated here for imports to get the same scheduler instance
 db = init_db() # this needs to be instantiated here, else the manage.py and models.py import different `db`
-import app.models
+import app.models # relies on importing db, and is necessary for migrations to work, tho circular
 
 def create_app():
     
     app = init_app()
     db.init_app(app)
-
+    
     with app.app_context():
         from app.views import main as main_blueprint
         app.register_blueprint(main_blueprint)
