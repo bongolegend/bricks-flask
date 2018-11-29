@@ -41,6 +41,17 @@ class Notification(db.Model):
     user = db.relationship('User',
         backref=db.backref('notifications', lazy=True))
 
+    def to_cron(self):
+        '''return only values needed for cron job'''
+        return dict(
+            day_of_week = self.day_of_week, 
+            hour = self.hour,
+            minute = self.minute,
+            jitter = self.jitter,
+            end_date = self.end_date,
+            timezone = self.timezone
+        )
+
     def __repr__(self):
         return '<Notification %r>' % self.tag
 

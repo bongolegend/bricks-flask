@@ -19,9 +19,11 @@ def init_app():
     return app
 
 
-def init_db():
-    return SQLAlchemy()
-
+def init_db(app=None):
+    db = SQLAlchemy()
+    if app is not None:
+        db.init_app(app)
+    return db
 
 def init_scheduler():
     scheduler = BackgroundScheduler(daemon=True)

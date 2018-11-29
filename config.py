@@ -6,15 +6,6 @@ class Config:
     SQLALCHEMY_DATABASE_URI = os.environ.get('LOCAL_DB_URL')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     HOST = 'local'
-    # for setting notifications to scheduler
-    CRON_KEYS = [
-        'day_of_week',
-        'hour',
-        'minute',
-        'jitter',
-        'end_date',
-        'timezone',
-    ]
 
     US_TIMEZONES = {
         'a': 'America/Los_Angeles',
