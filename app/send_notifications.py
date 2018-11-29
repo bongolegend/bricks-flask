@@ -48,8 +48,8 @@ def notify(to_number, outbound):
     client = Client(account_sid, auth_token)
 
     client.messages.create(from_=os.environ.get('TWILIO_PHONE_NUMBER'),
-                        to=to_number,
-                        body=outbound)
+        to=to_number,
+        body=outbound)
 
     
 if __name__ == '__main__':

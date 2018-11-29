@@ -9,7 +9,7 @@ def schedule_reminders(last_router_id, user, **kwargs):
     '''Create one morning and one evening reminder. Add reminders to scheduler and to db'''
 
     # set morning reminder
-    if len(Notification.query.filter_by(user=user, tag='morning_ask').all()) == 0:
+    if len(Notification.query.filter_by(user_id=user['id'], tag='morning_ask').all()) == 0:
             
         notif = Notification(tag='morning_ask',
             body="What is your brick for today?",
@@ -19,15 +19,15 @@ def schedule_reminders(last_router_id, user, **kwargs):
             minute=0,
             jitter=30,
             end_date=dt.datetime(2018,11,30),
-            timezone=getattr(user, 'timezone', 'America/Los_Angeles'),
-            user=user)
+            timezone=user.get('timezone', 'America/Los_Angeles'),
+            user_id=user['id'])
         
         # TODO(Nico) it could be problematic to schedule this before committing to db
-        add_notif_to_scheduler(scheduler, notif, user.phone_number, Config)
+        add_notif_to_scheduler(scheduler, notif, user['phone_number'], Config)
         db.session.add(notif)
 
     # set evening reminder
-    if len(Notification.query.filter_by(user=user, tag='evening_checkin').all()) == 0:
+    if len(Notification.query.filter_by(user_id=user['id'], tag='evening_checkin').all()) == 0:
             
         notif = Notification(tag='evening_checkin',
             body="Did you stack your brick today?",
@@ -38,10 +38,10 @@ def schedule_reminders(last_router_id, user, **kwargs):
             jitter=30,
             end_date=dt.datetime(2018,11,30),
             timezone=getattr(user, 'timezone', 'America/Los_Angeles'),
-            user=user)
+            user_id=user['id'])
         
         # TODO(Nico) it could be problematic to schedule this before committing to db
-        add_notif_to_scheduler(scheduler, notif, user.phone_number, Config)
+        add_notif_to_scheduler(scheduler, notif, user['phone_number'], Config)
         db.session.add(notif)
 
     db.session.commit()
@@ -49,12 +49,14 @@ def schedule_reminders(last_router_id, user, **kwargs):
 
 def update_timezone(last_router_id, inbound, user, **kwargs):
     tz = Config.US_TIMEZONES.get(inbound, None)
-    if tz is not None:
-        user.timezone = tz
-        
+    if tz is not None:        
+        user_obj = db.session.query(User).filter_by(id=user['id']).one()
+        user_obj.timezone = tz
+        user['timezone'] = tz
+
         # update all notifications for that user in the db
         # TODO(Nico) update notifications in the scheduler
-        notifs = db.session.query(Notification).filter_by(user=user).all()
+        notifs = db.session.query(Notification).filter_by(user_id=user['id']).all()
         for notif in notifs:
             notif.timezone = tz
             
@@ -65,3 +67,11 @@ def update_timezone(last_router_id, inbound, user, **kwargs):
         raise ValueError('INVALID TIMEZONE CHOICE')
 
     return tz
+
+
+def update_username(inbound, user, **kwargs):
+    user_obj = db.session.query(User).filter_by(id=user['id']).one()
+    user_obj.username = inbound
+    user['username'] = inbound
+
+    db.session.commit()

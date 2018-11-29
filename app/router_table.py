@@ -5,15 +5,15 @@ from app import actions
 
 HOW_IT_WORKS = "It is pure magic"
 
-WELCOME = """
-Hey! Welcome to Bricks, a tool that helps you outperform your friends. Respond with the number of what you want to do:
+INTRO_MENU = """
+What do you want to do?
 a) choose my first brick
 b) how does this work?
 """
 
 # TODO(Nico) instead ask what city you're in. this makes it better to find their locale for analytics
 # all good solutions require API access : https://stackoverflow.com/questions/16505501/get-timezone-from-city-in-python-django
-TZ_QUESTION = """
+TIMEZONE = """
 What's your timezone?
 a) PT
 b) MT
@@ -23,41 +23,48 @@ d) ET
 
 ROUTERS = [
     {
-        'router_id': 1,
-        'last_router_id': 0, 
+        'router_id': 'welcome',
+        'last_router_id': 0,
+        'inbound': '*',
+        'actions': (None,),
+        'response': "Hey! Welcome to Bricks, a tool that helps you outperform your friends. Please enter a username:",
+    }, {
+        'router_id': 'first_menu',
+        'last_router_id': 'welcome', 
         'inbound': '*', 
-        'response': WELCOME, 
-        'actions': (None,)
+        'actions': ('update_username',),
+        'response': INTRO_MENU, 
     }, {
-        'router_id': 2,
-        'last_router_id': 1, 
-        'inbound': 'a', 
-        'response': "Ok, so what’s the most important thing you want to get done today?", 
-        'actions': (None,)
+        'router_id': 'first_brick',
+        'last_router_id': 'first_menu', 
+        'inbound': 'a',  
+        'actions': (None,),
+        'response': "Ok, so what’s the most important thing you want to get done today?"
     }, {
-        'router_id': 3,
-        'last_router_id': 2, 
+        'router_id': 'timezone',
+        'last_router_id': 'first_brick', 
         'inbound': '*', 
-        'response': f"gotcha. {TZ_QUESTION}", 
-        'actions': (None,)
+        'actions': (None,),
+        'response': f"gotcha. {TIMEZONE}", 
     }, {
-        'router_id': 4,
-        'last_router_id': 1, 
-        'inbound': 'b', 
+        'router_id': 'first_reminder',
+        'last_router_id': 'timezone', 
+        'inbound': '*',  
+        'actions': ('update_timezone','schedule_reminders' ), # these get executed in order
+        'response': "I’ll text you tonight at 9 pm to follow up and make sure you did that.",
+    }, {
+        'router_id': 'how_it_works',
+        'last_router_id': 'first_menu', 
+        'inbound': 'b',
+        'actions': (None,),
         'response': HOW_IT_WORKS, 
-        'actions': (None,)
-    }, {
-        'router_id': 5,
-        'last_router_id': 3, 
-        'inbound': '*', 
-        'response': "I’ll text you tonight at 9 pm to follow up and make sure you did that.", 
-        'actions': ('update_timezone','schedule_reminders' ) # these get executed in order
-    }
+    },
 ]
 
 router_df = pd.DataFrame.from_dict(ROUTERS)
 
 ACTIONS = {
     'schedule_reminders': actions.schedule_reminders,
-    'update_timezone': actions.update_timezone
+    'update_timezone': actions.update_timezone,
+    'update_username': actions.update_username
 }

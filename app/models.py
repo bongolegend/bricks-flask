@@ -9,6 +9,15 @@ class User(db.Model):
     timezone = db.Column(db.String(32))
     created = db.Column(db.DateTime, nullable=False, default=dt.utcnow)
 
+    def to_dict(self):
+        return dict(
+            id = self.id, 
+            username = self.username,
+            phone_number = self.phone_number,
+            timezone = self.timezone,
+            created = self.created
+        )
+
     def __repr__(self):
         return '<User %r>' % self.phone_number
 
@@ -34,3 +43,19 @@ class Notification(db.Model):
 
     def __repr__(self):
         return '<Notification %r>' % self.tag
+
+
+class ConvoHistory(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    router_id = db.Column(db.String(32), nullable=False)
+    inbound = db.Column(db.String(128))
+    outbound = db.Column(db.String(128))
+    created = db.Column(db.DateTime, nullable=False, default=dt.utcnow)
+
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'),
+        nullable=False)
+    user = db.relationship('User',
+        backref=db.backref('convo_history', lazy=True))
+    
+    def __repr__(self):
+        return '<ConvoHistory %r>' % self.router_id
