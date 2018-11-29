@@ -1,6 +1,6 @@
 """"this is a dummy db implemented with a Pandas dataframe"""
 import pandas as pd
-from app import actions 
+from app import router_actions 
 
 
 HOW_IT_WORKS = "It is pure magic"
@@ -24,7 +24,7 @@ d) ET
 ROUTERS = [
     {
         'router_id': 'welcome',
-        'last_router_id': 0,
+        'last_router_id': 'init_onboarding',
         'inbound': '*',
         'actions': (None,),
         'response': "Hey! Welcome to Bricks, a tool that helps you outperform your friends. Please enter a username:",
@@ -63,8 +63,8 @@ ROUTERS = [
 
 router_df = pd.DataFrame.from_dict(ROUTERS)
 
-ACTIONS = {
-    'schedule_reminders': actions.schedule_reminders,
-    'update_timezone': actions.update_timezone,
-    'update_username': actions.update_username
+ROUTER_ACTIONS = {
+    'schedule_reminders': router_actions.schedule_reminders,
+    'update_timezone': router_actions.update_timezone,
+    'update_username': router_actions.update_username
 }

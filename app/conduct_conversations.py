@@ -2,9 +2,9 @@ import datetime as dt
 from flask import request, session
 from twilio.twiml.messaging_response import MessagingResponse
 from app import scheduler, db
-from app.router_table import router_df, ACTIONS
+from app.router_table import router_df, ROUTER_ACTIONS
 from app.models import User, Notification, ConvoHistory
-from app.send_notifications import add_notif_to_scheduler
+from app.tools import log_convo
 from config import Config # TODO(Nico) access the config that has been initialized on the app 
 
 
@@ -16,11 +16,11 @@ def main():
         user = query_or_insert_user(request.values.get('From'))
         session['user'] = user.to_dict()
         print(f'SESSION STARTED FOR {user.phone_number}')
-        last_convo = query_last_convo(user)
+        # last_convo = query_last_convo(user)
         
     # get values from session storage
     user = session.get('user')
-    last_router_id = session.get('last_router_id', 0)
+    last_router_id = session.get('last_router_id', 'init_onboarding')
 
     # ingest inbound message  
     inbound = request.values.get('Body')
@@ -66,8 +66,8 @@ def pick_response_and_logic(last_router_id, inbound, user):
     # trigger actions
     for action_name in router.actions:
         if action_name is not None:
-            action = ACTIONS.get(action_name, None)
-            assert action is not None, 'action does not match any key in ACTIONS'
+            action = ROUTER_ACTIONS.get(action_name, None)
+            assert action is not None, 'action does not match any key in ROUTER_ACTIONS'
             action(last_router_id=last_router_id, 
                 inbound=inbound, 
                 user=user)
@@ -96,17 +96,3 @@ def query_or_insert_user(phone_number):
 def query_last_router(user):
     '''find the last router_id in the db for this user'''
     return
-
-
-def log_convo(router_id, inbound, outbound, user):
-    '''log all elements of convo to db'''
-    convo = ConvoHistory(
-        router_id=router_id,
-        inbound=inbound,
-        outbound=outbound,
-        user_id=user['id'])
-
-    db.session.add(convo)
-    db.session.commit()
-
-    print('CONVO LOGGED ', convo)

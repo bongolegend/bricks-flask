@@ -23,7 +23,7 @@ def schedule_reminders(last_router_id, user, **kwargs):
             user_id=user['id'])
         
         # TODO(Nico) it could be problematic to schedule this before committing to db
-        add_notif_to_scheduler(scheduler, notif, user['phone_number'], Config)
+        add_notif_to_scheduler(scheduler, notif, user, Config)
         db.session.add(notif)
 
     # set evening reminder
@@ -41,7 +41,7 @@ def schedule_reminders(last_router_id, user, **kwargs):
             user_id=user['id'])
         
         # TODO(Nico) it could be problematic to schedule this before committing to db
-        add_notif_to_scheduler(scheduler, notif, user['phone_number'], Config)
+        add_notif_to_scheduler(scheduler, notif, user, Config)
         db.session.add(notif)
 
     db.session.commit()
