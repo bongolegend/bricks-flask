@@ -17,10 +17,9 @@ def with_app_context(func):
 
 # TODO(Nico) you can make log_convo into a decorator too
 @with_app_context
-def log_convo(router_id, inbound, outbound, user, db=None):
+def log_convo(router_id, inbound, outbound, user, **kwargs):
     '''log all elements of convo to db'''
-
-    # this is implemented as such so that calling log_convo still requires db via the decorator  
+    db = kwargs.get('db')
     assert db is not None, 'You must provide a db instance'
 
     convo = ConvoHistory(
