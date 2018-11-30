@@ -2,17 +2,20 @@ import datetime as dt
 from app import scheduler, db
 from app.models import User, Notification, Point
 from app.send_notifications import add_notif_to_scheduler
+from app.routers_and_outbounds import outbound_df
 from config import Config # TODO(Nico) access the config that has been initialized on the app 
-
+    
 
 def schedule_reminders(last_router_id, user, **kwargs):
     '''Create one morning and one evening reminder. Add reminders to scheduler and to db'''
 
     # set morning reminder
-    if len(Notification.query.filter_by(user_id=user['id'], tag='morning_ask').all()) == 0:
-            
-        notif = Notification(tag='morning_ask',
-            body="What is your brick for today?",
+    if len(Notification.query.filter_by(user_id=user['id'], tag='choose_brick').all()) == 0:
+
+        outbound = outbound_df[outbound_df.router_id == 'choose_brick'].iloc[0]
+
+        notif = Notification(tag=outbound.router_id,
+            body=outbound.response,
             trigger_type='cron',
             day_of_week='mon-fri',
             hour=8,
@@ -28,9 +31,11 @@ def schedule_reminders(last_router_id, user, **kwargs):
 
     # set evening reminder
     if len(Notification.query.filter_by(user_id=user['id'], tag='evening_checkin').all()) == 0:
-            
-        notif = Notification(tag='evening_checkin',
-            body="Did you stack your brick today?",
+
+        outbound = outbound_df[outbound_df.router_id == 'evening_checkin'].iloc[0]
+
+        notif = Notification(tag=outbound.router_id,
+            body=outbound.response,
             trigger_type='cron',
             day_of_week='mon-fri',
             hour=21,
@@ -81,3 +86,10 @@ def add_point(inbound, user, **kwargs):
     point = Point(value=1, user_id=user['id'])
     db.session.add(point)
     db.session.commit()
+
+
+ROUTER_ACTIONS = dict(
+    schedule_reminders = schedule_reminders,
+    update_timezone = update_timezone,
+    update_username = update_username,
+    add_point = add_point,)

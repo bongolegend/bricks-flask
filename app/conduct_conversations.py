@@ -2,7 +2,8 @@ import datetime as dt
 from flask import request, session
 from twilio.twiml.messaging_response import MessagingResponse
 from app import scheduler, db
-from app.router_table import router_df, ROUTER_ACTIONS
+from app.routers_and_outbounds import combined_routers
+from app.router_actions import ROUTER_ACTIONS
 from app.models import User, Notification, Exchange
 from app.tools import log_convo
 from config import Config # TODO(Nico) access the config that has been initialized on the app 
@@ -13,43 +14,69 @@ def main():
 
     # identify the user and start the session
     if 'user' not in session:
-        session['user'] = user = query_or_insert_user(request.values.get('From')).to_dict()
+        user = query_or_insert_user(request.values.get('From')).to_dict()
         print(f'SESSION STARTED FOR {user["username"]}')
-
         last_exchange = query_last_exchange(user)
-        if last_exchange is not None: # handles returning users
-            session['last_router_id'] = last_exchange
-            print('LAST EXCHANGE WAS ', session['last_router_id'])
-    else: # handle session that is active
-        user = session.get('user')
 
-    last_router_id = session.get('last_router_id', 'init_onboarding')
+        if last_exchange is not None: # handles returning users      
+            current_router_id = last_exchange['router_id']
+            current_outbound = last_exchange['outbound']    
+            current_actions = combined_routers[combined_routers.router_id == last_exchange['router_id']].actions.iloc[0]
+            current_exchange_id = last_exchange['id']
+            print('LAST EXCHANGE WAS ', current_router_id)
+        else:
+            current_router_id = 'init_onboarding'
+            current_outbound = None
+            current_actions = tuple()
+            current_exchange_id = None
 
-    # ingest inbound message  
+    else: # handle active session
+        user = session['user']
+        current_router_id = session['current_router_id']
+        current_outbound = session['current_outbound']
+        current_actions = session['current_actions']
+        current_exchange_id = session['current_exchange_id']
+
+    # gather relevant data from session and inbound
     inbound = request.values.get('Body')
+    print(f'INBOUND FROM {user["username"]}: {inbound}')
+
+    # execute actions that were defined by last router for this inbound value
+    execute_actions(current_actions, current_router_id, inbound, user)
+    
+    log_convo(
+        current_router_id, 
+        inbound, 
+        current_outbound, 
+        user, 
+        exchange_id=current_exchange_id)
 
     # decide on outbound message and func calls
-    print(f'INBOUND FROM {user["username"]}: {inbound}')
-    outbound, router_id = pick_response_and_logic(last_router_id, inbound, user)
-    print(f'OUTBOUND TO {user["username"]}: {outbound}')
+    next_outbound, next_router_id = pick_response_and_logic(current_router_id, inbound, user)
+    print(f'OUTBOUND TO {user["username"]}: {next_outbound}')
 
-    # send outbound    
-    resp = MessagingResponse() # initialize twilio's response tool. it works under the hood
-    resp.message(outbound)
+    current_exchange_id = log_convo(
+        next_router_id, 
+        None, 
+        next_outbound, 
+        user)
 
-    # save new values to session
-    session['last_router_id'] = router_id
+    # save values to persist in session so that we know how to act on user's response to our outbound
     session['user'] = user
-
-    # log convo to db
-    log_convo(router_id, inbound, outbound, user)
-
+    session['current_router_id'] = next_router_id
+    session['current_outbound'] = next_outbound
+    session['current_actions'] = combined_routers[combined_routers.router_id == next_router_id].actions.iloc[0]
+    session['current_exchange_id'] = current_exchange_id
+    # send outbound    
+    resp = MessagingResponse()
+    resp.message(next_outbound)
     return str(resp)
 
 
 def pick_response_and_logic(last_router_id, inbound, user):
     '''Query the static router table to find the right outbound message and action'''
-    routers = router_df.copy()
+    routers = combined_routers.copy()
+    # join the ROUTER and the OUTBOUND tables
     
     # match on last_router_id
     routers = routers[routers.last_router_id == last_router_id]
@@ -60,21 +87,14 @@ def pick_response_and_logic(last_router_id, inbound, user):
     else: # by default, return the router that accepts any input
         routers = routers[routers.inbound == '*']
 
-    if len(routers) == 0:
-        return "No valid response in our db. Restarting the chat from the beginning.", 'init_onboarding'
-    elif len(routers) > 1:
+    if len(routers) == 1:
+        router = routers.iloc[0]
+    elif len(routers) == 0:
+        # redirect to the main menu
+        router = combined_routers[combined_routers.router_id == 'main_menu'].iloc[0]
+        router.response = "Can't interpret that; sending you to the menu. " + router.response
+    else:
         raise NotImplementedError("The routers are ambiguous - too many matches. fix your data.")
-
-    router = routers.iloc[0]
-
-    # trigger actions
-    for action_name in router.actions:
-        if action_name is not None:
-            action = ROUTER_ACTIONS.get(action_name, None)
-            assert action is not None, 'action does not match any key in ROUTER_ACTIONS'
-            action(last_router_id=last_router_id, 
-                inbound=inbound, 
-                user=user)
 
     return router.response, router.router_id
 
@@ -105,4 +125,25 @@ def query_last_exchange(user):
     if last_exchange is None:
         return None
     else:
-        return last_exchange.router_id
+        return last_exchange.to_dict()
+
+
+def execute_actions(actions, last_router_id, inbound, user):
+    for action_name in actions:
+        if action_name is not None:
+            action = ROUTER_ACTIONS.get(action_name, None)
+            assert action is not None, 'action does not match any key in ROUTER_ACTIONS'
+            action(last_router_id=last_router_id, 
+                inbound=inbound, 
+                user=user)
+    
+    # TODO(Nico) some of these actions may return values that we want to send to user
+
+
+
+'''
+    if session exists
+        use all the session stuff
+
+        lets just make it work assuming the session is always live
+''' 

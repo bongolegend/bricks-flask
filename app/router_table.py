@@ -21,6 +21,13 @@ c) CT
 d) ET
 """
 
+MAIN_MENU = """
+What do you want to do?
+a) choose a brick for today
+b) choose a new timezone
+c) how does this work?
+"""
+
 ROUTERS = [
     {
         'router_id': 'welcome',
@@ -41,7 +48,7 @@ ROUTERS = [
         'actions': (None,),
         'response': "Ok, so what’s the most important thing you want to get done today?"
     }, {
-        'router_id': 'timezone',
+        'router_id': 'timezone_1',
         'last_router_id': 'first_brick', 
         'inbound': '*', 
         'actions': (None,),
@@ -53,7 +60,7 @@ ROUTERS = [
         'actions': ('update_timezone','schedule_reminders' ), # these get executed in order
         'response': "I’ll text you tonight at 9 pm to follow up and make sure you did that.",
     }, {
-        'router_id': 'how_it_works',
+        'router_id': 'how_it_works_1',
         'last_router_id': 'first_menu', 
         'inbound': 'b',
         'actions': (None,),
@@ -76,6 +83,30 @@ ROUTERS = [
         'inbound': 'b',
         'actions': (None,),
         'response': "All good. Just make tomorrow count."
+    }, {
+        'router_id': 'main_menu',
+        'last_router_id': None,
+        'inbound': '*',
+        'actions': (None,),
+        'response': f"Can't interpret that; sending you to the main menu.\n {MAIN_MENU}"
+    }, {
+        'router_id': 'choose_brick',
+        'last_router_id': 'main_menu',
+        'inbound': 'a',
+        'actions': (None,),
+        'response': "What's your brick for today?"
+    }, {
+        'router_id': 'timezone_2',
+        'last_router_id': 'main_menu',
+        'inbound': 'b',
+        'actions': (None,),
+        'response': f"gotcha. {TIMEZONE}"
+    }, {
+        'router_id': 'how_it_works_2',
+        'last_router_id': 'main_menu',
+        'inbound': 'c',
+        'actions': (None,),
+        'response': HOW_IT_WORKS
     }
 ]
 
