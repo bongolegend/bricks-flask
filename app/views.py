@@ -1,6 +1,7 @@
 '''this blueprint gets added as an extension to the main Flask app in __init__'''
 import os
-from flask import Blueprint
+from datetime import timedelta
+from flask import Blueprint, current_app, session
 import app.conduct_conversations as conduct_conversations
 
 
@@ -25,3 +26,9 @@ def landing_page():
 
 Please text {os.environ.get('TWILIO_PHONE_NUMBER')} to get started.
 """ 
+
+# TODO(Nico) is this the right place to put this?
+@current_app.before_request
+def session_timeout():
+    session.permanent = True
+    current_app.permanent_session_lifetime = timedelta(minutes=1)

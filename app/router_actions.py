@@ -37,7 +37,7 @@ def schedule_reminders(last_router_id, user, **kwargs):
             minute=0,
             jitter=30,
             end_date=dt.datetime(2018,11,30),
-            timezone=getattr(user, 'timezone', 'America/Los_Angeles'),
+            timezone=user.get('timezone', 'America/Los_Angeles'),
             user_id=user['id'])
         
         # TODO(Nico) it could be problematic to schedule this before committing to db

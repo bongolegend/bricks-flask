@@ -1,5 +1,5 @@
 import functools
-from app.models import ConvoHistory
+from app.models import Exchange
 from app.base_init import init_app, init_db
 
 
@@ -22,7 +22,7 @@ def log_convo(router_id, inbound, outbound, user, **kwargs):
     db = kwargs.get('db')
     assert db is not None, 'You must provide a db instance'
 
-    convo = ConvoHistory(
+    convo = Exchange(
         router_id=router_id,
         inbound=inbound,
         outbound=outbound,

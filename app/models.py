@@ -4,7 +4,7 @@ from app import db
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(64))
+    username = db.Column(db.String(64), default='NEW_USER')
     phone_number = db.Column(db.String(32), unique=True)
     timezone = db.Column(db.String(32))
     created = db.Column(db.DateTime, nullable=False, default=dt.utcnow)
@@ -56,7 +56,7 @@ class Notification(db.Model):
         return '<Notification %r>' % self.tag
 
 
-class ConvoHistory(db.Model):
+class Exchange(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     router_id = db.Column(db.String(32), nullable=False)
     inbound = db.Column(db.String(128))
@@ -66,7 +66,7 @@ class ConvoHistory(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'),
         nullable=False)
     user = db.relationship('User',
-        backref=db.backref('convo_history', lazy=True))
+        backref=db.backref('exchanges', lazy=True))
     
     def __repr__(self):
-        return '<ConvoHistory %r>' % self.router_id
+        return '<Exchange %r>' % self.router_id
