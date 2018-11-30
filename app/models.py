@@ -59,8 +59,8 @@ class Notification(db.Model):
 class Exchange(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     router_id = db.Column(db.String(32), nullable=False)
-    inbound = db.Column(db.String(128))
-    outbound = db.Column(db.String(128))
+    inbound = db.Column(db.String(256))
+    outbound = db.Column(db.String(256))
     created = db.Column(db.DateTime, nullable=False, default=dt.utcnow)
 
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'),
