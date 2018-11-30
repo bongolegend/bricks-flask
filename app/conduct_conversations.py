@@ -19,7 +19,7 @@ def main():
         last_exchange = query_last_exchange(user)
         if last_exchange is not None: # handles returning users
             session['last_router_id'] = last_exchange
-            print('LAST EXCHANGE: ', session['last_router_id'])
+            print('LAST EXCHANGE WAS ', session['last_router_id'])
     else: # handle session that is active
         user = session.get('user')
 

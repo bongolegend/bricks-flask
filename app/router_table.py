@@ -58,7 +58,25 @@ ROUTERS = [
         'inbound': 'b',
         'actions': (None,),
         'response': HOW_IT_WORKS, 
-    },
+    }, {
+        'router_id': 'confirm_brick_receipt',
+        'last_router_id': 'morning_ask',
+        'inbound': '*',
+        'actions': (None,),
+        'response': "Great! I'll follow up tonight. Good luck."
+    }, {
+        'router_id': 'completion_point',
+        'last_router_id': 'evening_checkin',
+        'inbound': 'a',
+        'actions': ('add_point',),
+        'response': "Congrats! You earned +1 point."
+    }, {
+        'router_id': 'no_completion',
+        'last_router_id': 'evening_checkin',
+        'inbound': 'b',
+        'actions': (None,),
+        'response': "All good. Just make tomorrow count."
+    }
 ]
 
 router_df = pd.DataFrame.from_dict(ROUTERS)
@@ -66,5 +84,6 @@ router_df = pd.DataFrame.from_dict(ROUTERS)
 ROUTER_ACTIONS = {
     'schedule_reminders': router_actions.schedule_reminders,
     'update_timezone': router_actions.update_timezone,
-    'update_username': router_actions.update_username
+    'update_username': router_actions.update_username,
+    'add_point': router_actions.add_point,
 }

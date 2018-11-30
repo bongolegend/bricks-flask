@@ -1,6 +1,6 @@
 import datetime as dt
 from app import scheduler, db
-from app.models import User, Notification
+from app.models import User, Notification, Point
 from app.send_notifications import add_notif_to_scheduler
 from config import Config # TODO(Nico) access the config that has been initialized on the app 
 
@@ -74,4 +74,10 @@ def update_username(inbound, user, **kwargs):
     user_obj.username = inbound
     user['username'] = inbound
 
+    db.session.commit()
+
+
+def add_point(inbound, user, **kwargs):
+    point = Point(value=1, user_id=user['id'])
+    db.session.add(point)
     db.session.commit()

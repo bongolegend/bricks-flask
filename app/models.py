@@ -70,3 +70,17 @@ class Exchange(db.Model):
     
     def __repr__(self):
         return '<Exchange %r>' % self.router_id
+    
+
+class Point(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    value = db.Column(db.Integer, nullable=False)
+    created = db.Column(db.DateTime, nullable=False, default=dt.utcnow)
+
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'),
+        nullable=False)
+    user = db.relationship('User',
+        backref=db.backref('points', lazy=True))
+    
+    def __repr__(self):
+        return f'<Point user={self.user_id}; value={self.value} >'
