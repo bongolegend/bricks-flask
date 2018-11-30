@@ -31,4 +31,4 @@ Please text {os.environ.get('TWILIO_PHONE_NUMBER')} to get started.
 @current_app.before_request
 def session_timeout():
     session.permanent = True
-    current_app.permanent_session_lifetime = timedelta(minutes=1)
+    current_app.permanent_session_lifetime = timedelta(seconds=10)
