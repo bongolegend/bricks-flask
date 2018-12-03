@@ -24,6 +24,7 @@ def log_convo(router_id, inbound, outbound, user, exchange_id=None, **kwargs):
 
     if exchange_id is None:
         # log a new exchange
+        print('LOGGED NEW EXCHANGE', exchange)
         exchange = Exchange(
             router_id=router_id,
             inbound=inbound,
@@ -31,12 +32,11 @@ def log_convo(router_id, inbound, outbound, user, exchange_id=None, **kwargs):
             user_id=user['id'])
     else:
         # update existing exchange with user's inbound
+        print('UPDATED EXISTING EXCHANGE', exchange)
         exchange = db.session.query(Exchange).filter_by(id=exchange_id).one()
         exchange.inbound = inbound
 
     db.session.add(exchange)
     db.session.commit()
-
-    print('CONVO LOGGED ', exchange)
 
     return exchange.id
