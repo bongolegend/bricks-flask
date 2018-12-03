@@ -1,7 +1,8 @@
 import pandas as pd
 
 
-HOW_IT_WORKS = "It is pure magic"
+HOW_IT_WORKS = """This is how Bricks works: every weekday, you input your most important task of the day. At the end of the day, you confirm that you did it.
+If you did, then you get a point. Makes sense? (y/n)"""
 
 # TODO(Nico) instead ask what city you're in. this makes it better to find their locale for analytics
 # all good solutions require API access : https://stackoverflow.com/questions/16505501/get-timezone-from-city-in-python-django
@@ -83,22 +84,22 @@ ROUTERS = [
     }, {
         'last_router_id': 'how_it_works',
         'inbound': 'yes',
-        'condition': ('TIMEZONE_SET', False),
+        'condition': ('timezone_set', False),
         'next_router_id': 'timezone',
     }, {
         'last_router_id': 'how_it_works',
         'inbound': '*',
-        'condition': ('TIMEZONE_SET', True),
+        'condition': ('timezone_set', True),
         'next_router_id': 'main_menu',
     }, {
         'last_router_id': 'timezone',
         'inbound': '*',
-        'condition': ('BRICK_CHOSEN', False),
+        'condition': ('brick_chosen', False),
         'next_router_id': 'choose_brick',
     }, {
         'last_router_id': 'timezone',
         'inbound': '*',
-        'condition': ('BRICK_CHOSEN', True),
+        'condition': ('brick_chosen', True),
         'next_router_id': 'main_menu',
     }, {
         'last_router_id': 'choose_brick',

@@ -6,6 +6,7 @@ from app.routers_and_outbounds import combined_routers
 from app.router_actions import ROUTER_ACTIONS
 from app.models import User, Notification, Exchange
 from app.tools import log_convo
+from app.condition_checkers import CONDITION_CHECKERS
 from config import Config # TODO(Nico) access the config that has been initialized on the app 
 
 
@@ -86,7 +87,7 @@ def pick_response_and_logic(last_router_id, inbound, user):
         routers = routers[routers.inbound == inbound]
     else: # by default, return the router that accepts any input
         routers = routers[routers.inbound == '*']
-
+    
     if len(routers) == 1:
         router = routers.iloc[0]
     elif len(routers) == 0:
@@ -94,7 +95,14 @@ def pick_response_and_logic(last_router_id, inbound, user):
         router = combined_routers[combined_routers.router_id == 'main_menu'].iloc[0]
         router.response = "Can't interpret that; sending you to the menu. " + router.response
     else:
-        raise NotImplementedError("The routers are ambiguous - too many matches. fix your data.")
+        # match on condition
+        matches = 0
+        for i, (checker, expected_value) in enumerate(routers.condition):
+            if CONDITION_CHECKERS[checker](user) == expected_value:
+                router = routers.iloc[i]
+                matches += 1
+        if matches > 1:
+            raise NotImplementedError("The routers are ambiguous - too many matches. fix your data.")
 
     return router.response, router.router_id
 
@@ -138,7 +146,6 @@ def execute_actions(actions, last_router_id, inbound, user):
                 user=user)
     
     # TODO(Nico) some of these actions may return values that we want to send to user
-
 
 
 '''
