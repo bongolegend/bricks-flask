@@ -15,7 +15,7 @@ def schedule_reminders(last_router_id, user, **kwargs):
         outbound = outbound_df[outbound_df.router_id == 'choose_brick'].iloc[0]
 
         notif = Notification(tag=outbound.router_id,
-            body=outbound.response,
+            body=outbound.outbound,
             trigger_type='cron',
             day_of_week='mon-fri',
             hour=8,
@@ -35,7 +35,7 @@ def schedule_reminders(last_router_id, user, **kwargs):
         outbound = outbound_df[outbound_df.router_id == 'evening_checkin'].iloc[0]
 
         notif = Notification(tag=outbound.router_id,
-            body=outbound.response,
+            body=outbound.outbound,
             trigger_type='cron',
             day_of_week='mon-fri',
             hour=21,
