@@ -30,6 +30,7 @@ def insert_exchange(router_id, user, inbound=None, **kwargs):
         inbound=inbound,
         actions=router.actions,
         inbound_format=router.inbound_format,
+        confirmation=router.confirmation,
         user_id=user['id'])
     print('LOGGED NEW EXCHANGE', exchange)
 

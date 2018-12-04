@@ -31,9 +31,9 @@ def main():
         else: # initiate new exchange
             session['exchange'] = dict()
             session['exchange']['router_id'] = 'init_onboarding'
-            session['exchange']['outbound'] = None
             session['exchange']['actions'] = tuple()
             session['exchange']['id'] = None
+            session['exchange']['confirmation'] = None
 
     # gather relevant data from inbound request
     inbound = request.values.get('Body')
@@ -58,10 +58,15 @@ def main():
 
     print('THE NEXT ROUTER LOOKS LIKE: \n\n', next_router)
     # update the last exchange
-    update_exchange(
-        session['exchange']['id'], 
-        inbound,
-        next_router.router_id)
+    if session['exchange']['router_id'] != 'init_onboarding':
+        update_exchange(
+            session['exchange']['id'], 
+            inbound,
+            next_router.router_id)
+    
+    # append last router's confirmation to next router's outbound
+    if  session['exchange']['confirmation'] is not None:
+        next_router.outbound = session['exchange']['confirmation'] + " " + next_router.outbound
 
     # insert the next exchange
     next_exchange = insert_exchange(

@@ -69,6 +69,7 @@ class Exchange(db.Model, Base):
     actions = db.Column(postgresql.ARRAY(db.String))
     inbound_format = db.Column(db.String(32), nullable=False)
     next_router_id = db.Column(db.String(32))
+    confirmation = db.Column(db.String(64))
 
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'),
         nullable=False)
@@ -84,6 +85,7 @@ class Exchange(db.Model, Base):
             actions = tuple(self.actions),
             inbound_format = self.inbound_format,
             next_router_id = self.next_router_id,
+            confirmation = self.confirmation,
             created = self.created,
             user_id = self.user_id,
         )

@@ -23,10 +23,16 @@ c) how does this work?
 
 OUTBOUNDS = [
     {
+        'router_id': 'init_onboarding',
+        'outbound': None,
+        'actions': (None,),
+        'inbound_format': '*',
+    }, {
         'router_id': 'welcome',
         'outbound': "Hey! Welcome to Bricks, a tool that helps you outperform your friends. Please enter a username:",
         'actions': ('update_username',),
         'inbound_format': '*',
+        'confirmation': "Your username is set.",
     }, {
         'router_id': 'how_it_works',
         'outbound': HOW_IT_WORKS, 
@@ -42,6 +48,7 @@ OUTBOUNDS = [
         'outbound': TIMEZONE, 
         'actions': ('update_timezone',), # these get executed in order
         'inbound_format': 'multiple_choice',
+        'confirmation': "Your timezone is set.",
     }, {
         'router_id': 'choose_brick', 
         'outbound': "What’s the most important thing you want to get done today?",
@@ -75,8 +82,9 @@ OUTBOUNDS = [
     }, 
 ]
 
-
 outbound_df = pd.DataFrame.from_dict(OUTBOUNDS)
+outbound_df = outbound_df.where((pd.notnull(outbound_df)), None)
+
 
 ROUTERS = [
     {
