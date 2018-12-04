@@ -42,7 +42,6 @@ def main():
     # parse inbound based on match on router_id
     parsed_inbound = parse_inbound(inbound, session['exchange']['router_id'])
 
-    # execute actions that were defined by the router for this inbound value
     # TODO(Nico) capture returned values of these actions
     execute_actions(
         session['exchange']['actions'], 
@@ -52,45 +51,49 @@ def main():
 
     # decide on outbound message and func calls
     next_router = pick_response_and_logic(
-        session['exchange']['router_id'], 
+        session, 
         parsed_inbound, 
         session['user'])
 
     print('THE NEXT ROUTER LOOKS LIKE: \n\n', next_router)
-    # update the last exchange
-    if session['exchange']['router_id'] != 'init_onboarding':
-        update_exchange(
-            session['exchange']['id'], 
-            inbound,
-            next_router.router_id)
     
-    # append last router's confirmation to next router's outbound
-    if  session['exchange']['confirmation'] is not None:
-        next_router.outbound = session['exchange']['confirmation'] + " " + next_router.outbound
+    # update current exchange in DB
+    update_exchange(
+        session['exchange']['id'], 
+        inbound,
+        next_router['router_id'])
 
-    # insert the next exchange
+    # insert the next exchange into db
     next_exchange = insert_exchange(
-        next_router.router_id, 
+        next_router, 
         session['user'])
 
     # save values to persist in session so that we know how to act on user's response to our outbound
     session['exchange'] = next_exchange
 
-    print(f'NEXT ROUTER TO {session["user"]["username"]}: {session["exchange"]["router_id"]}')
-    print(f'OUTBOUND TO {session["user"]["username"]}: {session["exchange"]["outbound"]}')
+    # print(f'NEXT ROUTER TO {session["user"]["username"]}: {session["exchange"]["router_id"]}')
+    # print(f'OUTBOUND TO {session["user"]["username"]}: {session["exchange"]["outbound"]}')
 
     # send outbound    
     resp = MessagingResponse()
-    resp.message(next_router.outbound)
+    resp.message(next_router['outbound'])
     return str(resp)
 
 
-def pick_response_and_logic(last_router_id, inbound, user):
+def pick_response_and_logic(session, inbound, user):
     '''Query the static router table to find the right outbound message and action'''
+
+    if inbound is None:
+        # resend the same router
+        RETRY = "Could not parse your input. Please try again. "
+        session['exchange']['outbound'] = RETRY + session['exchange']['outbound']
+
+        return session['exchange']
+
     routers = combined_routers.copy()
 
     # match on last router_id
-    routers = routers[routers.last_router_id == last_router_id]
+    routers = routers[routers.last_router_id == session['exchange']['router_id']]
     # match on inbound
     routers = routers[(routers.inbound == inbound) |  (routers.inbound == '*')]
     
@@ -99,16 +102,20 @@ def pick_response_and_logic(last_router_id, inbound, user):
     elif len(routers) == 0:
         # redirect to the main menu
         router = combined_routers[combined_routers.router_id == 'main_menu'].iloc[0]
-        router.response = "Can't interpret that; sending you to the menu. " + router.response
+        router['outbound'] = "Can't interpret that; sending you to the menu. " + router['outbound']
     else:
         # match on condition
         matches = 0
-        for i, (checker, expected_value) in enumerate(routers.condition):
+        for i, (checker, expected_value) in enumerate(routers['condition']):
             if CONDITION_CHECKERS[checker](user) == expected_value:
                 router = routers.iloc[i]
                 matches += 1
         if matches > 1:
             raise NotImplementedError("The routers are ambiguous - too many matches. fix your routers.")
+    
+    # append last router's confirmation to next router's outbound
+    if  session['exchange']['confirmation'] is not None:
+        router['outbound'] = session['exchange']['confirmation'] + " " + router['outbound']
 
     return router
 
@@ -143,13 +150,14 @@ def query_last_exchange(user):
 
 
 def execute_actions(actions, last_router_id, inbound, user):
-    for action_name in actions:
-        if action_name is not None:
-            action = ROUTER_ACTIONS.get(action_name, None)
-            assert action is not None, 'action does not match any key in ROUTER_ACTIONS'
-            action(last_router_id=last_router_id, 
-                inbound=inbound, 
-                user=user)
+    if inbound is not None:
+        for action_name in actions:
+            if action_name is not None:
+                action = ROUTER_ACTIONS.get(action_name, None)
+                assert action is not None, 'action does not match any key in ROUTER_ACTIONS'
+                action(last_router_id=last_router_id, 
+                    inbound=inbound, 
+                    user=user)
     
     # TODO(Nico) some of these actions may return values that we want to send to user
 

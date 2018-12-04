@@ -17,20 +17,18 @@ def with_app_context(func):
 
 
 @with_app_context
-def insert_exchange(router_id, user, inbound=None, **kwargs):
+def insert_exchange(router, user, inbound=None, **kwargs):
     '''log all elements of exchange to db'''
     db = kwargs.get('db')
     assert db is not None, 'You must provide a db instance'
-
-    router = outbound_df[outbound_df.router_id == router_id].iloc[0]
         
     exchange = Exchange(
-        router_id=router.router_id,
-        outbound=router.outbound,
+        router_id=router['router_id'],
+        outbound=router['outbound'],
         inbound=inbound,
-        actions=router.actions,
-        inbound_format=router.inbound_format,
-        confirmation=router.confirmation,
+        actions=router['actions'],
+        inbound_format=router['inbound_format'],
+        confirmation=router['confirmation'],
         user_id=user['id'])
     print('LOGGED NEW EXCHANGE', exchange)
 
@@ -42,17 +40,21 @@ def insert_exchange(router_id, user, inbound=None, **kwargs):
 @with_app_context
 def update_exchange(exchange_id, inbound, next_router_id, **kwargs):
     '''update existing exchange row with inbound info and next router_id'''
-    db = kwargs.get('db')
-    assert db is not None, 'You must provide a db instance'
-    
-    exchange = db.session.query(Exchange).filter_by(id=exchange_id).one()
-    exchange.inbound = inbound
-    print('UPDATED EXISTING EXCHANGE', exchange)
+    if exchange_id is not None:
+        db = kwargs.get('db')
+        assert db is not None, 'You must provide a db instance'
+        
+        exchange = db.session.query(Exchange).filter_by(id=exchange_id).one()
+        exchange.inbound = inbound
+        exchange.next_router_id = next_router_id
+        print('UPDATED EXISTING EXCHANGE', exchange)
 
-    db.session.add(exchange)
-    db.session.commit()
+        db.session.add(exchange)
+        db.session.commit()
 
-    return exchange.to_dict()
+        return exchange.to_dict()
+    else:
+        return None
 
 
 
@@ -71,7 +73,8 @@ def parse_multiple_choice(inbound):
     for term, matches in MULTIPLE_CHOICE.items():
         if inbound in matches:
             return term
-    raise NotImplementedError('Nothing in the dictionary matches.')
+    # None signals to the app that parsing the inbound failed
+    return None
 
 
 def parse_inbound(inbound, router_id):
