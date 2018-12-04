@@ -87,10 +87,7 @@ def pick_response_and_logic(last_router_id, inbound, user):
     # match on last router_id
     routers = routers[routers.last_router_id == last_router_id]
     # match on inbound
-    if inbound in routers.inbound.values: # ASSUME that each last_router_id, inbound pair is unique
-        routers = routers[routers.inbound == inbound]
-    else: # by default, return the router that accepts any input
-        routers = routers[routers.inbound == '*']
+    routers = routers[(routers.inbound == inbound) |  (routers.inbound == '*')]
     
     if len(routers) == 1:
         router = routers.iloc[0]
@@ -106,7 +103,7 @@ def pick_response_and_logic(last_router_id, inbound, user):
                 router = routers.iloc[i]
                 matches += 1
         if matches > 1:
-            raise NotImplementedError("The routers are ambiguous - too many matches. fix your data.")
+            raise NotImplementedError("The routers are ambiguous - too many matches. fix your routers.")
 
     return router
 
