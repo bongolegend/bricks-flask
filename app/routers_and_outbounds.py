@@ -25,7 +25,7 @@ OUTBOUNDS = [
     {
         'router_id': 'init_onboarding',
         'outbound': None,
-        'actions': (None,),
+        'actions': None,
         'inbound_format': '*',
     }, {
         'router_id': 'welcome',
@@ -36,12 +36,12 @@ OUTBOUNDS = [
     }, {
         'router_id': 'how_it_works',
         'outbound': HOW_IT_WORKS, 
-        'actions': (None,),
+        'actions': None,
         'inbound_format': 'multiple_choice',
     }, {
         'router_id': 'contact_support',
-        'outbound': "Text me at 3124505311 and I'll walk you through it.", 
-        'actions': (None,),
+        'outbound': "Text me at 3124505311 and I'll walk you through it. Type anything to continue.", 
+        'actions': None,
         'inbound_format': '*',
     }, {
         'router_id': 'timezone',
@@ -57,7 +57,7 @@ OUTBOUNDS = [
     }, {
         'router_id': 'state_followup',
         'outbound': "I’ll text you tonight at 9 pm to follow up. Good luck.",
-        'actions': (None,), 
+        'actions': None, 
         'inbound_format': '*',
     }, {
         'router_id': 'evening_checkin',
@@ -67,22 +67,23 @@ OUTBOUNDS = [
     }, {
         'router_id': 'completion_point',
         'outbound': "Congrats! You earned +1 point.",
-        'actions': (None,),
+        'actions': None,
         'inbound_format': '*',
     }, {
         'router_id': 'no_completion',
         'outbound': "All good. Just make tomorrow count.",
-        'actions': (None,),
+        'actions': None,
         'inbound_format': '*',
     }, {
         'router_id': 'main_menu',
         'outbound': MAIN_MENU,
-        'actions': (None,),
+        'actions': None,
         'inbound_format': 'multiple_choice',
     }, 
 ]
 
 outbound_df = pd.DataFrame.from_dict(OUTBOUNDS)
+# pandas reads None as Nan by default, so you need to replace the Nans
 outbound_df = outbound_df.where((pd.notnull(outbound_df)), None)
 
 
@@ -100,15 +101,20 @@ ROUTERS = [
         'inbound': 'no',
         'next_router_id': 'contact_support',
     }, {
+        'last_router_id': 'contact_support',
+        'inbound': '*',
+        'condition': ('timezone_set', False),
+        'next_router_id': 'timezone',
+    }, {
+        'last_router_id': 'contact_support',
+        'inbound': '*',
+        'condition': ('timezone_set', True),
+        'next_router_id': 'main_menu',
+    }, {
         'last_router_id': 'how_it_works',
         'inbound': 'yes',
         'condition': ('timezone_set', False),
         'next_router_id': 'timezone',
-    }, {
-        'last_router_id': 'how_it_works',
-        'inbound': '*',
-        'condition': ('timezone_set', True),
-        'next_router_id': 'main_menu',
     }, {
         'last_router_id': 'timezone',
         'inbound': '*',
@@ -123,10 +129,6 @@ ROUTERS = [
         'last_router_id': 'choose_brick',
         'inbound': '*',
         'next_router_id': 'state_followup',
-    }, {
-        'last_router_id': 'state_followup',
-        'inbound': '*',
-        'next_router_id': 'main_menu',
     }, {
         'last_router_id': 'main_menu',
         'inbound': 'a',
@@ -143,6 +145,8 @@ ROUTERS = [
 ]
 
 router_df = pd.DataFrame.from_dict(ROUTERS)
+# pandas reads None as Nan by default, so you need to replace the Nans
+router_df = router_df.where((pd.notnull(router_df)), None)
 
 combined_routers = outbound_df.merge(
     router_df,

@@ -77,12 +77,17 @@ class Exchange(db.Model, Base):
         backref=db.backref('exchanges', lazy=True))
     
     def to_dict(self):
+        if type(self.actions) is list:
+            actions = tuple(self.actions)
+        else:
+            actions = self.actions
+
         return dict(
             id = self.id,
             router_id = self.router_id, 
             outbound = self.outbound,
             inbound = self.inbound,
-            actions = tuple(self.actions),
+            actions = actions,
             inbound_format = self.inbound_format,
             next_router_id = self.next_router_id,
             confirmation = self.confirmation,

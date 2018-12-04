@@ -5,7 +5,7 @@ import settings
 from twilio.rest import Client
 from app import scheduler, db
 from app.models import User, Notification
-from app.tools import insert_exchange
+from app.queries import insert_exchange
 from config import Config # TODO(Nico) find a cleaner way to access config. with create_app? or current_app?
 
 
