@@ -5,7 +5,7 @@ from app import scheduler, db
 from app.routers_and_outbounds import combined_routers
 from app.router_actions import ROUTER_ACTIONS
 from app.models import User, Notification, Exchange
-from app.tools import log_convo
+from app.tools import insert_exchange, update_exchange, parse_inbound
 from app.condition_checkers import CONDITION_CHECKERS
 from config import Config # TODO(Nico) access the config that has been initialized on the app 
 
@@ -15,74 +15,78 @@ def main():
 
     # identify the user and start the session
     if 'user' not in session:
-        user = query_or_insert_user(request.values.get('From')).to_dict()
-        print(f'SESSION STARTED FOR {user["username"]}')
-        last_exchange = query_last_exchange(user)
+        session['user'] = query_or_insert_user(request.values.get('From')).to_dict()
+        print('\n')
+        print(f'SESSION STARTED FOR {session["user"]["username"]}')
 
-        if last_exchange is not None: # handles returning users      
-            current_router_id = last_exchange['router_id']
-            current_outbound = last_exchange['outbound']    
-            current_actions = combined_routers[combined_routers.router_id == last_exchange['router_id']].actions.iloc[0]
-            current_exchange_id = last_exchange['id']
-            print('LAST EXCHANGE WAS ', current_router_id)
-        else:
-            current_router_id = 'init_onboarding'
-            current_outbound = None
-            current_actions = tuple()
-            current_exchange_id = None
+    if 'exchange' not in session:
+        last_exchange = query_last_exchange(session['user'])
 
-    else: # handle active session
-        user = session['user']
-        current_router_id = session['current_router_id']
-        current_outbound = session['current_outbound']
-        current_actions = session['current_actions']
-        current_exchange_id = session['current_exchange_id']
+        if last_exchange is not None: # handles returning users
+            session['exchange'] = last_exchange
+            if session['exchange']['actions'] is None:
+                session['exchange']['actions'] = tuple()
 
-    # gather relevant data from session and inbound
+            print('LAST EXCHANGE WAS ', session['exchange']['router_id'])
+        else: # initiate new exchange
+            session['exchange'] = dict()
+            session['exchange']['router_id'] = 'init_onboarding'
+            session['exchange']['outbound'] = None
+            session['exchange']['actions'] = tuple()
+            session['exchange']['id'] = None
+
+    # gather relevant data from inbound request
     inbound = request.values.get('Body')
-    print(f'INBOUND FROM {user["username"]}: {inbound}')
+    print(f'INBOUND FROM {session["user"]["username"]}: {inbound}')
 
-    # execute actions that were defined by last router for this inbound value
-    execute_actions(current_actions, current_router_id, inbound, user)
-    
-    log_convo(
-        current_router_id, 
-        inbound, 
-        current_outbound, 
-        user, 
-        exchange_id=current_exchange_id)
+    # parse inbound based on match on router_id
+    parsed_inbound = parse_inbound(inbound, session['exchange']['router_id'])
+
+    # execute actions that were defined by the router for this inbound value
+    # TODO(Nico) capture returned values of these actions
+    execute_actions(
+        session['exchange']['actions'], 
+        session['exchange']['router_id'], 
+        parsed_inbound, 
+        session['user'])
 
     # decide on outbound message and func calls
-    next_outbound, next_router_id = pick_response_and_logic(current_router_id, inbound, user)
-    print(f'OUTBOUND TO {user["username"]}: {next_outbound}')
+    next_router = pick_response_and_logic(
+        session['exchange']['router_id'], 
+        parsed_inbound, 
+        session['user'])
 
-    current_exchange_id = log_convo(
-        next_router_id, 
-        None, 
-        next_outbound, 
-        user)
+    print('THE NEXT ROUTER LOOKS LIKE: \n\n', next_router)
+    # update the last exchange
+    update_exchange(
+        session['exchange']['id'], 
+        inbound,
+        next_router.router_id)
+
+    # insert the next exchange
+    next_exchange = insert_exchange(
+        next_router.router_id, 
+        session['user'])
 
     # save values to persist in session so that we know how to act on user's response to our outbound
-    session['user'] = user
-    session['current_router_id'] = next_router_id
-    session['current_outbound'] = next_outbound
-    session['current_actions'] = combined_routers[combined_routers.router_id == next_router_id].actions.iloc[0]
-    session['current_exchange_id'] = current_exchange_id
+    session['exchange'] = next_exchange
+
+    print(f'NEXT ROUTER TO {session["user"]["username"]}: {session["exchange"]["router_id"]}')
+    print(f'OUTBOUND TO {session["user"]["username"]}: {session["exchange"]["outbound"]}')
+
     # send outbound    
     resp = MessagingResponse()
-    resp.message(next_outbound)
+    resp.message(next_router.outbound)
     return str(resp)
 
 
 def pick_response_and_logic(last_router_id, inbound, user):
     '''Query the static router table to find the right outbound message and action'''
     routers = combined_routers.copy()
-    # join the ROUTER and the OUTBOUND tables
-    
-    # match on last_router_id
+
+    # match on last router_id
     routers = routers[routers.last_router_id == last_router_id]
     # match on inbound
-    # TODO(Nico) include a parser of user's inbound messages to standardize them 
     if inbound in routers.inbound.values: # ASSUME that each last_router_id, inbound pair is unique
         routers = routers[routers.inbound == inbound]
     else: # by default, return the router that accepts any input
@@ -104,7 +108,7 @@ def pick_response_and_logic(last_router_id, inbound, user):
         if matches > 1:
             raise NotImplementedError("The routers are ambiguous - too many matches. fix your data.")
 
-    return router.response, router.router_id
+    return router
 
 
 def query_or_insert_user(phone_number):

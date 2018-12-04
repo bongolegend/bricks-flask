@@ -24,44 +24,54 @@ c) how does this work?
 OUTBOUNDS = [
     {
         'router_id': 'welcome',
-        'response': "Hey! Welcome to Bricks, a tool that helps you outperform your friends. Please enter a username:",
+        'outbound': "Hey! Welcome to Bricks, a tool that helps you outperform your friends. Please enter a username:",
         'actions': ('update_username',),
+        'inbound_format': '*',
     }, {
         'router_id': 'how_it_works',
-        'response': HOW_IT_WORKS, 
+        'outbound': HOW_IT_WORKS, 
         'actions': (None,),
+        'inbound_format': 'multiple_choice',
     }, {
         'router_id': 'contact_support',
-        'response': "Text me at 3124505311 and I'll walk you through it.", 
+        'outbound': "Text me at 3124505311 and I'll walk you through it.", 
         'actions': (None,),
+        'inbound_format': '*',
     }, {
         'router_id': 'timezone',
-        'response': TIMEZONE, 
+        'outbound': TIMEZONE, 
         'actions': ('update_timezone',), # these get executed in order
+        'inbound_format': 'multiple_choice',
     }, {
         'router_id': 'choose_brick', 
-        'response': "What’s the most important thing you want to get done today?",
+        'outbound': "What’s the most important thing you want to get done today?",
         'actions': ('schedule_reminders',), # TODO(Nico) log this brick
+        'inbound_format': '*',
     }, {
         'router_id': 'state_followup',
-        'response': "I’ll text you tonight at 9 pm to follow up. Good luck.",
+        'outbound': "I’ll text you tonight at 9 pm to follow up. Good luck.",
         'actions': (None,), 
+        'inbound_format': '*',
     }, {
         'router_id': 'evening_checkin',
-        'response': 'Did you stack your brick today?',
-        'actions': ('add_point',)
+        'outbound': 'Did you stack your brick today?',
+        'actions': ('add_point',),
+        'inbound_format': 'multiple_choice',
     }, {
         'router_id': 'completion_point',
-        'response': "Congrats! You earned +1 point.",
+        'outbound': "Congrats! You earned +1 point.",
         'actions': (None,),
+        'inbound_format': '*',
     }, {
         'router_id': 'no_completion',
-        'response': "All good. Just make tomorrow count.",
+        'outbound': "All good. Just make tomorrow count.",
         'actions': (None,),
+        'inbound_format': '*',
     }, {
         'router_id': 'main_menu',
-        'response': MAIN_MENU,
+        'outbound': MAIN_MENU,
         'actions': (None,),
+        'inbound_format': 'multiple_choice',
     }, 
 ]
 
