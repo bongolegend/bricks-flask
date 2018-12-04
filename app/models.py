@@ -1,6 +1,7 @@
 from datetime import datetime as dt
 from sqlalchemy import func
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.dialects import postgresql
 from app import db
 
 
@@ -65,6 +66,9 @@ class Exchange(db.Model, Base):
     router_id = db.Column(db.String(32), nullable=False)
     outbound = db.Column(db.String(256))
     inbound = db.Column(db.String(256))
+    actions = db.Column(postgresql.ARRAY(db.String))
+    inbound_format = db.Column(db.String(32), nullable=False)
+    next_router_id = db.Column(db.String(32))
 
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'),
         nullable=False)
@@ -75,9 +79,12 @@ class Exchange(db.Model, Base):
         return dict(
             id = self.id,
             router_id = self.router_id, 
-            inbound = self.inbound,
             outbound = self.outbound,
-            created = self.created
+            inbound = self.inbound,
+            actions = self.actions,
+            inbound_format = self.inbound_format,
+            next_router_id = self.next_router_id,
+            created = self.created,
         )
     
     def __repr__(self):
