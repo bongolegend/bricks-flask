@@ -81,10 +81,11 @@ class Exchange(db.Model, Base):
             router_id = self.router_id, 
             outbound = self.outbound,
             inbound = self.inbound,
-            actions = self.actions,
+            actions = tuple(self.actions),
             inbound_format = self.inbound_format,
             next_router_id = self.next_router_id,
             created = self.created,
+            user_id = self.user_id,
         )
     
     def __repr__(self):
