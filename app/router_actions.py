@@ -1,4 +1,5 @@
 import datetime as dt
+from sqlalchemy import func
 from app import scheduler, db
 from app.models import User, Notification, Point
 from app.send_notifications import add_notif_to_scheduler
@@ -86,6 +87,13 @@ def add_point(inbound, user, **kwargs):
     point = Point(value=1, user_id=user['id'])
     db.session.add(point)
     db.session.commit()
+
+    points = db.session.query(func.sum(Point.value).label('points')).filter(Point.user_id == user['id']).one()[0]
+
+    if points 
+    CURRENT_POINTS = f'You now have {points} points.'
+
+    return CURRENT_POINTS
 
 
 ROUTER_ACTIONS = dict(
