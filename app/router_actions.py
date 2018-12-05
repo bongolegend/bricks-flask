@@ -88,16 +88,16 @@ def add_point(inbound, user, **kwargs):
     db.session.add(point)
     db.session.commit()
 
+
+def query_points(user, **kwargs):
     points = db.session.query(func.sum(Point.value).label('points')).filter(Point.user_id == user['id']).one()[0]
 
-    if points 
-    CURRENT_POINTS = f'You now have {points} points.'
-
-    return CURRENT_POINTS
+    return points
 
 
 ROUTER_ACTIONS = dict(
     schedule_reminders = schedule_reminders,
     update_timezone = update_timezone,
     update_username = update_username,
-    add_point = add_point,)
+    add_point = add_point,
+    query_points = query_points)

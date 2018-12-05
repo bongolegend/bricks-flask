@@ -42,6 +42,9 @@ def main():
         session['exchange']['inbound'],
         next_router['router_id'])
 
+    # format next router outbound with result_dict
+    next_router['outbound'].format(**result_dict)
+
     # insert the next router into db as an exchange
     next_exchange = insert_exchange(
         next_router, 

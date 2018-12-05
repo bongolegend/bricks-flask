@@ -62,16 +62,16 @@ NODES = [
     }, {
         'router_id': 'evening_checkin',
         'outbound': 'Did you stack your brick today?',
-        'actions': ('add_point',),
+        'actions': ('add_point', 'query_points'),
         'inbound_format': 'multiple_choice',
     }, {
         'router_id': 'completion_point',
-        'outbound': "Congrats! You earned +1 point.",
+        'outbound': "Congrats! You earned +1 point. You now have {query_points} points.",
         'actions': None,
         'inbound_format': '*',
     }, {
         'router_id': 'no_completion',
-        'outbound': "All good. Just make tomorrow count.",
+        'outbound': "All good. Just make tomorrow count. You currently have {query_points} points.",
         'actions': None,
         'inbound_format': '*',
     }, {
@@ -146,7 +146,16 @@ EDGES = [
         'last_router_id': 'main_menu',
         'inbound': 'c',
         'next_router_id': 'how_it_works',
-    }
+    }, {
+        'last_router_id': 'evening_checkin',
+        'inbound': 'yes',
+        'next_router_id': 'completion_point',
+    }, {
+        'last_router_id': 'evening_checkin',
+        'inbound': 'no',
+        'next_router_id': 'no_completion',
+    },
+
 ]
 
 edges = pd.DataFrame.from_dict(EDGES)
