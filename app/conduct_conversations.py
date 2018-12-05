@@ -17,11 +17,11 @@ def main():
     init_session(session, request)
 
     # gather relevant data from inbound request
-    inbound = request.values.get('Body')
-    # print(f'INBOUND FROM {session["user"]["username"]}: {inbound}')
+    session['exchange']['inbound'] = request.values.get('Body')
+    print(f"INBOUND FROM {session['user']['username']}: {session['exchange']['inbound']}")
 
     # parse inbound based on match on router_id
-    parsed_inbound = parse_inbound(inbound, session['exchange']['router_id'])
+    parsed_inbound = parse_inbound(session['exchange']['inbound'], session['exchange']['router_id'])
 
     # execute all actions defined on the router
     result_dict = execute_actions(
@@ -35,15 +35,11 @@ def main():
         session, 
         parsed_inbound, 
         session['user'])
-
-    print('COMPLETED EXCHANGE:' )
-    for k,v in session['exchange'].items():
-         print(session['exchange'])
     
     # update current exchange in DB with inbound and next router
     update_exchange(
         session['exchange']['id'], 
-        inbound,
+        session['exchange']['inbound'],
         next_router['router_id'])
 
     # insert the next router into db as an exchange
@@ -70,6 +66,7 @@ def execute_actions(actions, last_router_id, inbound, user):
                 last_router_id=last_router_id, 
                 inbound=inbound, 
                 user=user)
+            print('ACTION EXECUTED: ', action_name)
 
             result_dict[action_name] = result
 
