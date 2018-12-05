@@ -87,7 +87,7 @@ nodes = pd.DataFrame.from_dict(NODES)
 nodes = nodes.where((pd.notnull(nodes)), None)
 
 
-BRANCHES = [
+EDGES = [
     {
         'last_router_id': 'init_onboarding',
         'inbound': '*',
@@ -115,6 +115,11 @@ BRANCHES = [
         'inbound': 'yes',
         'condition': ('timezone_set', False),
         'next_router_id': 'timezone',
+    }, {
+        'last_router_id': 'how_it_works',
+        'inbound': 'yes',
+        'condition': ('timezone_set', True),
+        'next_router_id': 'main_menu',
     }, {
         'last_router_id': 'timezone',
         'inbound': '*',
@@ -144,12 +149,12 @@ BRANCHES = [
     }
 ]
 
-branches = pd.DataFrame.from_dict(BRANCHES)
+edges = pd.DataFrame.from_dict(EDGES)
 # pandas reads None as Nan by default, so you need to replace the Nans
-branches = branches.where((pd.notnull(branches)), None)
+edges = edges.where((pd.notnull(edges)), None)
 
 routers = nodes.merge(
-    branches,
+    edges,
     how='outer',
     left_on='router_id',
     right_on='next_router_id')
