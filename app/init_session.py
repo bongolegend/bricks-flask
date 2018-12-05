@@ -17,7 +17,7 @@ def main(session, request):
             if session['exchange']['actions'] is None:
                 session['exchange']['actions'] = tuple()
 
-            print('LAST EXCHANGE WAS ', session['exchange']['router_id'])
+            # print('CURRENT EXCHANGE WAS ', session['exchange']['router_id'])
         else: # initiate new exchange
             session['exchange'] = dict()
             session['exchange']['router_id'] = 'init_onboarding'

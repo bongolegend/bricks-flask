@@ -21,7 +21,7 @@ b) choose a new timezone
 c) how does this work?
 """
 
-OUTBOUNDS = [
+NODES = [
     {
         'router_id': 'init_onboarding',
         'outbound': None,
@@ -82,12 +82,12 @@ OUTBOUNDS = [
     }, 
 ]
 
-outbound_df = pd.DataFrame.from_dict(OUTBOUNDS)
+nodes = pd.DataFrame.from_dict(NODES)
 # pandas reads None as Nan by default, so you need to replace the Nans
-outbound_df = outbound_df.where((pd.notnull(outbound_df)), None)
+nodes = nodes.where((pd.notnull(nodes)), None)
 
 
-ROUTERS = [
+BRANCHES = [
     {
         'last_router_id': 'init_onboarding',
         'inbound': '*',
@@ -144,14 +144,16 @@ ROUTERS = [
     }
 ]
 
-router_df = pd.DataFrame.from_dict(ROUTERS)
+branches = pd.DataFrame.from_dict(BRANCHES)
 # pandas reads None as Nan by default, so you need to replace the Nans
-router_df = router_df.where((pd.notnull(router_df)), None)
+branches = branches.where((pd.notnull(branches)), None)
 
-combined_routers = outbound_df.merge(
-    router_df,
+routers = nodes.merge(
+    branches,
     how='outer',
     left_on='router_id',
     right_on='next_router_id')
+
+routers.drop(['next_router_id'], axis=1, inplace=True)
 
 

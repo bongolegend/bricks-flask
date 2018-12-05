@@ -2,7 +2,7 @@ import datetime as dt
 from app import scheduler, db
 from app.models import User, Notification, Point
 from app.send_notifications import add_notif_to_scheduler
-from app.routers_and_outbounds import outbound_df
+from app.routers import nodes
 from config import Config # TODO(Nico) access the config that has been initialized on the app 
     
 
@@ -12,7 +12,7 @@ def schedule_reminders(last_router_id, user, **kwargs):
     # set morning reminder
     if len(Notification.query.filter_by(user_id=user['id'], tag='choose_brick').all()) == 0:
 
-        outbound = outbound_df[outbound_df.router_id == 'choose_brick'].iloc[0]
+        outbound = nodes[nodes.router_id == 'choose_brick'].iloc[0]
 
         notif = Notification(tag=outbound.router_id,
             body=outbound.outbound,
@@ -32,7 +32,7 @@ def schedule_reminders(last_router_id, user, **kwargs):
     # set evening reminder
     if len(Notification.query.filter_by(user_id=user['id'], tag='evening_checkin').all()) == 0:
 
-        outbound = outbound_df[outbound_df.router_id == 'evening_checkin'].iloc[0]
+        outbound = nodes[nodes.router_id == 'evening_checkin'].iloc[0]
 
         notif = Notification(tag=outbound.router_id,
             body=outbound.outbound,
