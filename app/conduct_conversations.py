@@ -22,13 +22,13 @@ def main():
 
     # parse inbound based on match on router_id
     parsed_inbound = parse_inbound(session['exchange']['inbound'], session['exchange']['router_id'])
-
-    # execute all actions defined on the router
-    result_dict = execute_actions(
+    
+    # execute current exchange actions after getting inbound
+    # this needs to run before selecting the next router, as these actions can influence the next router choice
+    action_results = execute_actions(
         session['exchange']['actions'], 
-        session['exchange']['router_id'], 
-        parsed_inbound, 
-        session['user'])
+        session['user'],
+        inbound=parsed_inbound)
 
     # decide on next router, including outbound and actions
     next_router = select_next_router(
@@ -36,37 +36,41 @@ def main():
         parsed_inbound, 
         session['user'])
     
-    # update current exchange in DB with inbound and next router
-    update_exchange(
-        session['exchange']['id'], 
-        session['exchange']['inbound'],
-        next_router['router_id'])
+    # run actions for next router before inbound
+    pre_action_results = execute_actions(
+        next_router['pre_actions'],
+        session['user'])
 
-    # format next router outbound with result_dict
-    next_router['outbound'].format(**result_dict)
+    # combine all action results and add them to next router
+    results = {**action_results, **pre_action_results}
+    next_router['outbound'] = next_router['outbound'].format(**results)
 
     # insert the next router into db as an exchange
     next_exchange = insert_exchange(
         next_router, 
         session['user'])
 
+    # update current exchange in DB with inbound and next exchange id
+    update_exchange(
+        session['exchange'],
+        next_exchange)
+
     # save values to persist in session so that we know how to act on user's response to our outbound
     session['exchange'] = next_exchange
 
     # send outbound    
     resp = MessagingResponse()
-    resp.message(next_router['outbound'])
+    resp.message(next_exchange['outbound'])
     return str(resp)
 
 
-def execute_actions(actions, last_router_id, inbound, user):
-    if inbound is not None and actions is not None:
+def execute_actions(actions, user, inbound=None):
+    if actions is not None:
         result_dict = dict()
         for action_name in actions:
             action_func = ROUTER_ACTIONS[action_name]
 
-            result = action_func(
-                last_router_id=last_router_id, 
+            result = action_func( 
                 inbound=inbound, 
                 user=user)
             print('ACTION EXECUTED: ', action_name)
@@ -74,7 +78,7 @@ def execute_actions(actions, last_router_id, inbound, user):
             result_dict[action_name] = result
 
         return result_dict
-    return None
+    return dict()
 
 
 def select_next_router(session, inbound, user):
@@ -118,4 +122,5 @@ def select_next_router(session, inbound, user):
     if  session['exchange']['confirmation'] is not None:
         router['outbound'] = session['exchange']['confirmation'] + " " + router['outbound']
 
+    print('NEXT ROUTER: ', router)
     return router

@@ -1,13 +1,13 @@
 import datetime as dt
 from sqlalchemy import func
 from app import scheduler, db
-from app.models import User, Notification, Point
+from app.models import AppUser, Notification, Point
 from app.send_notifications import add_notif_to_scheduler
 from app.routers import nodes
 from config import Config # TODO(Nico) access the config that has been initialized on the app 
     
 
-def schedule_reminders(last_router_id, user, **kwargs):
+def schedule_reminders(user, **kwargs):
     '''Create one morning and one evening reminder. Add reminders to scheduler and to db'''
 
     # set morning reminder
@@ -53,10 +53,10 @@ def schedule_reminders(last_router_id, user, **kwargs):
     db.session.commit()
 
 
-def update_timezone(last_router_id, inbound, user, **kwargs):
+def update_timezone(inbound, user, **kwargs):
     tz = Config.US_TIMEZONES.get(inbound, None)
     if tz is not None:        
-        user_obj = db.session.query(User).filter_by(id=user['id']).one()
+        user_obj = db.session.query(AppUser).filter_by(id=user['id']).one()
         user_obj.timezone = tz
         user['timezone'] = tz
 
@@ -68,7 +68,6 @@ def update_timezone(last_router_id, inbound, user, **kwargs):
             
         db.session.commit()
 
-
     else:
         raise ValueError('INVALID TIMEZONE CHOICE')
 
@@ -76,14 +75,14 @@ def update_timezone(last_router_id, inbound, user, **kwargs):
 
 
 def update_username(inbound, user, **kwargs):
-    user_obj = db.session.query(User).filter_by(id=user['id']).one()
+    user_obj = db.session.query(AppUser).filter_by(id=user['id']).one()
     user_obj.username = inbound
     user['username'] = inbound
 
     db.session.commit()
 
 
-def add_point(inbound, user, **kwargs):
+def add_point(user, **kwargs):
     point = Point(value=1, user_id=user['id'])
     db.session.add(point)
     db.session.commit()
@@ -92,7 +91,10 @@ def add_point(inbound, user, **kwargs):
 def query_points(user, **kwargs):
     points = db.session.query(func.sum(Point.value).label('points')).filter(Point.user_id == user['id']).one()[0]
 
-    return points
+    if points is None:
+        return 0
+    else:
+        return points
 
 
 ROUTER_ACTIONS = dict(

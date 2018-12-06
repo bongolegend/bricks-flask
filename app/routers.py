@@ -19,6 +19,7 @@ What do you want to do?
 a) choose a brick for today
 b) choose a new timezone
 c) how does this work?
+d) how many points do I have?
 """
 
 NODES = [
@@ -79,6 +80,12 @@ NODES = [
         'outbound': MAIN_MENU,
         'actions': None,
         'inbound_format': 'multiple_choice',
+    }, {
+        'router_id': 'current_points',
+        'pre_actions': ('query_points',),
+        'outbound': "You currently have {query_points} points.",
+        'actions': None,
+        'inbound_format': '*',
     }, 
 ]
 
@@ -147,6 +154,10 @@ EDGES = [
         'inbound': 'c',
         'next_router_id': 'how_it_works',
     }, {
+        'last_router_id': 'main_menu',
+        'inbound': 'd',
+        'next_router_id': 'current_points',
+    }, {
         'last_router_id': 'evening_checkin',
         'inbound': 'yes',
         'next_router_id': 'completion_point',
@@ -154,7 +165,11 @@ EDGES = [
         'last_router_id': 'evening_checkin',
         'inbound': 'no',
         'next_router_id': 'no_completion',
-    },
+    }, {
+        'last_router_id': 'current_points',
+        'inbound': '*',
+        'next_router_id': 'main_menu',
+    }
 
 ]
 

@@ -1,5 +1,5 @@
 from app import db
-from app.models import User, Exchange
+from app.models import AppUser, Exchange
 
 
 def main(session, request):
@@ -32,12 +32,12 @@ def query_user(phone_number):
     returns the user object
     '''
 
-    user = db.session.query(User).filter_by(phone_number=phone_number).first()
+    user = db.session.query(AppUser).filter_by(phone_number=phone_number).first()
 
     if user is not None:
         return user
     else:
-        new_user = User(phone_number=phone_number)
+        new_user = AppUser(phone_number=phone_number)
         db.session.add(new_user)
         db.session.commit()
         return new_user

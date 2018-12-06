@@ -8,12 +8,12 @@ from app import db
 class Base:
     id = db.Column(db.Integer, primary_key=True)
     created = db.Column(db.DateTime, nullable=False, default=func.now(), server_default=func.now())
-    updated = db.Column(db.DateTime, nullable=False, default=func.now(), server_default=func.now())
+    updated = db.Column(db.DateTime, nullable=False, default=func.now(), server_default=func.now(), onupdate=func.current_timestamp())
 
 Base = declarative_base(cls=Base)
 
 
-class User(db.Model, Base):
+class AppUser(db.Model, Base):
     username = db.Column(db.String(64), default='NEW_USER')
     phone_number = db.Column(db.String(32), unique=True)
     timezone = db.Column(db.String(32))
@@ -28,7 +28,7 @@ class User(db.Model, Base):
         )
 
     def __repr__(self):
-        return '<User %r>' % self.phone_number
+        return '<AppUser %r>' % self.phone_number
 
 
 class Notification(db.Model, Base):
@@ -42,9 +42,9 @@ class Notification(db.Model, Base):
     end_date = db.Column(db.DateTime)
     timezone = db.Column(db.String(32), nullable=False)
 
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'),
+    user_id = db.Column(db.Integer, db.ForeignKey('app_user.id'),
         nullable=False)
-    user = db.relationship('User',
+    user = db.relationship('AppUser',
         backref=db.backref('notifications', lazy=True))
 
     def to_cron(self):
@@ -70,10 +70,12 @@ class Exchange(db.Model, Base):
     inbound_format = db.Column(db.String(32), nullable=False)
     next_router_id = db.Column(db.String(32))
     confirmation = db.Column(db.String(64))
+    pre_actions = db.Column(postgresql.ARRAY(db.String))
+    next_exchange_id = db.Column(db.Integer) # this needs to be nullable because it is not known when an exchange is first created
 
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'),
+    user_id = db.Column(db.Integer, db.ForeignKey('app_user.id'),
         nullable=False)
-    user = db.relationship('User',
+    user = db.relationship('AppUser',
         backref=db.backref('exchanges', lazy=True))
     
     def to_dict(self):
@@ -91,7 +93,9 @@ class Exchange(db.Model, Base):
             inbound_format = self.inbound_format,
             next_router_id = self.next_router_id,
             confirmation = self.confirmation,
+            pre_actions = self.pre_actions,
             created = self.created,
+            next_exchange_id = self.next_exchange_id,
             user_id = self.user_id,
         )
     
@@ -102,9 +106,9 @@ class Exchange(db.Model, Base):
 class Point(db.Model, Base):
     value = db.Column(db.Integer, nullable=False)
 
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'),
+    user_id = db.Column(db.Integer, db.ForeignKey('app_user.id'),
         nullable=False)
-    user = db.relationship('User',
+    user = db.relationship('AppUser',
         backref=db.backref('points', lazy=True))
     
     def __repr__(self):

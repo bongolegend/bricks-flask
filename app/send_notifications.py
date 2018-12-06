@@ -4,14 +4,14 @@ import logging
 import settings
 from twilio.rest import Client
 from app import scheduler, db
-from app.models import User, Notification
+from app.models import AppUser, Notification
 from app.queries import insert_exchange
 from config import Config # TODO(Nico) find a cleaner way to access config. with create_app? or current_app?
 
 
 def seed_scheduler():
     '''scheduler starts on a separate thread (initialized in __init__). seed it with stored notifications'''
-    result = db.session.query(Notification, User).join(User).all()
+    result = db.session.query(Notification, AppUser).join(AppUser).all()
 
     for row in result:
         notif, user = row
