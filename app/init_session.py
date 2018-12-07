@@ -24,6 +24,7 @@ def main(session, request):
             session['exchange']['actions'] = tuple()
             session['exchange']['id'] = None
             session['exchange']['confirmation'] = None
+            session['exchange']['outbound'] = str()
 
 
 def query_user(phone_number):
