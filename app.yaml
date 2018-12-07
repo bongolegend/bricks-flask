@@ -6,3 +6,10 @@ runtime: python37
 # you don't need to specify this if you conform to these rules
 # https://cloud.google.com/appengine/docs/standard/python3/runtime#application_startup
 # entrypoint: gunicorn -b :$PORT main:app
+
+
+# fixed according to https://stackoverflow.com/questions/14371920/google-app-engine-instances-keep-quickly-shutting-down
+# and
+# https://cloud.google.com/appengine/docs/standard/python3/config/appref
+automatic_scaling:
+  min_pending_latency: 1000ms  # default value is 30ms
