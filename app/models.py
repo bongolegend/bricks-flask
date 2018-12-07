@@ -15,7 +15,7 @@ Base = declarative_base(cls=Base)
 
 class AppUser(db.Model, Base):
     username = db.Column(db.String(64), default='NEW_USER')
-    phone_number = db.Column(db.String(32), unique=True)
+    phone_number = db.Column(db.String(32), unique=True, nullable=False)
     timezone = db.Column(db.String(32))
 
     def to_dict(self):
