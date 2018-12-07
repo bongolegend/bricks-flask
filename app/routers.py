@@ -169,8 +169,11 @@ EDGES = [
         'last_router_id': 'current_points',
         'inbound': '*',
         'next_router_id': 'main_menu',
+    }, {
+        'last_router_id': 'state_followup',
+        'inbound': '*',
+        'next_router_id': 'main_menu',
     }
-
 ]
 
 edges = pd.DataFrame.from_dict(EDGES)
