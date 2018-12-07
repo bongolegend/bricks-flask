@@ -1,3 +1,4 @@
+import os
 import datetime as dt
 from flask import request, session
 from twilio.twiml.messaging_response import MessagingResponse
@@ -13,8 +14,14 @@ from config import Config # TODO(Nico) access the config that has been initializ
 
 def main():
     """Respond to SMS inbound with appropriate SMS outbound based on conversation state and response_db.py"""
+    
+    inbound = request.values.get('Body')
+    if inbound is None:
+        return f"Please use a phone and text {os.environ.get('TWILIO_PHONE_NUMBER')}. This does not work thru the browser."
 
     init_session(session, request)
+
+    session['exchange']['inbound']  = inbound
 
     # gather relevant data from inbound request
     session['exchange']['inbound'] = request.values.get('Body')

@@ -64,8 +64,8 @@ class Notification(db.Model, Base):
 
 class Exchange(db.Model, Base):
     router_id = db.Column(db.String(32), nullable=False)
-    outbound = db.Column(db.String(256))
-    inbound = db.Column(db.String(256))
+    outbound = db.Column(db.String(612))
+    inbound = db.Column(db.String(612))
     actions = db.Column(postgresql.ARRAY(db.String))
     inbound_format = db.Column(db.String(32), nullable=False)
     next_router_id = db.Column(db.String(32))
