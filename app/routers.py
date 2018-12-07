@@ -52,12 +52,12 @@ NODES = [
         'confirmation': "Your timezone is set.",
     }, {
         'router_id': 'choose_brick', 
-        'outbound': "What’s the most important thing you want to get done today?",
+        'outbound': "What's the most important thing you want to get done today?",
         'actions': ('schedule_reminders',), # TODO(Nico) log this brick
         'inbound_format': '*',
     }, {
         'router_id': 'state_followup',
-        'outbound': "I’ll text you tonight at 9 pm to follow up. Good luck.",
+        'outbound': "I'll text you tonight at 9 pm to follow up. Good luck.",
         'actions': None, 
         'inbound_format': '*',
     }, {
