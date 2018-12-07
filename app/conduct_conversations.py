@@ -23,18 +23,27 @@ def main():
     # parse inbound based on match on router_id
     parsed_inbound = parse_inbound(session['exchange']['inbound'], session['exchange']['router_id'])
     
-    # execute current exchange actions after getting inbound
-    # this needs to run before selecting the next router, as these actions can influence the next router choice
-    action_results = execute_actions(
-        session['exchange']['actions'], 
-        session['user'],
-        inbound=parsed_inbound)
+    if parsed_inbound is not None:
+        # execute current exchange actions after getting inbound
+        # this needs to run before selecting the next router, as these actions can influence the next router choice
+        action_results = execute_actions(
+            session['exchange']['actions'], 
+            session['user'],
+            inbound=parsed_inbound)
 
-    # decide on next router, including outbound and actions
-    next_router = select_next_router(
-        session, 
-        parsed_inbound, 
-        session['user'])
+        # decide on next router, including outbound and actions
+        next_router = select_next_router(
+            session, 
+            parsed_inbound, 
+            session['user'])
+    else:
+        # resend the same router
+        RETRY = "Your response is not valid, try again.\n"
+        session['exchange']['outbound'] = RETRY + session['exchange']['outbound']
+
+        next_router = session['exchange']
+        action_results = dict()
+
     
     # run actions for next router before inbound
     pre_action_results = execute_actions(
@@ -83,13 +92,6 @@ def execute_actions(actions, user, inbound=None):
 
 def select_next_router(session, inbound, user):
     '''Query the static router table to find the right outbound message and action'''
-
-    if inbound is None:
-        # resend the same router
-        RETRY = "Your response is not valid, try again.\n"
-        session['exchange']['outbound'] = RETRY + session['exchange']['outbound']
-
-        return session['exchange']
 
     # find all routers that can branch from the current router & that interact with the inbound
     filtered = routers[
