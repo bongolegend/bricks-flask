@@ -10,7 +10,8 @@ def brick_chosen(user, **kwargs):
         Exchange.user_id==user['id'], 
         Exchange.router_id=='choose_brick',
         Exchange.inbound.isnot(None),
-        Exchange.created>=dt.datetime.today()).all()
+        Exchange.created>=dt.date.today()).all()
+
     if bricks_chosen_today:
         return True
     return False

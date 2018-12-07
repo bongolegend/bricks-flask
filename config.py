@@ -6,7 +6,7 @@ class Config:
     SQLALCHEMY_DATABASE_URI = os.environ.get('LOCAL_DB_URL')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     HOST = 'local'
-
+    
     US_TIMEZONES = {
         'a': 'America/Los_Angeles',
         'b': 'America/Denver',
