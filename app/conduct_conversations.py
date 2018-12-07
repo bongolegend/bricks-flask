@@ -124,5 +124,5 @@ def select_next_router(session, inbound, user):
     if  session['exchange']['confirmation'] is not None:
         router['outbound'] = session['exchange']['confirmation'] + " " + router['outbound']
 
-    print('NEXT ROUTER: ', router)
+    print('NEXT ROUTER: \n', router)
     return router
