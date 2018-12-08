@@ -1,0 +1,6 @@
+# docs at https://cloud.google.com/appengine/docs/standard/python3/scheduling-jobs-with-cron-yaml
+
+cron:
+- description: "run notifications"
+  url: /notifications
+  schedule: every 30 minutes 

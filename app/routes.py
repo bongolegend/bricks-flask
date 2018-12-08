@@ -28,11 +28,6 @@ def landing_page():
 Please text {os.environ.get('TWILIO_PHONE_NUMBER')} to get started.
 """
 
-@main.route("/test", methods=['GET'])
-def does_google_cron_work():
-    print("YES IT WORKS BABY!")
-    return "YES IT WORKS BABY!"
-
 @main.route("/notifications", methods=['GET'])
 def send_notifications_wrapper():
     return send_notifications()
