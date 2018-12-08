@@ -2,7 +2,7 @@ import os
 import datetime as dt
 from flask import request, session
 from twilio.twiml.messaging_response import MessagingResponse
-from app import scheduler, db
+from app import db
 from app.init_session import main as init_session
 from app.parse_inbound import main as parse_inbound
 from app.queries import insert_exchange, update_exchange

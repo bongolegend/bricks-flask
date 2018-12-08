@@ -57,6 +57,17 @@ class Notification(db.Model, Base):
             end_date = self.end_date,
             timezone = self.timezone
         )
+    
+    def to_dict(self):
+        return dict(
+            tag = self.tag,
+            body = self.body,
+            day_of_week = self.day_of_week, 
+            hour = self.hour,
+            minute = self.minute,
+            end_date = self.end_date,
+            timezone = self.timezone)
+
 
     def __repr__(self):
         return '<Notification %r>' % self.tag

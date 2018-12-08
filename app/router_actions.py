@@ -1,8 +1,7 @@
 import datetime as dt
 from sqlalchemy import func
-from app import scheduler, db
+from app import db
 from app.models import AppUser, Notification, Point
-from app.send_notifications import add_notif_to_scheduler
 from app.routers import nodes
 from config import Config # TODO(Nico) access the config that has been initialized on the app 
     
@@ -26,8 +25,6 @@ def schedule_reminders(user, **kwargs):
             timezone=user.get('timezone', 'America/Los_Angeles'),
             user_id=user['id'])
         
-        # TODO(Nico) it could be problematic to schedule this before committing to db
-        add_notif_to_scheduler(scheduler, notif, user, Config)
         db.session.add(notif)
 
     # set evening reminder
@@ -46,8 +43,6 @@ def schedule_reminders(user, **kwargs):
             timezone=user.get('timezone', 'America/Los_Angeles'),
             user_id=user['id'])
         
-        # TODO(Nico) it could be problematic to schedule this before committing to db
-        add_notif_to_scheduler(scheduler, notif, user, Config)
         db.session.add(notif)
 
     db.session.commit()
