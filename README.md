@@ -33,6 +33,9 @@ To test the production server tool: `gunicorn main:app`. This runs the app from 
 
 * When you want to deploy, use this from within the directory: `gcloud app deploy --project bricks-app`.
 
+### Deploying Google Cron Jobs
+You must deploy your cron jobs (defined in `cron.yaml`) separately from the rest of the app by running `gcloud app deploy cron.yaml`.
+
 ### Testing your deployment locally
 
 * If  you want to run the GAE SDK dev server locally, run `dev_appserver.py --application=bricks-app app.yaml --port=5000`. 
@@ -40,6 +43,7 @@ To test the production server tool: `gunicorn main:app`. This runs the app from 
 
 ### Managing your deployed app
 [Shut your app down](https://console.cloud.google.com/appengine/settings?project=bricks-app&serviceId=default) so it can't incur expenses.
+
 
 
 # Postgres DB Deployment
