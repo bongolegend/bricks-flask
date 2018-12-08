@@ -3,10 +3,11 @@ import os
 from datetime import timedelta
 from flask import Blueprint, current_app, session
 import app.conduct_conversations as conduct_conversations
-
+from app.send_notifications import main as send_notifications
 
 main = Blueprint('main', __name__)
 
+# TODO(Nico) protect this endpoint
 @main.route( "/sms", methods=['GET', 'POST']) 
 def conduct_conversations_wrapper():
     return conduct_conversations.main()
@@ -25,7 +26,16 @@ def landing_page():
 
 
 Please text {os.environ.get('TWILIO_PHONE_NUMBER')} to get started.
-""" 
+"""
+
+@main.route("/test", methods=['GET'])
+def does_google_cron_work():
+    print("YES IT WORKS BABY!")
+    return "YES IT WORKS BABY!"
+
+@main.route("/notifications", methods=['GET'])
+def send_notifications_wrapper():
+    return send_notifications()
 
 # TODO(Nico) is this the right place to put this?
 @current_app.before_request
