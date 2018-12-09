@@ -1,16 +1,17 @@
 '''These functions check whether certain conditions were met for a router to be selected'''
 import datetime as dt
 from app import db
-from app.models import Exchange, AppUser
+from app.models import Task, AppUser
 
 
 def task_chosen(user, **kwargs):
     '''check if a task has been chosen for today'''
-    task_chosen_today = db.session.query(Exchange).filter(
-        Exchange.user_id==user['id'], 
-        Exchange.router_id=='choose_task',
-        Exchange.inbound.isnot(None),
-        Exchange.created>=dt.date.today()).first()
+    today = dt.datetime.today().replace(hour=0, minute=0, second=0, microsecond=0)
+    
+    task_chosen_today = db.session.query(Task).filter(
+        Task.user_id == user['id'], 
+        Task.active == True,
+        Task.due_date == today).first()
 
     if task_chosen_today:
         return True
