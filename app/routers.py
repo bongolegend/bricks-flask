@@ -38,7 +38,7 @@ NODES = [
         'router_id': 'how_it_works',
         'outbound': HOW_IT_WORKS, 
         'actions': None,
-        'inbound_format': 'multiple_choice',
+        'inbound_format': 'yes_no',
     }, {
         'router_id': 'contact_support',
         'outbound': "Text me at 3124505311 and I'll walk you through it. Type anything to continue.", 
@@ -53,28 +53,34 @@ NODES = [
     }, {
         'router_id': 'choose_brick', 
         'outbound': "What's the most important thing you want to get done today?",
-        'actions': ('schedule_reminders',), # TODO(Nico) log this brick
+        'actions': ('schedule_reminders',),
         'inbound_format': '*',
     }, {
-        'router_id': 'state_followup',
+        'router_id': 'choose_tomorrow_brick', 
+        'outbound': "What's the most important thing you want to get done tomorrow?",
+        'actions': ('change_morning_notification',), 
+        'inbound_format': '*',
+    }, {
+        'router_id': 'state_night_followup',
         'outbound': "I'll text you tonight at 9 pm to follow up. Good luck.",
         'actions': None, 
         'inbound_format': '*',
     }, {
         'router_id': 'evening_checkin',
-        'outbound': 'Did you stack your brick today?',
-        'actions': ('add_point', 'query_points'),
-        'inbound_format': 'multiple_choice',
+        'outbound': 'Did you stack your brick today? (y/n)',
+        'actions': ('add_point',),
+        'inbound_format': 'yes_no',
     }, {
         'router_id': 'completion_point',
-        'outbound': "Congrats! You earned +1 point. You now have {query_points} points.",
+        'pre_actions': ('query_points',),
+        'outbound': "Congrats! You earned +1 point. You now have {query_points} points. Do you want to choose tomorrow's task now? (y/n)",
         'actions': None,
-        'inbound_format': '*',
+        'inbound_format': 'yes_no',
     }, {
         'router_id': 'no_completion',
-        'outbound': "All good. Just make tomorrow count. You currently have {query_points} points.",
+        'outbound': "All good. Just make tomorrow count. You currently have {query_points} points. Do you want to choose tomorrow's task now? (y/n)",
         'actions': None,
-        'inbound_format': '*',
+        'inbound_format': 'yes_no',
     }, {
         'router_id': 'main_menu',
         'outbound': MAIN_MENU,
@@ -86,7 +92,17 @@ NODES = [
         'outbound': "You currently have {query_points} points.",
         'actions': None,
         'inbound_format': '*',
-    }, 
+    }, {
+        'router_id': 'state_morning_followup',
+        'outbound': "I'll message you tomorrow at 8 am.",
+        'inbound_format': '*',
+    }, {
+        'router_id': 'morning_confirmation',
+        'pre_actions': ('query_brick','change_morning_notification'),
+        'outbound': "Are you still planning to do this task today: {query_brick}? (y/n)",
+        'inbound_format': 'yes_no',
+        'actions': None,
+    },
 ]
 
 nodes = pd.DataFrame.from_dict(NODES)
@@ -140,7 +156,7 @@ EDGES = [
     }, {
         'last_router_id': 'choose_brick',
         'inbound': '*',
-        'next_router_id': 'state_followup',
+        'next_router_id': 'state_night_followup',
     }, {
         'last_router_id': 'main_menu',
         'inbound': 'a',
@@ -170,9 +186,37 @@ EDGES = [
         'inbound': '*',
         'next_router_id': 'main_menu',
     }, {
-        'last_router_id': 'state_followup',
+        'last_router_id': 'state_night_followup',
         'inbound': '*',
         'next_router_id': 'main_menu',
+    }, {
+        'last_router_id': 'completion_point', 
+        'inbound': 'yes',
+        'next_router_id': 'choose_tomorrow_brick',
+    }, {
+        'last_router_id': 'completion_point', 
+        'inbound': 'no',
+        'next_router_id': 'state_morning_followup',
+    }, {
+        'last_router_id': 'no_completion', 
+        'inbound': 'yes',
+        'next_router_id': 'choose_tomorrow_brick',
+    }, {
+        'last_router_id': 'no_completion', 
+        'inbound': 'no',
+        'next_router_id': 'state_morning_followup',
+    }, {
+        'last_router_id': 'choose_tomorrow_brick', 
+        'inbound': '*',
+        'next_router_id': 'state_morning_followup',
+    }, {
+        'last_router_id': 'morning_confirmation',
+        'inbound': 'yes',
+        'next_router_id': 'state_night_followup',
+    }, {
+        'last_router_id': 'morning_confirmation',
+        'inbound': 'no',
+        'next_router_id': 'choose_brick',
     }
 ]
 
