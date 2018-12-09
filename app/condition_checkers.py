@@ -4,15 +4,15 @@ from app import db
 from app.models import Exchange, AppUser
 
 
-def brick_chosen(user, **kwargs):
-    '''check if a brick has been chosen for today'''
-    bricks_chosen_today = db.session.query(Exchange).filter(
+def task_chosen(user, **kwargs):
+    '''check if a task has been chosen for today'''
+    task_chosen_today = db.session.query(Exchange).filter(
         Exchange.user_id==user['id'], 
-        Exchange.router_id=='choose_brick',
+        Exchange.router_id=='choose_task',
         Exchange.inbound.isnot(None),
-        Exchange.created>=dt.date.today()).all()
+        Exchange.created>=dt.date.today()).first()
 
-    if bricks_chosen_today:
+    if task_chosen_today:
         return True
     return False
 
@@ -28,6 +28,6 @@ def timezone_set(user, **kwargs):
 
 
 CONDITION_CHECKERS = dict(
-    brick_chosen = brick_chosen,
+    task_chosen = task_chosen,
     timezone_set = timezone_set,
 )

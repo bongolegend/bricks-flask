@@ -9,10 +9,10 @@ from config import Config # TODO(Nico) access the config that has been initializ
 def schedule_reminders(user, **kwargs):
     '''Create one morning and one evening reminder. Add reminders to scheduler and to db'''
 
-    # set morning choose brick
-    if len(Notification.query.filter_by(user_id=user['id'], router_id='choose_brick').all()) == 0:
+    # set morning choose task
+    if len(Notification.query.filter_by(user_id=user['id'], router_id='choose_task').all()) == 0:
 
-        outbound = nodes[nodes.router_id == 'choose_brick'].iloc[0]
+        outbound = nodes[nodes.router_id == 'choose_task'].iloc[0]
 
         notif = Notification(
             router_id=outbound.router_id,
@@ -107,35 +107,35 @@ def query_points(user, **kwargs):
 def change_morning_notification(user, **kwargs):
     '''
     switch the Active status of the two morning notifications, depending on whether
-    someone stated their brick the night before.
+    someone stated their task the night before.
     '''
-    choose_brick = db.session.query(Notification).filter(
+    choose_task = db.session.query(Notification).filter(
         Notification.user_id == user['id'],
-        Notification.router_id == 'choose_brick').one()
+        Notification.router_id == 'choose_task').one()
 
     confirmation = db.session.query(Notification).filter(
         Notification.user_id == user['id'],
         Notification.router_id == 'morning_confirmation').one()
     
-    if choose_brick.active == confirmation.active:
+    if choose_task.active == confirmation.active:
         raise ValueError('Both morning notifications are active')
-    elif choose_brick.active:
+    elif choose_task.active:
         confirmation.active = True
-        choose_brick.active = False
+        choose_task.active = False
         print('Switched the active morning notification to CONFIRMATION.')
     elif confirmation.active:
         confirmation.active = False
-        choose_brick.active = True
-        print('Switched the active morning notification to CHOOSE_BRICK.')
+        choose_task.active = True
+        print('Switched the active morning notification to CHOOSE_TASK.')
 
     db.session.commit()
 
 
-def query_brick(user, **kwargs):
-    '''query the latest brick'''
+def query_task(user, **kwargs):
+    '''query the latest task'''
     exchange = db.session.query(Exchange).filter(
         Exchange.user_id == user['id'],
-        Exchange.router_id.in_('choose_brick', 'choose_tomorrow_brick')
+        Exchange.router_id.in_('choose_task', 'choose_tomorrow_task')
     ).order_by(Exchange.created.desc()).first()
 
     return exchange.inbound

@@ -51,12 +51,12 @@ NODES = [
         'inbound_format': 'multiple_choice',
         'confirmation': "Your timezone is set.",
     }, {
-        'router_id': 'choose_brick', 
+        'router_id': 'choose_task', 
         'outbound': "What's the most important thing you want to get done today?",
         'actions': ('schedule_reminders',),
         'inbound_format': '*',
     }, {
-        'router_id': 'choose_tomorrow_brick', 
+        'router_id': 'choose_tomorrow_task', 
         'outbound': "What's the most important thing you want to get done tomorrow?",
         'actions': ('change_morning_notification',), 
         'inbound_format': '*',
@@ -98,8 +98,8 @@ NODES = [
         'inbound_format': '*',
     }, {
         'router_id': 'morning_confirmation',
-        'pre_actions': ('query_brick','change_morning_notification'),
-        'outbound': "Are you still planning to do this task today: {query_brick}? (y/n)",
+        'pre_actions': ('query_task','change_morning_notification'),
+        'outbound': "Are you still planning to do this task today: {query_task}? (y/n)",
         'inbound_format': 'yes_no',
         'actions': None,
     },
@@ -146,21 +146,21 @@ EDGES = [
     }, {
         'last_router_id': 'timezone',
         'inbound': '*',
-        'condition': ('brick_chosen', False),
-        'next_router_id': 'choose_brick',
+        'condition': ('task_chosen', False),
+        'next_router_id': 'choose_task',
     }, {
         'last_router_id': 'timezone',
         'inbound': '*',
-        'condition': ('brick_chosen', True),
+        'condition': ('task_chosen', True),
         'next_router_id': 'main_menu',
     }, {
-        'last_router_id': 'choose_brick',
+        'last_router_id': 'choose_task',
         'inbound': '*',
         'next_router_id': 'state_night_followup',
     }, {
         'last_router_id': 'main_menu',
         'inbound': 'a',
-        'next_router_id': 'choose_brick',
+        'next_router_id': 'choose_task',
     }, {
         'last_router_id': 'main_menu',
         'inbound': 'b',
@@ -192,7 +192,7 @@ EDGES = [
     }, {
         'last_router_id': 'completion_point', 
         'inbound': 'yes',
-        'next_router_id': 'choose_tomorrow_brick',
+        'next_router_id': 'choose_tomorrow_task',
     }, {
         'last_router_id': 'completion_point', 
         'inbound': 'no',
@@ -200,13 +200,13 @@ EDGES = [
     }, {
         'last_router_id': 'no_completion', 
         'inbound': 'yes',
-        'next_router_id': 'choose_tomorrow_brick',
+        'next_router_id': 'choose_tomorrow_task',
     }, {
         'last_router_id': 'no_completion', 
         'inbound': 'no',
         'next_router_id': 'state_morning_followup',
     }, {
-        'last_router_id': 'choose_tomorrow_brick', 
+        'last_router_id': 'choose_tomorrow_task', 
         'inbound': '*',
         'next_router_id': 'state_morning_followup',
     }, {
@@ -216,7 +216,7 @@ EDGES = [
     }, {
         'last_router_id': 'morning_confirmation',
         'inbound': 'no',
-        'next_router_id': 'choose_brick',
+        'next_router_id': 'choose_task',
     }
 ]
 
