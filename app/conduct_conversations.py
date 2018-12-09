@@ -36,6 +36,7 @@ def main():
         action_results = execute_actions(
             session['exchange']['actions'], 
             session['user'],
+            session['exchange'],
             inbound=parsed_inbound)
 
         # decide on next router, including outbound and actions
@@ -55,7 +56,8 @@ def main():
     # run actions for next router before inbound
     pre_action_results = execute_actions(
         next_router['pre_actions'],
-        session['user'])
+        session['user'],
+        session['exchange'])
 
     # combine all action results and add them to next router
     results = {**action_results, **pre_action_results}
@@ -80,7 +82,7 @@ def main():
     return str(resp)
 
 
-def execute_actions(actions, user, inbound=None):
+def execute_actions(actions, user, exchange, inbound=None):
     if actions is not None:
         result_dict = dict()
         for action_name in actions:
@@ -88,7 +90,8 @@ def execute_actions(actions, user, inbound=None):
 
             result = action_func( 
                 inbound=inbound, 
-                user=user)
+                user=user,
+                exchange=exchange)
             print('ACTION EXECUTED: ', action_name)
 
             result_dict[action_name] = result

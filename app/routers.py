@@ -53,12 +53,12 @@ NODES = [
     }, {
         'router_id': 'choose_task', 
         'outbound': "What's the most important thing you want to get done today?",
-        'actions': ('schedule_reminders',),
+        'actions': ('schedule_reminders','insert_task',),
         'inbound_format': '*',
     }, {
         'router_id': 'choose_tomorrow_task', 
         'outbound': "What's the most important thing you want to get done tomorrow?",
-        'actions': ('change_morning_notification',), 
+        'actions': ('change_morning_notification','insert_task'), 
         'inbound_format': '*',
     }, {
         'router_id': 'state_night_followup',

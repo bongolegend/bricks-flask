@@ -1,7 +1,8 @@
 import datetime as dt
+import pytz
 from sqlalchemy import func
 from app import db
-from app.models import AppUser, Notification, Point, Exchange
+from app.models import AppUser, Notification, Point, Exchange, Task
 from app.routers import nodes
 from config import Config # TODO(Nico) access the config that has been initialized on the app 
     
@@ -140,11 +141,46 @@ def query_task(user, **kwargs):
 
     return exchange.inbound
 
+
+def insert_task(user, exchange, **kwargs):
+    '''insert task based on input, and set all other tasks with the same due date to inactive'''
+
+    today = dt.datetime.today().replace(hour=0, minute=0, second=0, microsecond=0)
+    # determine the due date based on the router id
+    if exchange['router_id'] == 'choose_task':
+        due_date = today
+    elif exchange['router_id'] == 'choose_tomorrow_task':
+        due_date = datetime.date.today() + datetime.timedelta(days=1)
+    else:
+        raise NotImplementedError(f"The router {exchange['router_id']} is not valid for inserting tasks.")
+
+    # create a new task
+    new_task = Task(
+        description = exchange['inbound'],
+        due_date = due_date,
+        active = True,
+        exchange_id = exchange['id'],
+        user_id = user['id'])
+    
+    # set any tasks that are already for that day to inactive
+    existing_tasks = db.session.query(Task).filter(
+        Task.due_date == due_date,
+        Task.user_id == user['id'],
+    ).all()
+
+    for existing_task in existing_tasks:
+        existing_task.active = False
+    
+    db.session.add(new_task)
+    db.session.commit()
+
+
 ROUTER_ACTIONS = dict(
     schedule_reminders = schedule_reminders,
     update_timezone = update_timezone,
     update_username = update_username,
     add_point = add_point,
     query_points = query_points,
-    change_morning_notification = change_morning_notification
+    change_morning_notification = change_morning_notification,
+    insert_task = insert_task
 )
