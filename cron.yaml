@@ -3,4 +3,6 @@
 cron:
 - description: "run notifications"
   url: /notifications
-  schedule: every 30 minutes 
+  schedule: every 30 minutes synchronized
+# this means to start at 00:00 every day
+
