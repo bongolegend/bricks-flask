@@ -15,10 +15,8 @@ from config import Config # TODO(Nico) find a cleaner way to access config. with
 def main():
     '''get notifications from db and run the appropriate ones'''
 
-    result = db.session.query(Notification, AppUser).join(AppUser).all()
-    print(f"{len(result)} notifications found in db.")
-    # look at each time, and check if it's the right time
-    # TODO(Nico) think of a better way to optimize this
+    result = db.session.query(Notification, AppUser).join(AppUser)\
+        .filter(Notification.active == True).all()
 
     margin = dt.timedelta(minutes=10)
     utc_time = dt.datetime.now(tz=pytz.utc)
@@ -29,7 +27,7 @@ def main():
         user = user.to_dict()
         notif = notif.to_dict()
 
-        notif_tz = pytz.timezone(notif['timezone'])
+        notif_tz = pytz.timezone(user['timezone'])
         local_time = dt.datetime.now(notif_tz)
         # assume that every notif gets sent every day
         reminder_local_time = dt.datetime(
@@ -46,7 +44,7 @@ def main():
             notify(user, notif)
             counter += 1
     
-    response = f"{counter} of {len(result)} notifications were sent."
+    response = f"{counter} of {len(result)} active notifications were sent."
     print(response)
 
     return response
@@ -87,7 +85,7 @@ def notify(user, notif):
         to=user['phone_number'],
         body=notif['body'])
     
-    node = nodes[nodes.router_id == notif['tag']].iloc[0]
+    node = nodes[nodes.router_id == notif['router_id']].iloc[0]
 
     insert_exchange(node, user)
 

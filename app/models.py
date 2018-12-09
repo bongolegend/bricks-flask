@@ -32,45 +32,41 @@ class AppUser(db.Model, Base):
 
 
 class Notification(db.Model, Base):
-    tag = db.Column(db.String(32), nullable=False)
+    router_id = db.Column(db.String(32), nullable=False)
     body = db.Column(db.Text, nullable=False)
-    trigger_type = db.Column(db.String(32), nullable=False)
     day_of_week = db.Column(db.String(32)) 
     hour = db.Column(db.Integer, nullable=False)
     minute = db.Column(db.Integer, nullable=False)
-    jitter = db.Column(db.Integer)
-    end_date = db.Column(db.DateTime)
-    timezone = db.Column(db.String(32), nullable=False)
+    active = db.Column(db.Boolean, nullable=False)
 
     user_id = db.Column(db.Integer, db.ForeignKey('app_user.id'),
         nullable=False)
     user = db.relationship('AppUser',
         backref=db.backref('notifications', lazy=True))
 
-    def to_cron(self):
-        '''return only values needed for cron job'''
-        return dict(
-            day_of_week = self.day_of_week, 
-            hour = self.hour,
-            minute = self.minute,
-            jitter = self.jitter,
-            end_date = self.end_date,
-            timezone = self.timezone
-        )
+    # def to_cron(self):
+    #     '''return only values needed for cron job'''
+    #     return dict(
+    #         day_of_week = self.day_of_week, 
+    #         hour = self.hour,
+    #         minute = self.minute,
+    #         jitter = self.jitter,
+    #         end_date = self.end_date,
+    #         timezone = self.timezone
+    #     )
     
     def to_dict(self):
         return dict(
-            tag = self.tag,
+            router_id = self.router_id,
             body = self.body,
             day_of_week = self.day_of_week, 
             hour = self.hour,
             minute = self.minute,
-            end_date = self.end_date,
-            timezone = self.timezone)
+            active = self.active)
 
 
     def __repr__(self):
-        return '<Notification %r>' % self.tag
+        return '<Notification %r>' % self.router_id
 
 
 class Exchange(db.Model, Base):

@@ -1,7 +1,7 @@
 import datetime as dt
 from sqlalchemy import func
 from app import db
-from app.models import AppUser, Notification, Point
+from app.models import AppUser, Notification, Point, Exchange
 from app.routers import nodes
 from config import Config # TODO(Nico) access the config that has been initialized on the app 
     
@@ -9,38 +9,50 @@ from config import Config # TODO(Nico) access the config that has been initializ
 def schedule_reminders(user, **kwargs):
     '''Create one morning and one evening reminder. Add reminders to scheduler and to db'''
 
-    # set morning reminder
-    if len(Notification.query.filter_by(user_id=user['id'], tag='choose_brick').all()) == 0:
+    # set morning choose brick
+    if len(Notification.query.filter_by(user_id=user['id'], router_id='choose_brick').all()) == 0:
 
         outbound = nodes[nodes.router_id == 'choose_brick'].iloc[0]
 
-        notif = Notification(tag=outbound.router_id,
+        notif = Notification(
+            router_id=outbound.router_id,
             body=outbound.outbound,
-            trigger_type='cron',
             day_of_week='mon-fri',
             hour=8,
             minute=0,
-            jitter=30,
-            end_date=dt.datetime(2018,11,30),
-            timezone=user.get('timezone', 'America/Los_Angeles'),
+            active=True,
+            user_id=user['id'])
+        
+        db.session.add(notif)
+    
+    # set morning confirmation
+    if len(Notification.query.filter_by(user_id=user['id'], router_id='morning_confirmation').all()) == 0:
+
+        outbound = nodes[nodes.router_id == 'morning_confirmation'].iloc[0]
+
+        notif = Notification(
+            router_id=outbound.router_id,
+            body=outbound.outbound,
+            day_of_week='mon-fri',
+            hour=8,
+            minute=0,
+            active=False,
             user_id=user['id'])
         
         db.session.add(notif)
 
     # set evening reminder
-    if len(Notification.query.filter_by(user_id=user['id'], tag='evening_checkin').all()) == 0:
+    if len(Notification.query.filter_by(user_id=user['id'], router_id='evening_checkin').all()) == 0:
 
         outbound = nodes[nodes.router_id == 'evening_checkin'].iloc[0]
 
-        notif = Notification(tag=outbound.router_id,
+        notif = Notification(
+            router_id=outbound.router_id,
             body=outbound.outbound,
-            trigger_type='cron',
             day_of_week='mon-fri',
             hour=21,
             minute=0,
-            jitter=30,
-            end_date=dt.datetime(2018,11,30),
-            timezone=user.get('timezone', 'America/Los_Angeles'),
+            active=True,
             user_id=user['id'])
         
         db.session.add(notif)
@@ -92,9 +104,47 @@ def query_points(user, **kwargs):
         return points
 
 
+def change_morning_notification(user, **kwargs):
+    '''
+    switch the Active status of the two morning notifications, depending on whether
+    someone stated their brick the night before.
+    '''
+    choose_brick = db.session.query(Notification).filter(
+        Notification.user_id == user['id'],
+        Notification.router_id == 'choose_brick').one()
+
+    confirmation = db.session.query(Notification).filter(
+        Notification.user_id == user['id'],
+        Notification.router_id == 'morning_confirmation').one()
+    
+    if choose_brick.active == confirmation.active:
+        raise ValueError('Both morning notifications are active')
+    elif choose_brick.active:
+        confirmation.active = True
+        choose_brick.active = False
+        print('Switched the active morning notification to CONFIRMATION.')
+    elif confirmation.active:
+        confirmation.active = False
+        choose_brick.active = True
+        print('Switched the active morning notification to CHOOSE_BRICK.')
+
+    db.session.commit()
+
+
+def query_brick(user, **kwargs):
+    '''query the latest brick'''
+    exchange = db.session.query(Exchange).filter(
+        Exchange.user_id == user['id'],
+        Exchange.router_id.in_('choose_brick', 'choose_tomorrow_brick')
+    ).order_by(Exchange.created.desc()).first()
+
+    return exchange.inbound
+
 ROUTER_ACTIONS = dict(
     schedule_reminders = schedule_reminders,
     update_timezone = update_timezone,
     update_username = update_username,
     add_point = add_point,
-    query_points = query_points)
+    query_points = query_points,
+    change_morning_notification = change_morning_notification
+)
