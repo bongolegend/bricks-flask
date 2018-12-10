@@ -1,32 +1,45 @@
-import functools
+from app import db
 from app.models import Exchange, AppUser
-from app.base_init import init_app, init_db
 
 
-def with_app_context(func):
-    '''inits a new app and db, and runs func within it. used for functions run by scheduler'''
-    @functools.wraps(func)
-    def wrapper(*args, **kwargs):
-        app = init_app()
-        db = init_db(app)
-        kwargs['db'] = db
-        with app.app_context():
-            return func(*args, **kwargs)
-    return wrapper
+def query_user(phone_number):
+    '''
+    use phone number to find user in db, else add to db
+    returns the user object
+    '''
+
+    user = db.session.query(AppUser).filter_by(phone_number=phone_number).first()
+
+    if user is not None:
+        return user.to_dict()
+    else:
+        new_user = AppUser(phone_number=phone_number)
+        db.session.add(new_user)
+        db.session.commit()
+        return new_user.to_dict()
 
 
-@with_app_context
+def query_last_exchange(user):
+    '''find the last exchange in the db for this user'''
+    last_exchange = db.session.query(Exchange)\
+        .filter_by(user_id=user['id'])\
+        .order_by(Exchange.created.desc())\
+        .first()
+    
+    if last_exchange is None:
+        return None
+    else:
+        return last_exchange.to_dict()
+
+
 def insert_exchange(router, user, inbound=None, **kwargs):
     '''log all elements of exchange to db'''
-    db = kwargs['db']
         
     exchange = Exchange(
-        router_id=router['router_id'],
-        outbound=router['outbound'],
+        router=router.name,
+        outbound=router.outbound,
         inbound=inbound,
-        actions=router['actions'],
-        inbound_format=router['inbound_format'],
-        confirmation=router['confirmation'],
+        confirmation=router.confirmation,
         user_id=user['id'])
     print('LOGGED NEW EXCHANGE', exchange)
 
@@ -36,15 +49,12 @@ def insert_exchange(router, user, inbound=None, **kwargs):
     return exchange.to_dict()
 
 
-@with_app_context
-def update_exchange(session_exchange, next_exchange, **kwargs):
+def update_exchange(current_exchange, next_exchange, inbound, **kwargs):
     '''update existing exchange row with inbound info and next router_id'''
-    if session_exchange['id'] is not None:
-        db = kwargs['db']
-        
-        queried_exchange = db.session.query(Exchange).filter_by(id=session_exchange['id']).one()
-        queried_exchange.inbound = session_exchange['inbound']
-        queried_exchange.next_router_id = next_exchange['router_id']
+    if current_exchange is not None:
+        queried_exchange = db.session.query(Exchange).filter_by(id=current_exchange['id']).one()
+        queried_exchange.inbound = inbound,
+        queried_exchange.next_router = next_exchange['router'],
         queried_exchange.next_exchange_id = next_exchange['id']
 
         print('UPDATED EXISTING EXCHANGE', queried_exchange)
