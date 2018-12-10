@@ -27,10 +27,9 @@ def main():
         # execute current exchange actions after getting inbound
         # this needs to run before selecting the next router, as 
         # these actions can influence the next router choice
-        action_results = execute_actions(
-            router.actions, 
-            user,
-            exchange,
+        action_results = router.run_actions(
+            user=user,
+            exchange=exchange,
             inbound=parsed_inbound)
 
         # decide on next router, including outbound and actions
@@ -53,10 +52,9 @@ def main():
             next_router.outbound = RETRY + next_router.outbound
 
     # run the pre-actions for next router before sending the outbound message
-    pre_action_results = execute_actions(
-        next_router.pre_actions,
-        user,
-        exchange)
+    pre_action_results = next_router.run_pre_actions(
+        user=user,
+        exchange=exchange)
 
     # combine all action results and add them to next router's outbound message
     results = {**action_results, **pre_action_results}
@@ -74,17 +72,4 @@ def main():
     return str(resp)
 
 
-def execute_actions(actions, user, exchange, inbound=None):
-    if actions is not None:
-        result_dict = dict()
-        for action in actions:
-            result = action( 
-                inbound=inbound, 
-                user=user,
-                exchange=exchange)
-            print('ACTION EXECUTED: ', action.__name__)
 
-            result_dict[action.__name__] = result
-
-        return result_dict
-    return dict()

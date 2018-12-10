@@ -1,28 +1,7 @@
 import app.router_actions as actions
 from app import parsers
 import app.conditions as conditions
-
-
-HOW_IT_WORKS = """How this works: every weekday, you input your most important task of the day. At the end of the day, you confirm that you did it.
-If you did, then you get a point. If you are consistent, you get extra points. Makes sense? (y/n)"""
-
-# TODO(Nico) instead ask what city you're in. this makes it better to find their locale for analytics
-# all good solutions require API access : https://stackoverflow.com/questions/16505501/get-timezone-from-city-in-python-django
-WHAT_TIMEZONE = """
-What's your timezone?
-a) PT
-b) MT
-c) CT
-d) ET
-"""
-
-MAIN_MENU = """
-What do you want to do?
-a) choose a brick for today
-b) choose a new timezone
-c) how does this work?
-d) how many points do I have?
-"""
+from app.constants import Outbounds
 
 
 class Router:
@@ -38,6 +17,37 @@ class Router:
     @classmethod
     def parse(self, inbound, **kwargs):
         return parsers.parse(inbound, self.inbound_format)
+    
+    @classmethod
+    def run_pre_actions(self, user, exchange, **kwargs):
+        if self.pre_actions is not None:
+            result_dict = dict()
+            for action in self.pre_actions:
+                result = action(
+                    current_router=self,
+                    user=user,
+                    exchange=exchange)
+                print('PRE_ACTION EXECUTED: ', action.__name__)
+                result_dict[action.__name__] = result
+            return result_dict
+        return dict()
+
+    @classmethod
+    def run_actions(self, user, exchange, inbound, **kwargs):
+        if self.actions is not None:
+            result_dict = dict()
+            for action in self.actions:
+                result = action(
+                    current_router=self,
+                    inbound=inbound, 
+                    user=user,
+                    exchange=exchange)
+                print('ACTION EXECUTED: ', action.__name__)
+                result_dict[action.__name__] = result
+            return result_dict
+        return dict()
+
+
 
 
 class InitOnboarding(Router):
@@ -61,7 +71,7 @@ class Welcome(Router):
 
 class HowItWorks(Router):
     name = 'how_it_works'
-    outbound = HOW_IT_WORKS
+    outbound = Outbounds.HOW_IT_WORKS
     inbound_format = parsers.YES_NO
 
     @classmethod
@@ -89,7 +99,7 @@ class ContactSupport(Router):
 
 class MainMenu(Router):
     name = 'main_menu'
-    outbound = MAIN_MENU
+    outbound = Outbounds.MAIN_MENU
     inbound_format = parsers.MULTIPLE_CHOICE
 
     @classmethod
@@ -106,7 +116,7 @@ class MainMenu(Router):
 
 class Timezone(Router):
     name = 'timezone'
-    outbound = WHAT_TIMEZONE
+    outbound = Outbounds.WHAT_TIMEZONE
     actions = (actions.update_timezone,)
     inbound_format = parsers.MULTIPLE_CHOICE
     confirmation = "Your timezone is set."
@@ -120,13 +130,31 @@ class Timezone(Router):
 
 
 class ChooseTask(Router):
-    name = 'choose_task'
+    name = Names.CHOOSE_TASK
     outbound = "What's the most important thing you want to get done today?"
-    actions = (actions.insert_notifications, actions.insert_task)
  
     @classmethod   
     def next_router(self, **kwargs):
         return StateNightFollowup
+    
+    @classmethod
+    def run_actions(self, user, exchange, inbound):
+        insert_notif_result = actions.insert_notifications(
+            user, 
+            self, 
+            MorningConfirmation, 
+            DidYouDoIt)
+
+        insert_task_result = actions.insert_task(user, 
+            exchange, 
+            inbound, 
+            self, 
+            ChooseTomorrowTask)
+        
+        return {
+            actions.insert_notifications.__name__ : insert_notif_result,
+            actions.insert_task.__name__ : insert_task_result}
+        
 
 
 class CurrentPoints(Router):
@@ -151,7 +179,7 @@ class ChooseTomorrowTask(Router):
 
 
 class DidYouDoIt(Router):
-    name= 'did_you_do_it'
+    name= Names.DID_YOU_DO_IT
     outbound = 'Did you stack your brick today? (y/n)'
     actions = (actions.add_point,)
     inbound_format = parsers.YES_NO
@@ -198,8 +226,7 @@ class StateMorningFollowup(Router):
 
 
 class MorningConfirmation(Router):
-    name = 'morning_confirmation'
-    pre_actions = (actions.query_task, actions.change_morning_notification)
+    name = Names.MORNING_CONFIRMATION
     outbound = "Are you still planning to do this task today: {query_task}? (y/n)"
     inbound_format = parsers.YES_NO
 
@@ -209,6 +236,16 @@ class MorningConfirmation(Router):
             return StateNightFollowup
         elif inbound == 'no':
             return ChooseTask
+    
+    @classmethod
+    def run_pre_actions(self, user, **kwargs):
+        query_task_result = actions.query_task(user, ChooseTask, ChooseTomorrowTask)
+
+        change_morning_notif_result = actions.change_morning_notification(user, ChooseTask, self)
+
+        return {
+            actions.query_task.__name__ : query_task_result,
+            actions.change_morning_notification.__name__ : change_morning_notif_result}
 
 
 routers = {
