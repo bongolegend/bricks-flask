@@ -1,80 +1,72 @@
-import os
-import datetime as dt
-from flask import request, session
+from flask import request
 from twilio.twiml.messaging_response import MessagingResponse
-from app import db
-from app.init_session import main as init_session
-from app.parse_inbound import main as parse_inbound
-from app.queries import insert_exchange, update_exchange
+from app.queries import query_user, query_last_exchange, insert_exchange, update_exchange
 from app.routers import routers
-from app.router_actions import ROUTER_ACTIONS
-from app.condition_checkers import CONDITION_CHECKERS
-from config import Config # TODO(Nico) access the config that has been initialized on the app 
+
+
+RETRY = "Your response is not valid, try again.\n"
 
 
 def main():
-    """Respond to SMS inbound with appropriate SMS outbound based on conversation state and response_db.py"""
-    
+    """Respond to SMS inbound with appropriate SMS outbound based on last exchange"""
     inbound = request.values.get('Body')
     if inbound is None:
         return f"Please use a phone and text {os.environ.get('TWILIO_PHONE_NUMBER')}. This does not work thru the browser."
 
-    init_session(session, request)
+    user = query_user(request.values.get('From'))
+    exchange = query_last_exchange(user)
 
-    session['exchange']['inbound']  = inbound
+    if exchange is None:
+        router = routers['init_onboarding']
+    else:
+        router = routers[exchange['router']]
 
-    # gather relevant data from inbound request
-    session['exchange']['inbound'] = request.values.get('Body')
-    print(f"INBOUND FROM {session['user']['username']}: {session['exchange']['inbound']}")
+    parsed_inbound = router.parse(inbound)
 
-    # parse inbound based on match on router_id
-    parsed_inbound = parse_inbound(session['exchange']['inbound'], session['exchange']['router_id'])
-    
     if parsed_inbound is not None:
         # execute current exchange actions after getting inbound
-        # this needs to run before selecting the next router, as these actions can influence the next router choice
+        # this needs to run before selecting the next router, as 
+        # these actions can influence the next router choice
         action_results = execute_actions(
-            session['exchange']['actions'], 
-            session['user'],
-            session['exchange'],
+            router.actions, 
+            user,
+            exchange,
             inbound=parsed_inbound)
 
         # decide on next router, including outbound and actions
-        next_router = select_next_router(
-            session, 
-            parsed_inbound, 
-            session['user'])
+        next_router = router.next_router(
+            inbound=parsed_inbound,
+            user=user)
+        
+        # append last router's confirmation to next router's outbound
+        if  router.confirmation is not None:
+            next_router.outbound = router.confirmation + " " + next_router.outbound
+
     else:
         # resend the same router
-        RETRY = "Your response is not valid, try again.\n"
-        session['exchange']['outbound'] = RETRY + session['exchange']['outbound']
-
-        next_router = session['exchange']
         action_results = dict()
+        next_router = router
 
-    
-    # run actions for next router before inbound
+        # prepend a string to the outbound saying you need to try again
+        # this conditional is to prevent additional prepends on repeated failure 
+        if RETRY not in exchange['outbound']:
+            next_router.outbound = RETRY + next_router.outbound
+
+    # run the pre-actions for next router before sending the outbound message
     pre_action_results = execute_actions(
-        next_router['pre_actions'],
-        session['user'],
-        session['exchange'])
+        next_router.pre_actions,
+        user,
+        exchange)
 
-    # combine all action results and add them to next router
+    # combine all action results and add them to next router's outbound message
     results = {**action_results, **pre_action_results}
-    next_router['outbound'] = next_router['outbound'].format(**results)
+    next_router.outbound = next_router.outbound.format(**results) # TODO do I want to mutate this?
 
-    # insert the next router into db as an exchange
-    next_exchange = insert_exchange(
-        next_router, 
-        session['user'])
+    # insert the next router into db as the next exchange
+    next_exchange = insert_exchange(next_router, user)
 
-    # update current exchange in DB with inbound and next exchange id
-    update_exchange(
-        session['exchange'],
-        next_exchange)
-
-    # save values to persist in session so that we know how to act on user's response to our outbound
-    session['exchange'] = next_exchange
+    # update current exchange in DB with inbound and next exchange info
+    update_exchange(exchange, next_exchange, parsed_inbound)
 
     # send outbound    
     resp = MessagingResponse()
@@ -85,54 +77,14 @@ def main():
 def execute_actions(actions, user, exchange, inbound=None):
     if actions is not None:
         result_dict = dict()
-        for action_name in actions:
-            action_func = ROUTER_ACTIONS[action_name]
-
-            result = action_func( 
+        for action in actions:
+            result = action( 
                 inbound=inbound, 
                 user=user,
                 exchange=exchange)
-            print('ACTION EXECUTED: ', action_name)
+            print('ACTION EXECUTED: ', action.__name__)
 
-            result_dict[action_name] = result
+            result_dict[action.__name__] = result
 
         return result_dict
     return dict()
-
-
-def select_next_router(session, inbound, user):
-    '''Query the static router table to find the right outbound message and action'''
-
-    # find all routers that can branch from the current router & that interact with the inbound
-    filtered = routers[
-        (routers.last_router_id == session['exchange']['router_id']) & 
-        (
-            (routers.inbound == inbound) |  
-            (routers.inbound == '*')
-    )]
-    
-    if len(filtered) == 1:
-        router = filtered.iloc[0]
-    elif len(filtered) == 0:
-        # redirect to the main menu
-        router = routers[routers.router_id == 'main_menu'].iloc[0]
-        router['outbound'] = "Can't interpret that; sending you to the menu.\n" + router['outbound']
-    else:
-        # match on a condition
-        matches = 0
-        for i, (checker, expected_value) in enumerate(filtered['condition']):
-            checker_func = CONDITION_CHECKERS[checker]
-            if checker_func(user) == expected_value:
-                router = filtered.iloc[i]
-                matches += 1
-        if matches > 1:
-            raise NotImplementedError("The routers are ambiguous - too many matches. fix your routers.")
-        elif matches == 0:
-            raise NotImplementedError("The routers are ambiguous - no match for this condition. fix your routers.")
-    
-    # append last router's confirmation to next router's outbound
-    if  session['exchange']['confirmation'] is not None:
-        router['outbound'] = session['exchange']['confirmation'] + " " + router['outbound']
-
-    print('NEXT ROUTER: \n', router)
-    return router
