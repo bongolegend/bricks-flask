@@ -1,4 +1,6 @@
-import pandas as pd
+import app.router_actions as actions
+from app import parsers
+import app.conditions as conditions
 
 
 HOW_IT_WORKS = """How this works: every weekday, you input your most important task of the day. At the end of the day, you confirm that you did it.
@@ -6,7 +8,7 @@ If you did, then you get a point. If you are consistent, you get extra points. M
 
 # TODO(Nico) instead ask what city you're in. this makes it better to find their locale for analytics
 # all good solutions require API access : https://stackoverflow.com/questions/16505501/get-timezone-from-city-in-python-django
-TIMEZONE = """
+WHAT_TIMEZONE = """
 What's your timezone?
 a) PT
 b) MT
@@ -22,214 +24,206 @@ c) how does this work?
 d) how many points do I have?
 """
 
-NODES = [
-    {
-        'router_id': 'init_onboarding',
-        'outbound': None,
-        'actions': None,
-        'inbound_format': '*',
-    }, {
-        'router_id': 'welcome',
-        'outbound': "Hey! Welcome to Bricks, a tool that helps you get stuff done. Please enter a username:",
-        'actions': ('update_username',),
-        'inbound_format': '*',
-        'confirmation': "Your username is set.",
-    }, {
-        'router_id': 'how_it_works',
-        'outbound': HOW_IT_WORKS, 
-        'actions': None,
-        'inbound_format': 'yes_no',
-    }, {
-        'router_id': 'contact_support',
-        'outbound': "Text me at 3124505311 and I'll walk you through it. Type anything to continue.", 
-        'actions': None,
-        'inbound_format': '*',
-    }, {
-        'router_id': 'timezone',
-        'outbound': TIMEZONE, 
-        'actions': ('update_timezone',), # these get executed in order
-        'inbound_format': 'multiple_choice',
-        'confirmation': "Your timezone is set.",
-    }, {
-        'router_id': 'choose_task', 
-        'outbound': "What's the most important thing you want to get done today?",
-        'actions': ('schedule_reminders','insert_task',),
-        'inbound_format': '*',
-    }, {
-        'router_id': 'choose_tomorrow_task', 
-        'outbound': "What's the most important thing you want to get done tomorrow?",
-        'actions': ('change_morning_notification','insert_task'), 
-        'inbound_format': '*',
-    }, {
-        'router_id': 'state_night_followup',
-        'outbound': "I'll text you tonight at 9 pm to follow up. Good luck.",
-        'actions': None, 
-        'inbound_format': '*',
-    }, {
-        'router_id': 'evening_checkin',
-        'outbound': 'Did you stack your brick today? (y/n)',
-        'actions': ('add_point',),
-        'inbound_format': 'yes_no',
-    }, {
-        'router_id': 'completion_point',
-        'pre_actions': ('query_points',),
-        'outbound': "Congrats! You earned +1 point. You now have {query_points} points. Do you want to choose tomorrow's task now? (y/n)",
-        'actions': None,
-        'inbound_format': 'yes_no',
-    }, {
-        'router_id': 'no_completion',
-        'outbound': "All good. Just make tomorrow count. You currently have {query_points} points. Do you want to choose tomorrow's task now? (y/n)",
-        'actions': None,
-        'inbound_format': 'yes_no',
-    }, {
-        'router_id': 'main_menu',
-        'outbound': MAIN_MENU,
-        'actions': None,
-        'inbound_format': 'multiple_choice',
-    }, {
-        'router_id': 'current_points',
-        'pre_actions': ('query_points',),
-        'outbound': "You currently have {query_points} points.",
-        'actions': None,
-        'inbound_format': '*',
-    }, {
-        'router_id': 'state_morning_followup',
-        'outbound': "I'll message you tomorrow at 8 am.",
-        'inbound_format': '*',
-    }, {
-        'router_id': 'morning_confirmation',
-        'pre_actions': ('query_task','change_morning_notification'),
-        'outbound': "Are you still planning to do this task today: {query_task}? (y/n)",
-        'inbound_format': 'yes_no',
-        'actions': None,
-    },
-]
 
-nodes = pd.DataFrame.from_dict(NODES)
-# pandas reads None as Nan by default, so you need to replace the Nans
-nodes = nodes.where((pd.notnull(nodes)), None)
+class Router:
+    pre_actions = None
+    actions = None
+    inbound_format = parsers.ANY
+    confirmation = None
+
+    @classmethod
+    def next_router(self, **kwargs):
+        return MainMenu
+    
+    @classmethod
+    def parse(self, inbound, **kwargs):
+        return parsers.parse(inbound, self.inbound_format)
 
 
-EDGES = [
-    {
-        'last_router_id': 'init_onboarding',
-        'inbound': '*',
-        'next_router_id': 'welcome',
-    },{
-        'last_router_id': 'welcome',
-        'inbound': '*',
-        'next_router_id': 'how_it_works',
-    }, {
-        'last_router_id': 'how_it_works',
-        'inbound': 'no',
-        'next_router_id': 'contact_support',
-    }, {
-        'last_router_id': 'contact_support',
-        'inbound': '*',
-        'condition': ('timezone_set', False),
-        'next_router_id': 'timezone',
-    }, {
-        'last_router_id': 'contact_support',
-        'inbound': '*',
-        'condition': ('timezone_set', True),
-        'next_router_id': 'main_menu',
-    }, {
-        'last_router_id': 'how_it_works',
-        'inbound': 'yes',
-        'condition': ('timezone_set', False),
-        'next_router_id': 'timezone',
-    }, {
-        'last_router_id': 'how_it_works',
-        'inbound': 'yes',
-        'condition': ('timezone_set', True),
-        'next_router_id': 'main_menu',
-    }, {
-        'last_router_id': 'timezone',
-        'inbound': '*',
-        'condition': ('task_chosen', False),
-        'next_router_id': 'choose_task',
-    }, {
-        'last_router_id': 'timezone',
-        'inbound': '*',
-        'condition': ('task_chosen', True),
-        'next_router_id': 'main_menu',
-    }, {
-        'last_router_id': 'choose_task',
-        'inbound': '*',
-        'next_router_id': 'state_night_followup',
-    }, {
-        'last_router_id': 'main_menu',
-        'inbound': 'a',
-        'next_router_id': 'choose_task',
-    }, {
-        'last_router_id': 'main_menu',
-        'inbound': 'b',
-        'next_router_id': 'timezone',
-    }, {
-        'last_router_id': 'main_menu',
-        'inbound': 'c',
-        'next_router_id': 'how_it_works',
-    }, {
-        'last_router_id': 'main_menu',
-        'inbound': 'd',
-        'next_router_id': 'current_points',
-    }, {
-        'last_router_id': 'evening_checkin',
-        'inbound': 'yes',
-        'next_router_id': 'completion_point',
-    }, {
-        'last_router_id': 'evening_checkin',
-        'inbound': 'no',
-        'next_router_id': 'no_completion',
-    }, {
-        'last_router_id': 'current_points',
-        'inbound': '*',
-        'next_router_id': 'main_menu',
-    }, {
-        'last_router_id': 'state_night_followup',
-        'inbound': '*',
-        'next_router_id': 'main_menu',
-    }, {
-        'last_router_id': 'completion_point', 
-        'inbound': 'yes',
-        'next_router_id': 'choose_tomorrow_task',
-    }, {
-        'last_router_id': 'completion_point', 
-        'inbound': 'no',
-        'next_router_id': 'state_morning_followup',
-    }, {
-        'last_router_id': 'no_completion', 
-        'inbound': 'yes',
-        'next_router_id': 'choose_tomorrow_task',
-    }, {
-        'last_router_id': 'no_completion', 
-        'inbound': 'no',
-        'next_router_id': 'state_morning_followup',
-    }, {
-        'last_router_id': 'choose_tomorrow_task', 
-        'inbound': '*',
-        'next_router_id': 'state_morning_followup',
-    }, {
-        'last_router_id': 'morning_confirmation',
-        'inbound': 'yes',
-        'next_router_id': 'state_night_followup',
-    }, {
-        'last_router_id': 'morning_confirmation',
-        'inbound': 'no',
-        'next_router_id': 'choose_task',
-    }
-]
+class InitOnboarding(Router):
+    name = 'init_onboarding'
 
-edges = pd.DataFrame.from_dict(EDGES)
-# pandas reads None as Nan by default, so you need to replace the Nans
-edges = edges.where((pd.notnull(edges)), None)
-
-routers = nodes.merge(
-    edges,
-    how='outer',
-    left_on='router_id',
-    right_on='next_router_id')
-
-routers.drop(['next_router_id'], axis=1, inplace=True)
+    @classmethod
+    def next_router(self, **kwargs):
+        return Welcome
 
 
+class Welcome(Router):
+    name = 'welcome'
+    outbound = "Hey! Welcome to Bricks, a tool that helps you get stuff done. Please enter a username:"
+    actions = (actions.update_username,)
+    confirmation = "Your username is set."
+
+    @classmethod
+    def next_router(self, **kwargs):
+        return HowItWorks
+
+
+class HowItWorks(Router):
+    name = 'how_it_works'
+    outbound = HOW_IT_WORKS
+    inbound_format = parsers.YES_NO
+
+    @classmethod
+    def next_router(self, inbound, user, **kwargs):
+        if inbound == 'no':
+            return ContactSupport
+        elif inbound == 'yes':
+            if conditions.timezone_set(user):
+                return MainMenu
+            else:
+                return Timezone
+
+
+class ContactSupport(Router):
+    name = 'contact_support'
+    outbound =  "Text me at 3124505311 and I'll walk you through it. Type anything to continue."
+
+    @classmethod
+    def next_router(self, user, **kwargs):
+        if conditions.timezone_set(user):
+            return MainMenu
+        else:
+            return Timezone
+
+
+class MainMenu(Router):
+    name = 'main_menu'
+    outbound = MAIN_MENU
+    inbound_format = parsers.MULTIPLE_CHOICE
+
+    @classmethod
+    def next_router(self, inbound, **kwargs):
+        if inbound == 'a':
+            return ChooseTask
+        elif inbound == 'b':
+            return Timezone
+        elif inbound == 'c':
+            return HowItWorks
+        elif inbound == 'd':
+            return CurrentPoints
+
+
+class Timezone(Router):
+    name = 'timezone'
+    outbound = WHAT_TIMEZONE
+    actions = (actions.update_timezone,)
+    inbound_format = parsers.MULTIPLE_CHOICE
+    confirmation = "Your timezone is set."
+
+    @classmethod
+    def next_router(self, user, **kwargs):
+        if conditions.task_chosen(user):
+            return MainMenu
+        else:
+            return ChooseTask
+
+
+class ChooseTask(Router):
+    name = 'choose_task'
+    outbound = "What's the most important thing you want to get done today?"
+    actions = (actions.insert_notifications, actions.insert_task)
+ 
+    @classmethod   
+    def next_router(self, **kwargs):
+        return StateNightFollowup
+
+
+class CurrentPoints(Router):
+    name = 'current_points'
+    pre_actions = (actions.query_points,)
+    outbound = "You currently have {query_points} points."
+
+
+class StateNightFollowup(Router):
+    name = 'state_night_followup'
+    outbound = "I'll text you tonight at 9 pm to follow up. Good luck."
+
+
+class ChooseTomorrowTask(Router):
+    name = 'choose_tomorrow_task'
+    outbound = "What's the most important thing you want to get done tomorrow?"
+    actions = (actions.change_morning_notification, actions.insert_task)
+
+    @classmethod
+    def next_router(self, **kwargs):
+        return StateMorningFollowup
+
+
+class DidYouDoIt(Router):
+    name= 'did_you_do_it'
+    outbound = 'Did you stack your brick today? (y/n)'
+    actions = (actions.add_point,)
+    inbound_format = parsers.YES_NO
+
+    @classmethod
+    def next_router(self, inbound, **kwargs):
+        if inbound == 'yes':
+            return CompletionPoint
+        elif inbound == 'no':
+            return NoCompletion
+
+# TODO combine this with the one below it
+class CompletionPoint(Router):
+    name = 'completion_point'
+    pre_actions = (actions.query_points,)
+    outbound = "Congrats! You earned +1 point. You now have {query_points} points. Do you want to choose tomorrow's task now? (y/n)",
+    inbound_format = parsers.YES_NO
+
+    @classmethod
+    def next_router(self, inbound, **kwargs):
+        if inbound == 'yes':
+            return ChooseTomorrowTask
+        elif inbound == 'no':
+            return StateMorningFollowup
+
+
+class NoCompletion(Router):
+    name = 'no_completion'
+    pre_actions = (actions.query_points,)
+    outbound = "All good. Just make tomorrow count. You currently have {query_points} points. Do you want to choose tomorrow's task now? (y/n)"
+    inbound_format = parsers.YES_NO
+
+    @classmethod
+    def next_router(self, inbound, **kwargs):
+        if inbound == 'yes':
+            return ChooseTomorrowTask
+        elif inbound == 'no':
+            return StateMorningFollowup
+
+
+class StateMorningFollowup(Router):
+    name = 'state_morning_followup'
+    outbound =  "I'll message you tomorrow at 8 am."
+
+
+class MorningConfirmation(Router):
+    name = 'morning_confirmation'
+    pre_actions = (actions.query_task, actions.change_morning_notification)
+    outbound = "Are you still planning to do this task today: {query_task}? (y/n)"
+    inbound_format = parsers.YES_NO
+
+    @classmethod
+    def next_router(self, inbound, **kwargs):
+        if inbound == 'yes':
+            return StateNightFollowup
+        elif inbound == 'no':
+            return ChooseTask
+
+
+routers = {
+    InitOnboarding.name : InitOnboarding,
+    Welcome.name : Welcome,
+    HowItWorks.name : HowItWorks,
+    ContactSupport.name : ContactSupport,
+    MainMenu.name : MainMenu,
+    Timezone.name : Timezone,
+    ChooseTask.name : ChooseTask,
+    CurrentPoints.name : CurrentPoints,
+    StateNightFollowup.name : StateNightFollowup,
+    ChooseTomorrowTask.name : ChooseTomorrowTask,
+    DidYouDoIt.name : DidYouDoIt,
+    CompletionPoint.name : CompletionPoint, 
+    NoCompletion.name : NoCompletion,
+    StateMorningFollowup.name : StateMorningFollowup,
+}
