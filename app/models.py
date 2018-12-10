@@ -70,14 +70,11 @@ class Notification(db.Model, Base):
 
 
 class Exchange(db.Model, Base):
-    router_id = db.Column(db.String(32), nullable=False)
+    router = db.Column(db.String(32), nullable=False)
     outbound = db.Column(db.String(612))
     inbound = db.Column(db.String(612))
-    actions = db.Column(postgresql.ARRAY(db.String))
-    inbound_format = db.Column(db.String(32), nullable=False)
-    next_router_id = db.Column(db.String(32))
     confirmation = db.Column(db.String(64))
-    pre_actions = db.Column(postgresql.ARRAY(db.String))
+    next_router = db.Column(db.String(32))
     next_exchange_id = db.Column(db.Integer) # this needs to be nullable because it is not known when an exchange is first created
 
     user_id = db.Column(db.Integer, db.ForeignKey('app_user.id'),
@@ -86,28 +83,21 @@ class Exchange(db.Model, Base):
         backref=db.backref('exchanges', lazy=True))
     
     def to_dict(self):
-        if type(self.actions) is list:
-            actions = tuple(self.actions)
-        else:
-            actions = self.actions
-
         return dict(
             id = self.id,
-            router_id = self.router_id, 
+            router = self.router, 
             outbound = self.outbound,
             inbound = self.inbound,
-            actions = actions,
-            inbound_format = self.inbound_format,
-            next_router_id = self.next_router_id,
             confirmation = self.confirmation,
-            pre_actions = self.pre_actions,
-            created = self.created,
+            next_router = self.next_router,
             next_exchange_id = self.next_exchange_id,
             user_id = self.user_id,
+            created = self.created,
+            updated = sel.updated
         )
     
     def __repr__(self):
-        return '<Exchange %r>' % self.router_id
+        return '<Exchange %r>' % self.router
     
 
 class Point(db.Model, Base):
