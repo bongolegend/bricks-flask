@@ -17,9 +17,9 @@ def main():
     exchange = query_last_exchange(user)
 
     if exchange is None:
-        router = routers['init_onboarding']
+        router = routers['init_onboarding']()
     else:
-        router = routers[exchange['router']]
+        router = routers[exchange['router']]()
 
     parsed_inbound = router.parse(inbound)
 
@@ -35,7 +35,7 @@ def main():
         # decide on next router, including outbound and actions
         next_router = router.next_router(
             inbound=parsed_inbound,
-            user=user)
+            user=user)()
         
         # append last router's confirmation to next router's outbound
         if  router.confirmation is not None:

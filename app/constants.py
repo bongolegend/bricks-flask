@@ -12,16 +12,14 @@ If you did, then you get a point. If you are consistent, you get extra points. M
 
 # TODO(Nico) instead ask what city you're in. this makes it better to find their locale for analytics
 # all good solutions require API access : https://stackoverflow.com/questions/16505501/get-timezone-from-city-in-python-django
-    WHAT_TIMEZONE = """
-What's your timezone?
+    WHAT_TIMEZONE = """What's your timezone?
 a) PT
 b) MT
 c) CT
 d) ET
 """
 
-    MAIN_MENU = """
-What do you want to do?
+    MAIN_MENU = """What do you want to do?
 a) choose a brick for today
 b) choose a new timezone
 c) how does this work?

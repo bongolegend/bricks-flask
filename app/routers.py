@@ -1,7 +1,7 @@
 import app.router_actions as actions
 from app import parsers
 import app.conditions as conditions
-from app.constants import Outbounds
+from app.constants import Outbounds, Names
 
 
 class Router:
