@@ -3,59 +3,52 @@ import pytz
 from sqlalchemy import func
 from app import db
 from app.models import AppUser, Notification, Point, Exchange, Task
-from app.routers import nodes
+from app.routers import ChooseTask, MorningConfirmation, DidYouDoIt
 from config import Config # TODO(Nico) access the config that has been initialized on the app 
     
 
-def schedule_reminders(user, **kwargs):
-    '''Create one morning and one evening reminder. Add reminders to scheduler and to db'''
+def insert_notifications(user, **kwargs):
+    '''Create two morning and one evening notif. Add notif to scheduler and to db'''
 
-    # set morning choose task
-    if len(Notification.query.filter_by(user_id=user['id'], router_id='choose_task').all()) == 0:
-
-        outbound = nodes[nodes.router_id == 'choose_task'].iloc[0]
-
+    # find existing notifications
+    existing_choose_tasks = Notification.query.filter_by(
+        user_id=user['id'], router=ChooseTask.name).all()
+    existing_morning_confimations = Notification.query.filter_by(
+        user_id=user['id'], router=MorningConfirmation.name).all()
+    existing_evening_checkins = Notification.query.filter_by(
+        user_id=user['id'], router=DidYouDoIt.name).all()
+    
+    if not existing_choose_tasks:
         notif = Notification(
-            router_id=outbound.router_id,
-            body=outbound.outbound,
+            router=ChooseTask.name,
+            body=ChooseTask.outbound,
             day_of_week='mon-fri',
             hour=8,
             minute=0,
             active=True,
             user_id=user['id'])
-        
         db.session.add(notif)
     
-    # set morning confirmation
-    if len(Notification.query.filter_by(user_id=user['id'], router_id='morning_confirmation').all()) == 0:
-
-        outbound = nodes[nodes.router_id == 'morning_confirmation'].iloc[0]
-
+    if not existing_morning_confimations:
         notif = Notification(
-            router_id=outbound.router_id,
-            body=outbound.outbound,
+            router=MorningConfirmation.name,
+            body=MorningConfirmation.outbound,
             day_of_week='mon-fri',
             hour=8,
             minute=0,
             active=False,
             user_id=user['id'])
-        
         db.session.add(notif)
 
-    # set evening reminder
-    if len(Notification.query.filter_by(user_id=user['id'], router_id='evening_checkin').all()) == 0:
-
-        outbound = nodes[nodes.router_id == 'evening_checkin'].iloc[0]
-
+    if not existing_evening_checkins:
         notif = Notification(
-            router_id=outbound.router_id,
-            body=outbound.outbound,
+            router=DidYouDoIt.name,
+            body=DidYouDoIt.outbound,
             day_of_week='mon-fri',
             hour=21,
             minute=0,
             active=True,
             user_id=user['id'])
-        
         db.session.add(notif)
 
     db.session.commit()
@@ -86,7 +79,6 @@ def update_username(inbound, user, **kwargs):
     user_obj = db.session.query(AppUser).filter_by(id=user['id']).one()
     user_obj.username = inbound
     user['username'] = inbound
-
     db.session.commit()
 
 
@@ -112,11 +104,11 @@ def change_morning_notification(user, **kwargs):
     '''
     choose_task = db.session.query(Notification).filter(
         Notification.user_id == user['id'],
-        Notification.router_id == 'choose_task').one()
+        Notification.router == ChooseTask.name).one()
 
     confirmation = db.session.query(Notification).filter(
         Notification.user_id == user['id'],
-        Notification.router_id == 'morning_confirmation').one()
+        Notification.router == MorningConfirmation.name).one()
     
     if choose_task.active == confirmation.active:
         raise ValueError('Both morning notifications are active')
@@ -142,21 +134,21 @@ def query_task(user, **kwargs):
     return exchange.inbound
 
 
-def insert_task(user, exchange, **kwargs):
+def insert_task(user, exchange, inbound, **kwargs):
     '''insert task based on input, and set all other tasks with the same due date to inactive'''
 
     today = dt.datetime.today().replace(hour=0, minute=0, second=0, microsecond=0)
     # determine the due date based on the router id
-    if exchange['router_id'] == 'choose_task':
+    if exchange['router'] == 'choose_task':
         due_date = today
-    elif exchange['router_id'] == 'choose_tomorrow_task':
+    elif exchange['router'] == 'choose_tomorrow_task':
         due_date = datetime.date.today() + datetime.timedelta(days=1)
     else:
-        raise NotImplementedError(f"The router {exchange['router_id']} is not valid for inserting tasks.")
+        raise NotImplementedError(f"The router {exchange['router']} is not valid for inserting tasks.")
 
     # create a new task
     new_task = Task(
-        description = exchange['inbound'],
+        description = inbound,
         due_date = due_date,
         active = True,
         exchange_id = exchange['id'],
@@ -176,7 +168,7 @@ def insert_task(user, exchange, **kwargs):
 
 
 ROUTER_ACTIONS = dict(
-    schedule_reminders = schedule_reminders,
+    insert_notifications = insert_notifications,
     update_timezone = update_timezone,
     update_username = update_username,
     add_point = add_point,
