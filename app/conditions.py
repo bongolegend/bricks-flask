@@ -26,9 +26,3 @@ def timezone_set(user, **kwargs):
     if timezone_set:
         return True
     return False
-
-
-CONDITION_CHECKERS = dict(
-    task_chosen = task_chosen,
-    timezone_set = timezone_set,
-)
