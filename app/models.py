@@ -32,7 +32,7 @@ class AppUser(db.Model, Base):
 
 
 class Notification(db.Model, Base):
-    router_id = db.Column(db.String(32), nullable=False)
+    router = db.Column(db.String(32), nullable=False)
     body = db.Column(db.Text, nullable=False)
     day_of_week = db.Column(db.String(32)) 
     hour = db.Column(db.Integer, nullable=False)
@@ -43,21 +43,10 @@ class Notification(db.Model, Base):
         nullable=False)
     user = db.relationship('AppUser',
         backref=db.backref('notifications', lazy=True))
-
-    # def to_cron(self):
-    #     '''return only values needed for cron job'''
-    #     return dict(
-    #         day_of_week = self.day_of_week, 
-    #         hour = self.hour,
-    #         minute = self.minute,
-    #         jitter = self.jitter,
-    #         end_date = self.end_date,
-    #         timezone = self.timezone
-    #     )
     
     def to_dict(self):
         return dict(
-            router_id = self.router_id,
+            router = self.router,
             body = self.body,
             day_of_week = self.day_of_week, 
             hour = self.hour,
@@ -66,7 +55,7 @@ class Notification(db.Model, Base):
 
 
     def __repr__(self):
-        return '<Notification %r>' % self.router_id
+        return '<Notification %r>' % self.router
 
 
 class Exchange(db.Model, Base):
@@ -93,7 +82,7 @@ class Exchange(db.Model, Base):
             next_exchange_id = self.next_exchange_id,
             user_id = self.user_id,
             created = self.created,
-            updated = sel.updated
+            updated = self.updated
         )
     
     def __repr__(self):
