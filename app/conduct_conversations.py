@@ -24,6 +24,10 @@ def main():
     parsed_inbound = router.parse(inbound)
 
     if parsed_inbound is not None:
+
+        # give participation points
+        points_message = router.insert_points(user)
+
         # execute current exchange actions after getting inbound
         # this needs to run before selecting the next router, as 
         # these actions can influence the next router choice
@@ -40,6 +44,9 @@ def main():
         # append last router's confirmation to next router's outbound
         if  router.confirmation is not None:
             next_router.outbound = router.confirmation + " " + next_router.outbound
+        
+        # prepend points message
+        next_router.outbound = points_message + " " + next_router.outbound
 
     else:
         # resend the same router

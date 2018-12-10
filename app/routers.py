@@ -1,7 +1,7 @@
 import app.router_actions as actions
 from app import parsers
 import app.conditions as conditions
-from app.constants import Outbounds, Names
+from app.constants import Outbounds, Names, Points
 
 
 class Router:
@@ -9,6 +9,7 @@ class Router:
     actions = None
     inbound_format = parsers.ANY
     confirmation = None
+    participation_points = Points.DEFAULT
 
     @classmethod
     def next_router(self, **kwargs):
@@ -46,8 +47,15 @@ class Router:
                 result_dict[action.__name__] = result
             return result_dict
         return dict()
-
-
+    
+    @classmethod
+    def insert_points(self, user, **kwargs):
+        '''Receive participation points'''
+        if self.participation_points > 0:
+            actions.insert_points(user, self.participation_points)
+            return Points.EARNED_MESSAGE.format(points=self.participation_points)
+        else:
+            return str()
 
 
 class InitOnboarding(Router):
@@ -132,6 +140,7 @@ class Timezone(Router):
 class ChooseTask(Router):
     name = Names.CHOOSE_TASK
     outbound = "What's the most important thing you want to get done today?"
+    participation_points = Points.CHOOSE_TASK
  
     @classmethod   
     def next_router(self, **kwargs):
@@ -154,13 +163,22 @@ class ChooseTask(Router):
         return {
             actions.insert_notifications.__name__ : insert_notif_result,
             actions.insert_task.__name__ : insert_task_result}
+    
+    @classmethod
+    def insert_points(self, user, **kwargs):
+        '''You only get points if you havent already chosen a task for today'''
+        if not conditions.task_chosen(user):
+            actions.insert_points(user, self.participation_points)
+            return Points.EARNED_MESSAGE.format(points=self.participation_points)
+        else:
+            return Points.ALREADY_EARNED_MESSAGE
         
 
 
 class CurrentPoints(Router):
     name = 'current_points'
     pre_actions = (actions.query_points,)
-    outbound = "You currently have {query_points} points."
+    outbound = "You currently have +{query_points} pt."
 
 
 class StateNightFollowup(Router):
@@ -172,10 +190,20 @@ class ChooseTomorrowTask(Router):
     name = 'choose_tomorrow_task'
     outbound = "What's the most important thing you want to get done tomorrow?"
     actions = (actions.change_morning_notification, actions.insert_task)
+    participation_points = Points.CHOOSE_TASK
 
     @classmethod
     def next_router(self, **kwargs):
         return StateMorningFollowup
+    
+    @classmethod
+    def insert_points(self, user, **kwargs):
+        '''You only get points if you havent already chosen a task for tomorrow'''
+        if not conditions.task_chosen(user, tomorrow=True):
+            actions.insert_points(user, self.participation_points)
+            return Points.EARNED_MESSAGE.format(points=self.participation_points)
+        else:
+            return Points.ALREADY_EARNED_MESSAGE 
 
 
 class DidYouDoIt(Router):
@@ -183,6 +211,7 @@ class DidYouDoIt(Router):
     outbound = 'Did you stack your brick today? (y/n)'
     actions = (actions.add_point,)
     inbound_format = parsers.YES_NO
+    participation_points = Points.DID_YOU_DO_IT
 
     @classmethod
     def next_router(self, inbound, **kwargs):
@@ -195,8 +224,9 @@ class DidYouDoIt(Router):
 class CompletionPoint(Router):
     name = 'completion_point'
     pre_actions = (actions.query_points,)
-    outbound = "Congrats! You earned +1 point. You now have {query_points} points. Do you want to choose tomorrow's task now? (y/n)",
+    outbound = "Congrats! You earned +%s points. You now have {query_points} points. Do you want to choose tomorrow's task now? (y/n)" % Points.TASK_COMPLETED
     inbound_format = parsers.YES_NO
+    participation_points = Points.CHOOSE_TASK
 
     @classmethod
     def next_router(self, inbound, **kwargs):
@@ -211,6 +241,7 @@ class NoCompletion(Router):
     pre_actions = (actions.query_points,)
     outbound = "All good. Just make tomorrow count. You currently have {query_points} points. Do you want to choose tomorrow's task now? (y/n)"
     inbound_format = parsers.YES_NO
+    participation_points = Points.CHOOSE_TASK
 
     @classmethod
     def next_router(self, inbound, **kwargs):
@@ -229,6 +260,7 @@ class MorningConfirmation(Router):
     name = Names.MORNING_CONFIRMATION
     outbound = "Are you still planning to do this task today: {query_task}? (y/n)"
     inbound_format = parsers.YES_NO
+    participation_points = Points.CHOOSE_TASK
 
     @classmethod
     def next_router(self, inbound, **kwargs):

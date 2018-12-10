@@ -8,10 +8,8 @@ class Names:
 
 class Outbounds:
     HOW_IT_WORKS = """How this works: every weekday, you input your most important task of the day. At the end of the day, you confirm that you did it.
-If you did, then you get a point. If you are consistent, you get extra points. Makes sense? (y/n)"""
+If you did, then you get +X points. If you are consistent, you get extra points. You also get points just for participating. Makes sense? (y/n)"""
 
-# TODO(Nico) instead ask what city you're in. this makes it better to find their locale for analytics
-# all good solutions require API access : https://stackoverflow.com/questions/16505501/get-timezone-from-city-in-python-django
     WHAT_TIMEZONE = """What's your timezone?
 a) PT
 b) MT
@@ -25,3 +23,12 @@ b) choose a new timezone
 c) how does this work?
 d) how many points do I have?
 """
+
+
+class Points:
+    DEFAULT = 0
+    TASK_COMPLETED = 10
+    CHOOSE_TASK = 1
+    DID_YOU_DO_IT = 1
+    EARNED_MESSAGE = "+{points} pt earned!"
+    ALREADY_EARNED_MESSAGE = "+0 pt (already earned for today)."

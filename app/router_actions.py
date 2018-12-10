@@ -81,8 +81,8 @@ def update_username(inbound, user, **kwargs):
     db.session.commit()
 
 
-def add_point(user, **kwargs):
-    point = Point(value=5, user_id=user['id'])
+def insert_points(user, value, **kwargs):
+    point = Point(value=value, user_id=user['id'])
     db.session.add(point)
     db.session.commit()
 
