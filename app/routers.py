@@ -209,7 +209,7 @@ class ChooseTomorrowTask(Router):
 class DidYouDoIt(Router):
     name= Names.DID_YOU_DO_IT
     outbound = 'Did you stack your brick today? (y/n)'
-    actions = (actions.add_point,)
+    actions = (actions.insert_points,)
     inbound_format = parsers.YES_NO
     participation_points = Points.DID_YOU_DO_IT
 
