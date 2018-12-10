@@ -32,6 +32,7 @@ Please text {os.environ.get('TWILIO_PHONE_NUMBER')} to get started.
 def send_notifications_wrapper():
     return send_notifications()
 
+
 # TODO(Nico) is this the right place to put this?
 @current_app.before_request
 def session_timeout():

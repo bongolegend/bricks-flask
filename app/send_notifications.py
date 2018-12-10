@@ -8,7 +8,7 @@ from twilio.rest import Client
 from app import db
 from app.models import AppUser, Notification
 from app.queries import insert_exchange
-from app.routers import nodes
+from app.routers import routers
 from config import Config # TODO(Nico) find a cleaner way to access config. with create_app? or current_app?
 
 
@@ -50,29 +50,6 @@ def main():
     return response
 
 
-
-
-
-# def seed_scheduler():
-#     '''scheduler starts on a separate thread (initialized in __init__). seed it with stored notifications'''
-#     result = db.session.query(Notification, AppUser).join(AppUser).all()
-
-#     for row in result:
-#         notif, user = row
-#         user = user.to_dict()
-#         add_notif_to_scheduler(scheduler, notif, user, Config)
-
-
-# def add_notif_to_scheduler(scheduler, notif, user, config):
-#     '''add notification instance to the running scheduler'''
-#     cron_dict = notif.to_cron()
-    
-#     scheduler.add_job(notify,
-#         notif.trigger_type,
-#         args=[user, notif],
-#         **cron_dict)
-
-
 def notify(user, notif):
     '''send outbound to user with twilio'''
 
@@ -85,9 +62,9 @@ def notify(user, notif):
         to=user['phone_number'],
         body=notif['body'])
     
-    node = nodes[nodes.router_id == notif['router_id']].iloc[0]
+    router = routers[notif['router_id']]
 
-    insert_exchange(node, user)
+    insert_exchange(router, user)
 
 
 
