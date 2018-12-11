@@ -172,11 +172,11 @@ def leaderboard(**kwargs):
         .join(Point)\
         .group_by(AppUser.username)\
         .order_by(func.sum(Point.value).desc())\
-        .limit(5)\
+        .limit(10)\
         .all()
     
     leaderboard = "{username:_<12}{points}\n".format(username='USERNAME', points='POINTS')
     for user, value in users:
-        leaderboard = leaderboard + "{user:_<12}{value}\n".format(user=user[:10], value=value)
+        leaderboard = leaderboard + "{user:_<20}{value}\n".format(user=user[:16], value=value)
 
     return leaderboard
