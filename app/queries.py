@@ -64,7 +64,7 @@ def insert_exchange(router, user, inbound=None, **kwargs):
 
 
 def update_exchange(current_exchange, next_exchange, inbound, **kwargs):
-    '''update existing exchange row with inbound info and next router_id'''
+    '''update existing exchange row with inbound info and next router name'''
     if current_exchange is not None:
         queried_exchange = db.session.query(Exchange).filter_by(id=current_exchange['id']).one()
         queried_exchange.inbound = inbound,

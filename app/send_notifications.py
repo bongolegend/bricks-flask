@@ -62,7 +62,7 @@ def notify(user, notif):
         to=user['phone_number'],
         body=notif['body'])
     
-    router = routers[notif['router_id']]
+    router = routers[notif['router']]
 
     insert_exchange(router, user)
 
