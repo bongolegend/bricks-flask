@@ -18,10 +18,11 @@ d) ET
 """
 
     MAIN_MENU = """What do you want to do?
-a) choose a brick for today
-b) choose a new timezone
-c) how does this work?
-d) how many points do I have?
+a) choose a brick
+b) change timezone
+c) help
+d) my points
+e) leaderboard
 """
 
 

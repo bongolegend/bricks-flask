@@ -164,3 +164,19 @@ def insert_task(user, exchange, inbound, choose_task, choose_tomorrow_task,  **k
     
     db.session.add(new_task)
     db.session.commit()
+
+
+def leaderboard(**kwargs):
+    '''Make a leaderboard across all users, returning the top 5'''
+    users = db.session.query(AppUser.username, func.sum(Point.value))\
+        .join(Point)\
+        .group_by(AppUser.username)\
+        .order_by(func.sum(Point.value).desc())\
+        .limit(5)\
+        .all()
+    
+    leaderboard = "{username:_<12}{points}\n".format(username='USERNAME', points='POINTS')
+    for user, value in users:
+        leaderboard = leaderboard + "{user:_<12}{value}\n".format(user=user[:10], value=value)
+
+    return leaderboard

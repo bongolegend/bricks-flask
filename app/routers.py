@@ -120,6 +120,8 @@ class MainMenu(Router):
             return HowItWorks
         elif inbound == 'd':
             return CurrentPoints
+        elif inbound == 'e':
+            return Leaderboard
 
 
 class Timezone(Router):
@@ -280,6 +282,12 @@ class MorningConfirmation(Router):
             actions.change_morning_notification.__name__ : change_morning_notif_result}
 
 
+class Leaderboard(Router):
+    name = 'leaderboard'
+    pre_actions = (actions.leaderboard,)
+    outbound = "{leaderboard}"
+
+
 routers = {
     InitOnboarding.name : InitOnboarding,
     Welcome.name : Welcome,
@@ -295,4 +303,5 @@ routers = {
     CompletionPoint.name : CompletionPoint, 
     NoCompletion.name : NoCompletion,
     StateMorningFollowup.name : StateMorningFollowup,
+    Leaderboard.name : Leaderboard
 }

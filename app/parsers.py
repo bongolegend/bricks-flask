@@ -5,6 +5,7 @@ MULTIPLE_CHOICE = {
     'b': ['b', 'b)'],
     'c': ['c', 'c)'],
     'd': ['d', 'd)'],
+    'e': ['e', 'e)'],
 }
 
 YES_NO = {
