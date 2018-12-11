@@ -111,9 +111,12 @@ class MainMenu(Router):
     inbound_format = parsers.MULTIPLE_CHOICE
 
     @classmethod
-    def next_router(self, inbound, **kwargs):
+    def next_router(self, inbound, user, **kwargs):
         if inbound == 'a':
-            return ChooseTask
+            if conditions.is_afternoon(user):
+                return ChooseTomorrowTask
+            else:
+                return ChooseTask
         elif inbound == 'b':
             return Timezone
         elif inbound == 'c':
@@ -135,6 +138,8 @@ class Timezone(Router):
     def next_router(self, user, **kwargs):
         if conditions.task_chosen(user):
             return MainMenu
+        elif conditions.is_afternoon(user):
+            return ChooseTomorrowTask
         else:
             return ChooseTask
 
@@ -191,12 +196,28 @@ class StateNightFollowup(Router):
 class ChooseTomorrowTask(Router):
     name = 'choose_tomorrow_task'
     outbound = "What's the most important thing you want to get done tomorrow?"
-    actions = (actions.change_morning_notification, actions.insert_task)
     participation_points = Points.CHOOSE_TASK
 
     @classmethod
     def next_router(self, **kwargs):
         return StateMorningFollowup
+    
+    @classmethod
+    def run_actions(self, user, exchange, inbound, **kwargs):
+        insert_notif_result = actions.insert_notifications(
+            user, 
+            ChooseTask, 
+            MorningConfirmation, 
+            DidYouDoIt)
+
+        change_result = actions.change_morning_notification(user, ChooseTask, MorningConfirmation)
+
+        insert_result = actions.insert_task(user, exchange, inbound, ChooseTask, ChooseTomorrowTask)
+
+        return {
+            actions.insert_notifications.__name__ : insert_notif_result,
+            actions.change_morning_notification.__name__ : change_result,
+            actions.insert_task.__name__ : insert_result}
     
     @classmethod
     def insert_points(self, user, **kwargs):
@@ -255,7 +276,7 @@ class NoCompletion(Router):
 
 class StateMorningFollowup(Router):
     name = 'state_morning_followup'
-    outbound =  "I'll message you tomorrow at 8 am."
+    outbound =  "Great. I'll message you tomorrow at 8 am to confirm."
 
 
 class MorningConfirmation(Router):

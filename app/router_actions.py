@@ -141,7 +141,7 @@ def insert_task(user, exchange, inbound, choose_task, choose_tomorrow_task,  **k
     if exchange['router'] == choose_task.name:
         due_date = today
     elif exchange['router'] == choose_tomorrow_task.name:
-        due_date = datetime.date.today() + datetime.timedelta(days=1)
+        due_date = dt.date.today() + dt.timedelta(days=1)
     else:
         raise NotImplementedError(f"The router {exchange['router']} is not valid for inserting tasks.")
 

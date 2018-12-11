@@ -1,5 +1,6 @@
 '''These functions check whether certain conditions were met for a router to be selected'''
 import datetime as dt
+import pytz
 from app import db
 from app.models import Task, AppUser
 
@@ -28,3 +29,16 @@ def timezone_set(user, **kwargs):
     if timezone_set:
         return True
     return False
+
+
+def is_afternoon(user, **kwargs):
+    '''Check if the local time is after 3pm'''
+    tz = db.session.query(AppUser.timezone).filter(AppUser.id == user['id']).one()[0]
+    tz = pytz.timezone(tz)
+    now = dt.datetime.now(tz=tz)
+
+    if now.hour >= 15:
+        return True
+    else:
+        return False
+    
