@@ -52,11 +52,8 @@ def main():
         # resend the same router
         action_results = dict()
         next_router = router
-
         # prepend a string to the outbound saying you need to try again
-        # this conditional is to prevent additional prepends on repeated failure 
-        if RETRY not in exchange['outbound']:
-            next_router.outbound = RETRY + next_router.outbound
+        next_router.outbound = RETRY + next_router.outbound
 
     # run the pre-actions for next router before sending the outbound message
     pre_action_results = next_router.run_pre_actions(
@@ -77,6 +74,3 @@ def main():
     resp = MessagingResponse()
     resp.message(next_exchange['outbound'])
     return str(resp)
-
-
-
