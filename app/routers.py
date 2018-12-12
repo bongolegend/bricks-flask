@@ -315,6 +315,7 @@ class CreateTeam(Router):
     name = 'create_team'
     outbound = "What do you want to name your team?"
     actions = (actions.insert_team,)
+    confirmation = "Team created."
     
 
 routers = {
