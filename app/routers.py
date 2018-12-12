@@ -1,6 +1,4 @@
-import app.router_actions as actions
-from app import parsers
-import app.conditions as conditions
+from app import parsers, actions, conditions
 from app.constants import Outbounds, Names, Points
 
 
