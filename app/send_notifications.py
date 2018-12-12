@@ -15,6 +15,13 @@ from config import Config # TODO(Nico) find a cleaner way to access config. with
 def main():
     '''get notifications from db and run the appropriate ones'''
 
+    # set up margins to determine which notifs to run based on current time
+    margin = dt.timedelta(minutes=10)
+    utc_time = dt.datetime.now()
+    earliest_time = utc_time - margin
+    latest_time = utc_time + margin
+    counter = 0
+
     # query all active morning notifications
     morning_notifs = db.session.query(Notification, AppUser).join(AppUser)\
         .filter(
@@ -28,18 +35,13 @@ def main():
             Notification.active == True,
             Notification.router.in_([DidYouDoIt.name]),
             Task.active == True,
-            Task.due_date == dt.datetime.today().replace(hour=0, minute=0, second=0, microsecond=0)
+            Task.due_date >= earliest_time,
+            Task.due_date <= latest_time,
         ).all()
-    
+
     # combine both lists of notifs
     all_notifs = morning_notifs + did_you_do_it_notifs
     
-    # determine which notifs to run based on current time
-    margin = dt.timedelta(minutes=10)
-    utc_time = dt.datetime.now(tz=pytz.utc)
-    earliest_time = utc_time - margin
-    latest_time = utc_time + margin
-    counter = 0
 
     # run each notif based on user's local time
     for (notif, user) in all_notifs:
@@ -57,7 +59,7 @@ def main():
             notif['minute'], 
             tzinfo=notif_tz)
 
-        reminder_utc_time = reminder_local_time.astimezone(pytz.utc)
+        reminder_utc_time = reminder_local_time.astimezone(pytz.utc).replace(tzinfo=None)
 
         if earliest_time <= reminder_utc_time <= latest_time:
             notify(user, notif)

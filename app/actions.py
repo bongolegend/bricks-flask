@@ -134,15 +134,29 @@ def query_task(user, choose_task, choose_tomorrow_task, **kwargs):
     return exchange.inbound
 
 
-def insert_task(user, exchange, inbound, choose_task, choose_tomorrow_task,  **kwargs):
+def insert_task(user, exchange, inbound, choose_task, choose_tomorrow_task, did_you_do_it, **kwargs):
     '''insert task based on input, and set all other tasks with the same due date to inactive'''
 
-    today = dt.datetime.today().replace(hour=0, minute=0, second=0, microsecond=0)
+    # what day is it for user?
+    today_local = dt.datetime.now(tz=pytz.timezone(user['timezone']))
+
+    # what time today is the task due? look at the Notif did_you_do_it
+    hour, minute = db.session.query(Notification.hour, Notification.minute).filter(
+        Notification.user_id == user['id'],
+        Notification.router == did_you_do_it.name,
+        Notification.active == True).one()
+
+    # local time that task is due
+    due_today_local = today_local.replace(hour=hour, minute=minute, second=0, microsecond=0)
+
+    # convert due_today to utc, then make timezone naive
+    due_today = due_today_local.astimezone(pytz.utc).replace(tzinfo=None)
+
     # determine the due date based on the router id
     if exchange['router'] == choose_task.name:
-        due_date = today
+        due_date = due_today
     elif exchange['router'] == choose_tomorrow_task.name:
-        due_date = dt.date.today() + dt.timedelta(days=1)
+        due_date = due_today + dt.timedelta(days=1)
     else:
         raise NotImplementedError(f"The router {exchange['router']} is not valid for inserting tasks.")
 

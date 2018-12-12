@@ -165,7 +165,8 @@ class ChooseTask(Router):
             exchange, 
             inbound, 
             self, 
-            ChooseTomorrowTask)
+            ChooseTomorrowTask,
+            DidYouDoIt)
         
         return {
             actions.insert_notifications.__name__ : insert_notif_result,
