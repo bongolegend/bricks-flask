@@ -5,6 +5,7 @@ import pytz
 import logging
 import settings
 from twilio.rest import Client
+from sqlalchemy import exists, and_
 from app import db
 from app.models import AppUser, Notification, Task
 from app.queries import insert_exchange
@@ -22,26 +23,48 @@ def main():
     latest_time = utc_time + margin
     counter = 0
 
-    # query all active morning notifications
-    morning_notifs = db.session.query(Notification, AppUser).join(AppUser)\
+    # query all active choose_tasks if there is no task due today
+    # if you have no task in the next 24 hours, you can run choose_task notif
+    choose_task_notifs = db.session.query(Notification, AppUser).join(AppUser)\
         .filter(
             Notification.active == True,
-            Notification.router.in_([ChooseTask.name, MorningConfirmation.name])
+            Notification.router.in_([ChooseTask.name]),
+            ~exists().where(
+                and_(
+                    AppUser.id == Task.user_id,
+                    Task.active == True,
+                    Task.due_date >= utc_time, 
+                    Task.due_date <= utc_time + dt.timedelta(days=1))) 
         ).all()
+
+    # query all active morning confirmations if there is a task already due today
+    morning_confirm_notifs = db.session.query(Notification, AppUser).join(AppUser)\
+        .filter(
+            Notification.active == True,
+            Notification.router.in_([MorningConfirmation.name]),
+            exists().where(
+                and_(
+                    AppUser.id == Task.user_id,
+                    Task.active == True,
+                    Task.due_date >= utc_time,
+                    Task.due_date <= utc_time + dt.timedelta(days=1)))
+        ).all() 
     
-    # query all did_you_do_its if a task is due that day
-    did_you_do_it_notifs = db.session.query(Notification, AppUser).join(AppUser, Task)\
+    # query all did_you_do_its if a task is due today
+    did_you_do_it_notifs = db.session.query(Notification, AppUser).join(AppUser)\
         .filter(
             Notification.active == True,
             Notification.router.in_([DidYouDoIt.name]),
-            Task.active == True,
-            Task.due_date >= earliest_time,
-            Task.due_date <= latest_time,
+            exists().where(
+                and_(
+                    AppUser.id == Task.user_id,
+                    Task.active == True,
+                    Task.due_date >= earliest_time,
+                    Task.due_date <= latest_time))
         ).all()
 
     # combine both lists of notifs
-    all_notifs = morning_notifs + did_you_do_it_notifs
-    
+    all_notifs = choose_task_notifs + morning_confirm_notifs + did_you_do_it_notifs
 
     # run each notif based on user's local time
     for (notif, user) in all_notifs:
