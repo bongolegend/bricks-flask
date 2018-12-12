@@ -98,7 +98,7 @@ class Point(db.Model, Base):
         backref=db.backref('points', lazy=True))
     
     def __repr__(self):
-        return f'<Point user={self.user_id}; value={self.value} >'
+        return f'<Point user={self.user_id}; value={self.value}>'
 
 
 class Task(db.Model, Base):
@@ -113,4 +113,29 @@ class Task(db.Model, Base):
     user = db.relationship('AppUser', backref=db.backref('tasks', lazy=True))
     
     def __repr__(self):
-        return f'<Task {self.description[:10]} >'
+        return f'<Task {self.description[:10]}>'
+
+
+class Team(db.Model, Base):
+    founder_id = db.Column(db.Integer, db.ForeignKey('app_user.id'), nullable=False)
+    name = db.Column(db.String(32), nullable=False)
+
+    founder = db.relationship('AppUser', backref=db.backref('teams', lazy=True))
+
+    def __repr__(self):
+        return f"<Team {self.name}>"
+
+
+class TeamMember(db.Model, Base):
+    user_id = db.Column(db.Integer, db.ForeignKey('app_user.id'), nullable=False)
+    team_id = db.Column(db.Integer, db.ForeignKey('team.id'), nullable=False)
+    invited_by_id = db.Column(db.Integer, db.ForeignKey('app_user.id'), nullable=False)
+    status = db.Column(db.String(32), nullable=False)
+
+    user = db.relationship('AppUser', foreign_keys=[user_id], backref=db.backref('is_member', lazy=True))
+    team = db.relationship('Team', backref=db.backref('members', lazy=True))
+    invited_by = db.relationship('AppUser', foreign_keys=[invited_by_id], backref=db.backref('invited', lazy=True))
+
+
+    def __repr__(self):
+        return f"<TeamMember {self.user} team={self.team} >"
