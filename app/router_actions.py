@@ -2,7 +2,8 @@ import datetime as dt
 import pytz
 from sqlalchemy import func
 from app import db
-from app.models import AppUser, Notification, Point, Exchange, Task
+from app.models import AppUser, Notification, Point, Exchange, Task, Team, TeamMember
+from app.constants import Statuses
 from config import Config # TODO(Nico) access the config that has been initialized on the app 
     
 
@@ -180,3 +181,24 @@ def leaderboard(**kwargs):
         leaderboard = leaderboard + "{user:_<20}{value}\n".format(user=user[:16], value=value)
 
     return leaderboard
+
+
+def insert_team(user, inbound, **kwargs):
+    '''Create a new team with the user as the founder, and the inbound as the team name. Automatically add user to this team'''
+    team = Team(founder_id=user['id'], name=inbound)
+
+    member = TeamMember(
+        user_id=user['id'],
+        team=team,
+        invited_by_id=user['id'],
+        status=Statuses.ACTIVE)
+
+    db.session.add(team)
+    db.session.add(member)
+    db.session.commit()
+
+    print(f"USER {user['username']} CREATED TEAM {team.name}")
+
+
+
+

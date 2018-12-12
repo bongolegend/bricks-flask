@@ -125,6 +125,8 @@ class MainMenu(Router):
             return CurrentPoints
         elif inbound == 'e':
             return Leaderboard
+        elif inbound == 'f':
+            return CreateTeam
 
 
 class Timezone(Router):
@@ -309,6 +311,12 @@ class Leaderboard(Router):
     outbound = "{leaderboard}"
 
 
+class CreateTeam(Router):
+    name = 'create_team'
+    outbound = "What do you want to name your team?"
+    actions = (actions.insert_team,)
+    
+
 routers = {
     InitOnboarding.name : InitOnboarding,
     Welcome.name : Welcome,
@@ -324,5 +332,6 @@ routers = {
     CompletionPoint.name : CompletionPoint, 
     NoCompletion.name : NoCompletion,
     StateMorningFollowup.name : StateMorningFollowup,
-    Leaderboard.name : Leaderboard
+    Leaderboard.name : Leaderboard,
+    CreateTeam.name : CreateTeam,
 }

@@ -23,6 +23,7 @@ b) change timezone
 c) help
 d) my points
 e) leaderboard
+f) create a team
 """
 
 
@@ -33,3 +34,10 @@ class Points:
     DID_YOU_DO_IT = 1
     EARNED_MESSAGE = "+{points} pt earned!"
     ALREADY_EARNED_MESSAGE = "+0 pt (already earned for today)."
+
+
+class Statuses:
+    PENDING = 'pending'
+    ACTIVE = 'active'
+    REJECTED = 'rejected'
+    
