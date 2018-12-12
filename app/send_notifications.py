@@ -6,30 +6,49 @@ import logging
 import settings
 from twilio.rest import Client
 from app import db
-from app.models import AppUser, Notification
+from app.models import AppUser, Notification, Task
 from app.queries import insert_exchange
-from app.routers import routers
+from app.routers import routers, ChooseTask, MorningConfirmation, DidYouDoIt
 from config import Config # TODO(Nico) find a cleaner way to access config. with create_app? or current_app?
 
 
 def main():
     '''get notifications from db and run the appropriate ones'''
 
-    result = db.session.query(Notification, AppUser).join(AppUser)\
-        .filter(Notification.active == True).all()
-
+    # query all active morning notifications
+    morning_notifs = db.session.query(Notification, AppUser).join(AppUser)\
+        .filter(
+            Notification.active == True,
+            Notification.router.in_([ChooseTask.name, MorningConfirmation.name])
+        ).all()
+    
+    # query all did_you_do_its if a task is due that day
+    did_you_do_it_notifs = db.session.query(Notification, AppUser).join(AppUser, Task)\
+        .filter(
+            Notification.active == True,
+            Notification.router.in_([DidYouDoIt.name]),
+            Task.active == True,
+            Task.due_date == dt.datetime.today().replace(hour=0, minute=0, second=0, microsecond=0)
+        ).all()
+    
+    # combine both lists of notifs
+    all_notifs = morning_notifs + did_you_do_it_notifs
+    
+    # determine which notifs to run based on current time
     margin = dt.timedelta(minutes=10)
     utc_time = dt.datetime.now(tz=pytz.utc)
     earliest_time = utc_time - margin
     latest_time = utc_time + margin
     counter = 0
-    for (notif, user) in result:
+
+    # run each notif based on user's local time
+    for (notif, user) in all_notifs:
         user = user.to_dict()
         notif = notif.to_dict()
 
         notif_tz = pytz.timezone(user['timezone'])
         local_time = dt.datetime.now(notif_tz)
-        # assume that every notif gets sent every day
+        # TODO(Nico) assumes that every notif gets sent every day
         reminder_local_time = dt.datetime(
             local_time.year, 
             local_time.month, 
@@ -44,7 +63,7 @@ def main():
             notify(user, notif)
             counter += 1
     
-    response = f"{counter} of {len(result)} active notifications were sent."
+    response = f"{counter} of {len(all_notifs)} active notifications were sent."
     print(response)
 
     return response

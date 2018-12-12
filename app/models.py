@@ -113,4 +113,4 @@ class Task(db.Model, Base):
     user = db.relationship('AppUser', backref=db.backref('tasks', lazy=True))
     
     def __repr__(self):
-        return f'<Task {self.description[10]} >'
+        return f'<Task {self.description[:10]} >'
