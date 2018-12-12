@@ -36,7 +36,7 @@ def insert_notifications(user, choose_task, morning_confirmation, did_you_do_it,
             day_of_week='mon-fri',
             hour=8,
             minute=0,
-            active=False,
+            active=True,
             user_id=user['id'])
         db.session.add(notif)
 
@@ -60,12 +60,6 @@ def update_timezone(inbound, user, **kwargs):
         user_obj = db.session.query(AppUser).filter_by(id=user['id']).one()
         user_obj.timezone = tz
         user['timezone'] = tz
-
-        # update all notifications for that user in the db
-        # TODO(Nico) update notifications in the scheduler
-        notifs = db.session.query(Notification).filter_by(user_id=user['id']).all()
-        for notif in notifs:
-            notif.timezone = tz
             
         db.session.commit()
 
@@ -95,33 +89,6 @@ def query_points(user, **kwargs):
         return 0
     else:
         return points
-
-
-def change_morning_notification(user, choose_task, morning_confirmation, **kwargs):
-    '''
-    switch the Active status of the two morning notifications, depending on whether
-    someone stated their task the night before.
-    '''
-    choose_task = db.session.query(Notification).filter(
-        Notification.user_id == user['id'],
-        Notification.router == choose_task.name).one()
-
-    confirmation = db.session.query(Notification).filter(
-        Notification.user_id == user['id'],
-        Notification.router == morning_confirmation.name).one()
-    
-    if choose_task.active == confirmation.active:
-        raise ValueError('Both morning notifications are active')
-    elif choose_task.active:
-        confirmation.active = True
-        choose_task.active = False
-        print('Switched the active morning notification to CONFIRMATION.')
-    elif confirmation.active:
-        confirmation.active = False
-        choose_task.active = True
-        print('Switched the active morning notification to CHOOSE_TASK.')
-
-    db.session.commit()
 
 
 def query_task(user, choose_task, choose_tomorrow_task, **kwargs):

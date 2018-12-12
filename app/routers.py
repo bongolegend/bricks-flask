@@ -211,13 +211,10 @@ class ChooseTomorrowTask(Router):
             MorningConfirmation, 
             DidYouDoIt)
 
-        change_result = actions.change_morning_notification(user, ChooseTask, MorningConfirmation)
-
         insert_result = actions.insert_task(user, exchange, inbound, ChooseTask, ChooseTomorrowTask)
 
         return {
             actions.insert_notifications.__name__ : insert_notif_result,
-            actions.change_morning_notification.__name__ : change_result,
             actions.insert_task.__name__ : insert_result}
     
     @classmethod
@@ -297,11 +294,7 @@ class MorningConfirmation(Router):
     def run_pre_actions(self, user, **kwargs):
         query_task_result = actions.query_task(user, ChooseTask, ChooseTomorrowTask)
 
-        change_morning_notif_result = actions.change_morning_notification(user, ChooseTask, self)
-
-        return {
-            actions.query_task.__name__ : query_task_result,
-            actions.change_morning_notification.__name__ : change_morning_notif_result}
+        return {actions.query_task.__name__ : query_task_result}
 
 
 class Leaderboard(Router):
