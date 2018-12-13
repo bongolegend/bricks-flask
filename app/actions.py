@@ -4,11 +4,13 @@ from sqlalchemy import func
 from app import db
 from app.models import AppUser, Notification, Point, Exchange, Task, Team, TeamMember
 from app.constants import Statuses
+from app.queries import query_user, query_last_exchange
+from app.queries import notify
 from config import Config # TODO(Nico) access the config that has been initialized on the app 
     
 
 def insert_notifications(user, choose_task, morning_confirmation, did_you_do_it, **kwargs):
-    '''Create two morning and one evening notif. Add notif to scheduler and to db'''
+    '''Create two morning and one evening notif. Add notif to db'''
 
     # find existing notifications
     existing_choose_tasks = Notification.query.filter_by(
@@ -107,7 +109,7 @@ def insert_task(user, exchange, inbound, choose_task, choose_tomorrow_task, did_
     # what day is it for user?
     today_local = dt.datetime.now(tz=pytz.timezone(user['timezone']))
 
-    # what time today is the task due? look at the Notif did_you_do_it
+    # what time today are your tasks due? look at the Notif did_you_do_it
     hour, minute = db.session.query(Notification.hour, Notification.minute).filter(
         Notification.user_id == user['id'],
         Notification.router == did_you_do_it.name,
@@ -181,5 +183,69 @@ def insert_team(user, inbound, **kwargs):
     print(f"USER {user['username']} CREATED TEAM {team.name}")
 
 
+def list_teams(user, **kwargs):
+    '''List the teams that user is a member of'''
+    teams = db.session.query(Team.id, Team.name).join(TeamMember).filter(TeamMember.user_id == user['id']).all()
+
+    team_list = str()
+
+    for team_id, name in teams:
+        team_list += f"{team_id}: {name}\n"
+    
+    return team_list
 
 
+def insert_member(user, inbound, init_onboarding_invited, you_were_invited, **kwargs):
+    '''Add member to the given team as a PENDING member. Inbound should be parsed as (team_id, phone_number_str)'''
+
+    team_id, phone_number = inbound
+
+    # confirm that user is part of team
+    team = db.session.query(Team).join(TeamMember).filter(
+        Team.id == team_id, 
+        TeamMember.user_id == user['id']
+    ).one()
+
+    if not team:
+        return None
+
+    # lookup the phone-number, add if not already a user
+    invited_user = query_user(phone_number)
+    # TODO(Nico) you will need to ask this person for their user name and tz
+
+    # insert invitee into db
+    invited_member = TeamMember(
+        user_id = invited_user['id'],
+        team_id = team_id,
+        invited_by_id = user['id'],
+        status = Statuses.PENDING)
+    
+    db.session.add(invited_member)
+    db.session.commit()
+
+    # send invitation to invitee
+    # you need to get the right router
+    # you should trigger a new router, but does that
+
+    exchange = query_last_exchange(invited_user)
+    if exchange is None:
+        router = init_onboarding_invited()
+    else:
+        router = you_were_invited()
+
+    results = router.run_pre_actions(
+        user=invited_user,
+        exchange=exchange,
+        invited_by=user)
+
+    router.outbound = router.outbound.format(**results)
+
+    notify(invited_user, router)
+
+
+def query_inviter(**kwargs):
+    return 'Jo'
+
+
+def query_team(**kwargs):
+    return 'The Boleres'

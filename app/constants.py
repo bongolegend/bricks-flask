@@ -18,12 +18,13 @@ d) ET
 """
 
     MAIN_MENU = """What do you want to do?
-a) choose a brick
+a) choose a task
 b) change timezone
 c) help
 d) my points
 e) leaderboard
 f) create a team
+g) invite a friend to your team
 """
 
 

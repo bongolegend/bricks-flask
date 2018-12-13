@@ -125,6 +125,8 @@ class MainMenu(Router):
             return Leaderboard
         elif inbound == 'f':
             return CreateTeam
+        elif inbound == 'g':
+            return AddMember
 
 
 class Timezone(Router):
@@ -161,7 +163,8 @@ class ChooseTask(Router):
             MorningConfirmation, 
             DidYouDoIt)
 
-        insert_task_result = actions.insert_task(user, 
+        insert_task_result = actions.insert_task(
+            user, 
             exchange, 
             inbound, 
             self, 
@@ -211,7 +214,13 @@ class ChooseTomorrowTask(Router):
             MorningConfirmation, 
             DidYouDoIt)
 
-        insert_result = actions.insert_task(user, exchange, inbound, ChooseTask, ChooseTomorrowTask)
+        insert_result = actions.insert_task(
+            user, 
+            exchange, 
+            inbound, 
+            ChooseTask, 
+            ChooseTomorrowTask,
+            DidYouDoIt)
 
         return {
             actions.insert_notifications.__name__ : insert_notif_result,
@@ -230,7 +239,6 @@ class ChooseTomorrowTask(Router):
 class DidYouDoIt(Router):
     name= Names.DID_YOU_DO_IT
     outbound = 'Did you stack your brick today? (y/n)'
-    actions = (actions.insert_points,)
     inbound_format = parsers.YES_NO
     participation_points = Points.DID_YOU_DO_IT
 
@@ -240,8 +248,18 @@ class DidYouDoIt(Router):
             return CompletionPoint
         elif inbound == 'no':
             return NoCompletion
+    
+    @classmethod
+    def run_actions(self, user, inbound, **kwargs):
+        if inbound == 'yes':
+            result = actions.insert_points(user, Points.TASK_COMPLETED)
+        else:
+            result = 0
+        return {actions.insert_points.__name__ : result}
+
 
 # TODO combine this with the one below it
+# TODO rename this to congrats
 class CompletionPoint(Router):
     name = 'completion_point'
     pre_actions = (actions.query_points,)
@@ -301,14 +319,38 @@ class Leaderboard(Router):
     name = 'leaderboard'
     pre_actions = (actions.leaderboard,)
     outbound = "{leaderboard}"
-
+    
 
 class CreateTeam(Router):
     name = 'create_team'
     outbound = "What do you want to name your team?"
     actions = (actions.insert_team,)
     confirmation = "Team created."
-    
+
+
+class AddMember(Router):
+    name = 'add_member'
+    pre_actions = (actions.list_teams,)
+    outbound = """Enter the team id and your friend's phone number, e.g. "25, 123-456-7890". Your current teams:\n{list_teams}"""
+    inbound_format = parsers.ADD_MEMBER
+    confirmation = "Sent an invitation to your friend. I'll let you know when they respond."
+
+    @classmethod
+    def run_actions(self, user, inbound, **kwargs):
+        result = actions.insert_member(user, inbound, InitOnboardingInvited, YouWereInvited)
+        return {actions.insert_member.__name__ : result}
+
+class InitOnboardingInvited(Router):
+    name = 'init_invite_onboarding'
+    pre_actions = (actions.query_inviter, actions.query_team)
+    outbound = "Hey! Welcome to Bricks! Your friend {query_inviter} invited you to join their team {query_team}. Do you accept? (y/n)"
+
+
+class YouWereInvited(Router):
+    name = 'you_were_invited'
+    pre_actions = (actions.query_inviter, actions.query_team)
+    outbound = "Hey! Your friend {query_inviter} invited you to join their team {query_team}. Do you accept? (y/n)"
+
 
 routers = {
     InitOnboarding.name : InitOnboarding,
@@ -327,4 +369,7 @@ routers = {
     StateMorningFollowup.name : StateMorningFollowup,
     Leaderboard.name : Leaderboard,
     CreateTeam.name : CreateTeam,
+    AddMember.name : AddMember,
+    InitOnboardingInvited.name : InitOnboardingInvited,
+    YouWereInvited.name : YouWereInvited,
 }
