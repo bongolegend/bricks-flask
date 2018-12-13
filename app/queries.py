@@ -1,4 +1,6 @@
+import os
 import functools
+from twilio.rest import Client
 from app import db
 from app.models import Exchange, AppUser
 from app.base_init import init_app, init_db
@@ -55,7 +57,7 @@ def insert_exchange(router, user, inbound=None, **kwargs):
         inbound=inbound,
         confirmation=router.confirmation,
         user_id=user['id'])
-    print('LOGGED NEW EXCHANGE', exchange)
+    print('INSERTED NEW EXCHANGE', exchange)
 
     db.session.add(exchange)
     db.session.commit()
@@ -80,3 +82,18 @@ def update_exchange(current_exchange, next_exchange, inbound, **kwargs):
     else:
         return None
 
+
+# TODO(Nico) what's the diff btwn notif and router aside from time?
+def notify(user, router):
+    '''send outbound to user with twilio'''
+
+    account_sid = os.environ.get('TWILIO_ACCOUNT_SID')
+    auth_token = os.environ.get('TWILIO_AUTH_TOKEN')
+
+    client = Client(account_sid, auth_token)
+
+    client.messages.create(from_=os.environ.get('TWILIO_PHONE_NUMBER'),
+        to=user['phone_number'],
+        body=router.outbound) # TODO(nico) change this to outbound
+    
+    insert_exchange(router, user)

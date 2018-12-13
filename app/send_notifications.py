@@ -1,14 +1,13 @@
 '''This module runs notifications, ie SMS that get sent at 8 am and 10 pm daily'''
-import os
+
 import datetime as dt
 import pytz
 import logging
 import settings
-from twilio.rest import Client
 from sqlalchemy import exists, and_
 from app import db
 from app.models import AppUser, Notification, Task
-from app.queries import insert_exchange
+from app.queries import insert_exchange, notify
 from app.routers import routers, ChooseTask, MorningConfirmation, DidYouDoIt
 from config import Config # TODO(Nico) find a cleaner way to access config. with create_app? or current_app?
 
@@ -85,30 +84,11 @@ def main():
         reminder_utc_time = reminder_local_time.astimezone(pytz.utc).replace(tzinfo=None)
 
         if earliest_time <= reminder_utc_time <= latest_time:
-            notify(user, notif)
+            router = routers[notif['router']]
+            notify(user, router)
             counter += 1
     
     response = f"{counter} of {len(all_notifs)} active notifications were sent."
     print(response)
 
     return response
-
-
-def notify(user, notif):
-    '''send outbound to user with twilio'''
-
-    account_sid = os.environ.get('TWILIO_ACCOUNT_SID')
-    auth_token = os.environ.get('TWILIO_AUTH_TOKEN')
-
-    client = Client(account_sid, auth_token)
-
-    client.messages.create(from_=os.environ.get('TWILIO_PHONE_NUMBER'),
-        to=user['phone_number'],
-        body=notif['body'])
-    
-    router = routers[notif['router']]
-
-    insert_exchange(router, user)
-
-
-
