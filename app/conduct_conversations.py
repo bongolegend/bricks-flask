@@ -1,7 +1,7 @@
 from flask import request
 from twilio.twiml.messaging_response import MessagingResponse
 from app.queries import query_user, query_last_exchange, insert_exchange, update_exchange
-from app.routers import routers
+from app.routers import routers, InitOnboarding
 
 
 RETRY = "Your response is not valid, try again.\n"
@@ -17,7 +17,7 @@ def main():
     exchange = query_last_exchange(user)
 
     if exchange is None:
-        router = routers['init_onboarding']()
+        router = InitOnboarding()
     else:
         router = routers[exchange['router']]()
 
@@ -55,6 +55,7 @@ def main():
         # prepend a string to the outbound saying you need to try again
         next_router.outbound = RETRY + next_router.outbound
 
+    print("NEXT ROUTER: ", router.name)
     # run the pre-actions for next router before sending the outbound message
     pre_action_results = next_router.run_pre_actions(
         user=user,
