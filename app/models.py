@@ -62,7 +62,7 @@ class Exchange(db.Model, Base):
     router = db.Column(db.String(32), nullable=False)
     outbound = db.Column(db.String(612))
     inbound = db.Column(db.String(612))
-    confirmation = db.Column(db.String(64))
+    confirmation = db.Column(db.String(128))
     next_router = db.Column(db.String(32))
     next_exchange_id = db.Column(db.Integer) # this needs to be nullable because it is not known when an exchange is first created
 
