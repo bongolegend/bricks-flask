@@ -7,7 +7,7 @@ import settings
 from sqlalchemy import exists, and_
 from app import db
 from app.models import AppUser, Notification, Task
-from app.queries import insert_exchange, notify
+from app.queries import notify
 from app.routers import routers, ChooseTask, MorningConfirmation, DidYouDoIt
 from config import Config # TODO(Nico) find a cleaner way to access config. with create_app? or current_app?
 

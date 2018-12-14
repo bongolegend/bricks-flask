@@ -8,6 +8,7 @@ psycopg2-binary
 Flask-Migrate
 Flask-Script
 gunicorn
+phonenumbers
 
 ### development
 # jupyter
