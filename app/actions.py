@@ -258,3 +258,33 @@ def query_last_invitation(user, **kwargs):
 
 def intro_to_team(**kwargs):
     return "Me, You and Larry"
+
+
+def confirm_team_member(user, **kwargs):
+    '''look up which membership was just accepted, and set it to confirmed'''
+    membership = db.session.query(TeamMember).filter(
+        TeamMember.user_id == user['id'],
+        TeamMember.status == Statuses.PENDING)\
+        .order_by(TeamMember.created.desc()).first()
+    
+    membership.status = Statuses.CONFIRMED
+    db.session.commit()
+
+    print("TEAM MEMBER CONFIRMED: ", user['username'])
+
+
+def notify_inviter(user, inbound, invitation_accepted, invitation_rejected, **kwargs):
+    '''look up which membership was just responded to, and notify the inviter'''
+    # find the inviter
+    inviter = db.session.query(AppUser).join(TeamMember.invited_by).filter(
+        TeamMember.user_id == user['id'],
+        TeamMember.status == Statuses.CONFIRMED)\
+        .order_by(TeamMember.updated.desc()).first()
+
+    if inbound == 'yes':    
+        router = invitation_accepted()
+    else:
+        router = invitation_rejected()
+
+    notify(inviter.to_dict(), router)
+    print("NO PRE_ACTIONS BEING RUN FOR ", router.name)

@@ -16,7 +16,7 @@ c) help
 d) my points
 e) leaderboard
 f) create a team
-g) invite a friend to your team
+g) invite a friend to team
 """
 
 
@@ -33,4 +33,4 @@ class Statuses:
     PENDING = 'pending'
     ACTIVE = 'active'
     REJECTED = 'rejected'
-    
+    CONFIRMED = 'confirmed'

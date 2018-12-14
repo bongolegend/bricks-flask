@@ -337,10 +337,14 @@ class CreateTeam(Router):
     actions = (actions.insert_team,)
     confirmation = "Team created."
 
+    @classmethod
+    def next_router(self, **kwargs):
+        return AddMember
+
 
 class AddMember(Router):
     pre_actions = (actions.list_teams,)
-    outbound = """Enter the team number and your friend's phone number, e.g. "25, 123-456-7890". Your current teams:\n{list_teams}"""
+    outbound = """To invite a friend, enter the team number and your friend's phone number, e.g. "25, 123-456-7890". Your current teams:\n{list_teams}"""
     inbound_format = parsers.ADD_MEMBER
     confirmation = "Sent an invitation to your friend. I'll let you know when they respond."
 
@@ -352,8 +356,9 @@ class AddMember(Router):
 
 class InitOnboardingInvited(Router):
     pre_actions = (actions.query_last_invitation,)
-    outbound = "Hey! Your friend {query_last_invitation[0]} invited you to join their team {query_last_invitation[1]} on Bricks, the app that helps you get stuff done. Do you want to accept? (y/n)"
+    outbound = "Hey! Your friend {query_last_invitation[0]} invited you to join their team {query_last_invitation[1]}, on the Bricks app. Do you want to accept? (y/n)"
     inbound_format = parsers.YES_NO
+    actions = (actions.confirm_team_member, actions.notify_inviter)
 
     @classmethod
     def next_router(self, inbound, **kwargs):
@@ -367,19 +372,27 @@ class YouWereInvited(Router):
     pre_actions = (actions.query_last_invitation,)
     outbound = "Hey! Your friend {query_last_invitation[0]} invited you to join their team {query_last_invitation[1]}. Do you want to accept? (y/n)"
     inbound_format = parsers.YES_NO
-    # actions = (actions.invitation_accepted,)
+    actions = (actions.confirm_team_member, actions.notify_inviter)
 
-    @classmethod
-    def next_router(self, inbound, **kwargs):
-        if inbound == 'yes':
-            return IntroToTeam
-        else:
-            return MainMenu
+    # @classmethod
+    # def next_router(self, inbound, **kwargs):
+    #     if inbound == 'yes':
+    #         return IntroToTeam
+    #     else:
+    #         return MainMenu
 
 
-class IntroToTeam(Router):
-    pre_actions = (actions.intro_to_team,)
-    outbound = "Current team members:\n{intro_to_team}\n I will notify you of the tasks they choose tomorrow"
+# class IntroToTeam(Router):
+#     pre_actions = (actions.intro_to_team,)
+#     outbound = "Current team members:\n{intro_to_team}\n I will notify you of the tasks they choose tomorrow"
+
+
+class InvitationAccepted(Router):
+    outbound = "Your friend accepted your invitation!" # TODO(Nico) specify who and what team
+
+
+class InvitationRejected(Router):
+    outbound = "Your friend rejected your invitation."
 
 
 # create a dict of all routers, where the key is the router class name
