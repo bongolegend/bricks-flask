@@ -351,8 +351,8 @@ class AddMember(Router):
 
 
 class InitOnboardingInvited(Router):
-    pre_actions = (actions.query_inviter, actions.query_team)
-    outbound = "Hey! Welcome to Bricks! Your friend {query_inviter} invited you to join their team {query_team}. Do you accept? (y/n)"
+    pre_actions = (actions.query_last_invitation,)
+    outbound = "Hey! Your friend {query_last_invitation[0]} invited you to join their team {query_last_invitation[1]} on Bricks, the app that helps you get stuff done. Do you want to accept? (y/n)"
     inbound_format = parsers.YES_NO
 
     @classmethod
@@ -364,8 +364,8 @@ class InitOnboardingInvited(Router):
 
 
 class YouWereInvited(Router):
-    pre_actions = (actions.query_inviter, actions.query_team)
-    outbound = "Hey! Your friend {query_inviter} invited you to join their team {query_team}. Do you want to accept their invitation? (y/n)"
+    pre_actions = (actions.query_last_invitation,)
+    outbound = "Hey! Your friend {query_last_invitation[0]} invited you to join their team {query_last_invitation[1]}. Do you want to accept? (y/n)"
     inbound_format = parsers.YES_NO
     # actions = (actions.invitation_accepted,)
 
@@ -379,7 +379,7 @@ class YouWereInvited(Router):
 
 class IntroToTeam(Router):
     pre_actions = (actions.intro_to_team,)
-    outbound = "Current team members:\n{intro_to_team}"
+    outbound = "Current team members:\n{intro_to_team}\n I will notify you of the tasks they choose tomorrow"
 
 
 # create a dict of all routers, where the key is the router class name

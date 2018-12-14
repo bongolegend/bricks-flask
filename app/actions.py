@@ -10,19 +10,19 @@ from config import Config # TODO(Nico) access the config that has been initializ
     
 
 def insert_notifications(user, choose_task, morning_confirmation, did_you_do_it, **kwargs):
-    '''Create two morning and one evening notif. Add notif to db'''
+    '''Create two morning and one evening notif. Add notif to db. pass the input classes as instances'''
 
     # find existing notifications
     existing_choose_tasks = Notification.query.filter_by(
-        user_id=user['id'], router=choose_task.name).all()
+        user_id=user['id'], router=choose_task.__name__).all()
     existing_morning_confimations = Notification.query.filter_by(
-        user_id=user['id'], router=morning_confirmation.name).all()
+        user_id=user['id'], router=morning_confirmation.__name__).all()
     existing_evening_checkins = Notification.query.filter_by(
-        user_id=user['id'], router=did_you_do_it.name).all()
+        user_id=user['id'], router=did_you_do_it.__name__).all()
     
     if not existing_choose_tasks:
         notif = Notification(
-            router=choose_task.name,
+            router=choose_task.__name__,
             body=choose_task.outbound,
             day_of_week='mon-fri',
             hour=8,
@@ -33,7 +33,7 @@ def insert_notifications(user, choose_task, morning_confirmation, did_you_do_it,
     
     if not existing_morning_confimations:
         notif = Notification(
-            router=morning_confirmation.name,
+            router=morning_confirmation.__name__,
             body=morning_confirmation.outbound,
             day_of_week='mon-fri',
             hour=8,
@@ -44,7 +44,7 @@ def insert_notifications(user, choose_task, morning_confirmation, did_you_do_it,
 
     if not existing_evening_checkins:
         notif = Notification(
-            router=did_you_do_it.name,
+            router=did_you_do_it.__name__,
             body=did_you_do_it.outbound,
             day_of_week='mon-fri',
             hour=21,
@@ -112,7 +112,7 @@ def insert_task(user, exchange, inbound, choose_task, choose_tomorrow_task, did_
     # what time today are your tasks due? look at the Notif did_you_do_it
     hour, minute = db.session.query(Notification.hour, Notification.minute).filter(
         Notification.user_id == user['id'],
-        Notification.router == did_you_do_it.name,
+        Notification.router == did_you_do_it.__name__,
         Notification.active == True).one()
 
     # local time that task is due
@@ -122,9 +122,9 @@ def insert_task(user, exchange, inbound, choose_task, choose_tomorrow_task, did_
     due_today = due_today_local.astimezone(pytz.utc).replace(tzinfo=None)
 
     # determine the due date based on the router id
-    if exchange['router'] == choose_task.name:
+    if exchange['router'] == choose_task.__name__:
         due_date = due_today
-    elif exchange['router'] == choose_tomorrow_task.name:
+    elif exchange['router'] == choose_tomorrow_task.__name__:
         due_date = due_today + dt.timedelta(days=1)
     else:
         raise NotImplementedError(f"The router {exchange['router']} is not valid for inserting tasks.")
@@ -187,12 +187,13 @@ def list_teams(user, **kwargs):
     '''List the teams that user is a member of'''
     teams = db.session.query(Team.id, Team.name).join(TeamMember).filter(TeamMember.user_id == user['id']).all()
 
-    team_list = str()
-
-    for team_id, name in teams:
-        team_list += f"{team_id}: {name}\n"
-    
-    return team_list
+    if teams:
+        team_list = str()
+        for team_id, name in teams:
+            team_list += f"{team_id}: {name}\n"
+        return team_list
+    else:
+        return "You have no teams. Return to the main menu and create one."
 
 
 def insert_member(user, inbound, init_onboarding_invited, you_were_invited, **kwargs):
@@ -243,9 +244,17 @@ def insert_member(user, inbound, init_onboarding_invited, you_were_invited, **kw
     notify(invited_user, router)
 
 
-def query_inviter(**kwargs):
-    return 'Jo'
+def query_last_invitation(user, **kwargs):
+    '''find the most recent invitation for user'''
+    inviter, team = db.session.query(AppUser.username, Team.name)\
+        .join(TeamMember.invited_by, TeamMember.team)\
+        .filter(
+            TeamMember.user_id == user['id'],
+            TeamMember.status == Statuses.PENDING)\
+        .order_by(TeamMember.created.desc()).first()
+
+    return inviter, team
 
 
-def query_team(**kwargs):
-    return 'The Boleres'
+def intro_to_team(**kwargs):
+    return "Me, You and Larry"

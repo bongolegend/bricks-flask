@@ -27,7 +27,7 @@ def main():
     choose_task_notifs = db.session.query(Notification, AppUser).join(AppUser)\
         .filter(
             Notification.active == True,
-            Notification.router.in_([ChooseTask.name]),
+            Notification.router.in_([ChooseTask.__name__]),
             ~exists().where(
                 and_(
                     AppUser.id == Task.user_id,
@@ -40,7 +40,7 @@ def main():
     morning_confirm_notifs = db.session.query(Notification, AppUser).join(AppUser)\
         .filter(
             Notification.active == True,
-            Notification.router.in_([MorningConfirmation.name]),
+            Notification.router.in_([MorningConfirmation.__name__]),
             exists().where(
                 and_(
                     AppUser.id == Task.user_id,
@@ -53,7 +53,7 @@ def main():
     did_you_do_it_notifs = db.session.query(Notification, AppUser).join(AppUser)\
         .filter(
             Notification.active == True,
-            Notification.router.in_([DidYouDoIt.name]),
+            Notification.router.in_([DidYouDoIt.__name__]),
             exists().where(
                 and_(
                     AppUser.id == Task.user_id,
