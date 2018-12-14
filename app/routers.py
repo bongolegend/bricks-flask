@@ -1,3 +1,4 @@
+import sys, inspect
 from app import parsers, actions, conditions
 from app.constants import Outbounds, Names, Points
 
@@ -8,6 +9,10 @@ class Router:
     inbound_format = parsers.ANY
     confirmation = None
     participation_points = Points.DEFAULT
+
+    @classmethod
+    def __init__(self, **kwargs):
+        self.name = self.__name__
 
     @classmethod
     def next_router(self, **kwargs):
@@ -57,7 +62,6 @@ class Router:
 
 
 class InitOnboarding(Router):
-    name = 'init_onboarding'
 
     @classmethod
     def next_router(self, **kwargs):
@@ -65,8 +69,19 @@ class InitOnboarding(Router):
 
 
 class Welcome(Router):
-    name = 'welcome'
-    outbound = "Hey! Welcome to Bricks, a tool that helps you get stuff done. Please enter a username:"
+    outbound = "Hey! Welcome to Bricks, a tool that helps you get stuff done. Would you like to create an account? (y/n)"
+    inbound_format = parsers.YES_NO
+
+    @classmethod
+    def next_router(self, inbound, **kwargs):
+        if inbound == 'yes':
+            return EnterUsername
+        else:
+            return Goodbye
+
+
+class EnterUsername(Router):
+    outbound = 'Please enter a username:'
     actions = (actions.update_username,)
     confirmation = "Your username is set."
 
@@ -74,9 +89,15 @@ class Welcome(Router):
     def next_router(self, **kwargs):
         return HowItWorks
 
+class Goodbye(Router):
+    outbound = "Sorry to hear that. Goodbye."
+    
+    @classmethod
+    def next_router(self, **kwargs):
+        return Welcome
+
 
 class HowItWorks(Router):
-    name = 'how_it_works'
     outbound = Outbounds.HOW_IT_WORKS
     inbound_format = parsers.YES_NO
 
@@ -92,7 +113,6 @@ class HowItWorks(Router):
 
 
 class ContactSupport(Router):
-    name = 'contact_support'
     outbound =  "Text me at 3124505311 and I'll walk you through it. Type anything to continue."
 
     @classmethod
@@ -104,7 +124,6 @@ class ContactSupport(Router):
 
 
 class MainMenu(Router):
-    name = 'main_menu'
     outbound = Outbounds.MAIN_MENU
     inbound_format = parsers.MULTIPLE_CHOICE
 
@@ -126,11 +145,13 @@ class MainMenu(Router):
         elif inbound == 'f':
             return CreateTeam
         elif inbound == 'g':
-            return AddMember
+            if conditions.is_member_of_team(user):
+                return AddMember
+            else:
+                return CreateTeam
 
 
 class Timezone(Router):
-    name = 'timezone'
     outbound = Outbounds.WHAT_TIMEZONE
     actions = (actions.update_timezone,)
     inbound_format = parsers.MULTIPLE_CHOICE
@@ -147,7 +168,6 @@ class Timezone(Router):
 
 
 class ChooseTask(Router):
-    name = Names.CHOOSE_TASK
     outbound = "What's the most important thing you want to get done today?"
     participation_points = Points.CHOOSE_TASK
  
@@ -187,18 +207,15 @@ class ChooseTask(Router):
 
 
 class CurrentPoints(Router):
-    name = 'current_points'
     pre_actions = (actions.query_points,)
     outbound = "You currently have +{query_points} pt."
 
 
 class StateNightFollowup(Router):
-    name = 'state_night_followup'
     outbound = "I'll text you tonight at 9 pm to follow up. Good luck."
 
 
 class ChooseTomorrowTask(Router):
-    name = 'choose_tomorrow_task'
     outbound = "What's the most important thing you want to get done tomorrow?"
     participation_points = Points.CHOOSE_TASK
 
@@ -237,7 +254,6 @@ class ChooseTomorrowTask(Router):
 
 
 class DidYouDoIt(Router):
-    name= Names.DID_YOU_DO_IT
     outbound = 'Did you stack your brick today? (y/n)'
     inbound_format = parsers.YES_NO
     participation_points = Points.DID_YOU_DO_IT
@@ -261,7 +277,6 @@ class DidYouDoIt(Router):
 # TODO combine this with the one below it
 # TODO rename this to congrats
 class CompletionPoint(Router):
-    name = 'completion_point'
     pre_actions = (actions.query_points,)
     outbound = "Congrats! You earned +%s points. You now have {query_points} points. Do you want to choose tomorrow's task now? (y/n)" % Points.TASK_COMPLETED
     inbound_format = parsers.YES_NO
@@ -276,7 +291,6 @@ class CompletionPoint(Router):
 
 
 class NoCompletion(Router):
-    name = 'no_completion'
     pre_actions = (actions.query_points,)
     outbound = "All good. Just make tomorrow count. You currently have {query_points} points. Do you want to choose tomorrow's task now? (y/n)"
     inbound_format = parsers.YES_NO
@@ -291,12 +305,10 @@ class NoCompletion(Router):
 
 
 class StateMorningFollowup(Router):
-    name = 'state_morning_followup'
     outbound =  "Great. I'll message you tomorrow at 8 am to confirm."
 
 
 class MorningConfirmation(Router):
-    name = Names.MORNING_CONFIRMATION
     outbound = "Are you still planning to do this task today: {query_task}? (y/n)"
     inbound_format = parsers.YES_NO
     participation_points = Points.CHOOSE_TASK
@@ -316,22 +328,19 @@ class MorningConfirmation(Router):
 
 
 class Leaderboard(Router):
-    name = 'leaderboard'
     pre_actions = (actions.leaderboard,)
     outbound = "{leaderboard}"
     
 
 class CreateTeam(Router):
-    name = 'create_team'
     outbound = "What do you want to name your team?"
     actions = (actions.insert_team,)
     confirmation = "Team created."
 
 
 class AddMember(Router):
-    name = 'add_member'
     pre_actions = (actions.list_teams,)
-    outbound = """Enter the team id and your friend's phone number, e.g. "25, 123-456-7890". Your current teams:\n{list_teams}"""
+    outbound = """Enter the team number and your friend's phone number, e.g. "25, 123-456-7890". Your current teams:\n{list_teams}"""
     inbound_format = parsers.ADD_MEMBER
     confirmation = "Sent an invitation to your friend. I'll let you know when they respond."
 
@@ -340,36 +349,38 @@ class AddMember(Router):
         result = actions.insert_member(user, inbound, InitOnboardingInvited, YouWereInvited)
         return {actions.insert_member.__name__ : result}
 
+
 class InitOnboardingInvited(Router):
-    name = 'init_invite_onboarding'
     pre_actions = (actions.query_inviter, actions.query_team)
     outbound = "Hey! Welcome to Bricks! Your friend {query_inviter} invited you to join their team {query_team}. Do you accept? (y/n)"
+    inbound_format = parsers.YES_NO
+
+    @classmethod
+    def next_router(self, inbound, **kwargs):
+        if inbound == 'yes':
+            return EnterUsername
+        else:
+            return Goodbye
 
 
 class YouWereInvited(Router):
-    name = 'you_were_invited'
     pre_actions = (actions.query_inviter, actions.query_team)
-    outbound = "Hey! Your friend {query_inviter} invited you to join their team {query_team}. Do you accept? (y/n)"
+    outbound = "Hey! Your friend {query_inviter} invited you to join their team {query_team}. Do you want to accept their invitation? (y/n)"
+    inbound_format = parsers.YES_NO
+    # actions = (actions.invitation_accepted,)
+
+    @classmethod
+    def next_router(self, inbound, **kwargs):
+        if inbound == 'yes':
+            return IntroToTeam
+        else:
+            return MainMenu
 
 
-routers = {
-    InitOnboarding.name : InitOnboarding,
-    Welcome.name : Welcome,
-    HowItWorks.name : HowItWorks,
-    ContactSupport.name : ContactSupport,
-    MainMenu.name : MainMenu,
-    Timezone.name : Timezone,
-    ChooseTask.name : ChooseTask,
-    CurrentPoints.name : CurrentPoints,
-    StateNightFollowup.name : StateNightFollowup,
-    ChooseTomorrowTask.name : ChooseTomorrowTask,
-    DidYouDoIt.name : DidYouDoIt,
-    CompletionPoint.name : CompletionPoint, 
-    NoCompletion.name : NoCompletion,
-    StateMorningFollowup.name : StateMorningFollowup,
-    Leaderboard.name : Leaderboard,
-    CreateTeam.name : CreateTeam,
-    AddMember.name : AddMember,
-    InitOnboardingInvited.name : InitOnboardingInvited,
-    YouWereInvited.name : YouWereInvited,
-}
+class IntroToTeam(Router):
+    pre_actions = (actions.intro_to_team,)
+    outbound = "Current team members:\n{intro_to_team}"
+
+
+# create a dict of all routers, where the key is the router class name
+routers = dict(inspect.getmembers(sys.modules[__name__], inspect.isclass))

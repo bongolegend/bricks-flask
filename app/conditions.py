@@ -2,7 +2,7 @@
 import datetime as dt
 import pytz
 from app import db
-from app.models import Task, AppUser
+from app.models import Task, AppUser, Team, TeamMember
 
 
 def task_chosen(user, tomorrow=False, **kwargs):
@@ -41,4 +41,13 @@ def is_afternoon(user, **kwargs):
         return True
     else:
         return False
-    
+
+
+def is_member_of_team(user, **kwargs):
+    '''Check if the user is part of any team'''
+    teams = db.session.query(Team).join(TeamMember).filter(TeamMember.user_id == user['id']).all()
+
+    if teams:
+        return True
+    else:
+        return False
