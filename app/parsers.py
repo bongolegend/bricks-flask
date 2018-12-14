@@ -49,7 +49,9 @@ def parse_add_member(inbound):
 
     team_id = int(parts[0])
 
-    phone_number = str(phone.parse(parts[1], "US").national_number)
+    parsed = phone.parse(parts[1], "US")
+
+    phone_number = f"+{parsed.country_code}{parsed.national_number}"
 
     return team_id, phone_number
     
