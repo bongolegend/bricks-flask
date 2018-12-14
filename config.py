@@ -3,16 +3,19 @@ import settings
 
 class Config:
     SECRET_KEY = os.environ.get('FLASK_SECRET_KEY')
-    SQLALCHEMY_DATABASE_URI = os.environ.get('LOCAL_DB_URL')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
-    HOST = 'local'
-    
-    US_TIMEZONES = {
-        'a': 'America/Los_Angeles',
-        'b': 'America/Denver',
-        'c': 'America/Chicago',
-        'd': 'America/New_York',
-    }
+
+
+class DevConfig(Config):
+    SQLALCHEMY_DATABASE_URI = os.environ.get('LOCAL_DB_URL')
+    HOST = SQLALCHEMY_DATABASE_URI
+
+
+class TestConfig(Config):
+    SQLALCHEMY_DATABASE_URI = os.environ.get('TEST_DB_URL')
+    HOST = SQLALCHEMY_DATABASE_URI
+    TESTING = True
+
 
 class ProdConfig(Config):
     db_user = os.environ.get('CLOUD_SQL_USERNAME')

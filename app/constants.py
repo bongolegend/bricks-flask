@@ -34,3 +34,11 @@ class Statuses:
     ACTIVE = 'active'
     REJECTED = 'rejected'
     CONFIRMED = 'confirmed'
+
+
+US_TIMEZONES = {
+    'a': 'America/Los_Angeles',
+    'b': 'America/Denver',
+    'c': 'America/Chicago',
+    'd': 'America/New_York',
+}

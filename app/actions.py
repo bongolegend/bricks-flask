@@ -3,10 +3,9 @@ import pytz
 from sqlalchemy import func
 from app import db
 from app.models import AppUser, Notification, Point, Exchange, Task, Team, TeamMember
-from app.constants import Statuses
+from app.constants import Statuses, US_TIMEZONES
 from app.queries import query_user, query_last_exchange
 from app.queries import notify
-from config import Config # TODO(Nico) access the config that has been initialized on the app 
     
 
 def insert_notifications(user, choose_task, morning_confirmation, did_you_do_it, **kwargs):
@@ -57,7 +56,7 @@ def insert_notifications(user, choose_task, morning_confirmation, did_you_do_it,
 
 
 def update_timezone(inbound, user, **kwargs):
-    tz = Config.US_TIMEZONES.get(inbound, None)
+    tz = US_TIMEZONES.get(inbound, None)
     if tz is not None:        
         user_obj = db.session.query(AppUser).filter_by(id=user['id']).one()
         user_obj.timezone = tz
