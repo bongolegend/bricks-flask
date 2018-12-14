@@ -84,7 +84,7 @@ def main():
         reminder_utc_time = reminder_local_time.astimezone(pytz.utc).replace(tzinfo=None)
 
         if earliest_time <= reminder_utc_time <= latest_time:
-            router = routers[notif['router']]
+            router = routers[notif['router']]()
             notify(user, router)
             counter += 1
     

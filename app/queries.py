@@ -94,6 +94,6 @@ def notify(user, router):
 
     client.messages.create(from_=os.environ.get('TWILIO_PHONE_NUMBER'),
         to=user['phone_number'],
-        body=router.outbound) # TODO(nico) change this to outbound
+        body=router.outbound)
     
     insert_exchange(router, user)
