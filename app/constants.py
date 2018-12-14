@@ -1,11 +1,3 @@
-
-class Names:
-    '''Names for routers. These are in a separate module so they can be used as references regardless of import hierarchy'''
-    CHOOSE_TASK = 'choose_task'
-    MORNING_CONFIRMATION = 'morning_confirmation'
-    DID_YOU_DO_IT = 'did_you_do_it'
-
-
 class Outbounds:
     HOW_IT_WORKS = """How this works: every weekday, you input your most important task of the day. At the end of the day, you confirm that you did it.
 If you did, then you get +X points. If you are consistent, you get extra points. You also get points just for participating. Makes sense? (y/n)"""

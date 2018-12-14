@@ -1,6 +1,6 @@
 import sys, inspect
 from app import parsers, actions, conditions
-from app.constants import Outbounds, Names, Points
+from app.constants import Outbounds, Points
 
 
 class Router:
