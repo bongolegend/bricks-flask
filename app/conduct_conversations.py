@@ -1,3 +1,4 @@
+import traceback
 from flask import request
 from twilio.twiml.messaging_response import MessagingResponse
 from app.queries import query_user, query_last_exchange, insert_exchange, update_exchange
@@ -55,7 +56,8 @@ def main():
             # prepend points message
             next_router.outbound = points_message + " " + next_router.outbound
         
-        except: # if there was an error in the action then resend the same router
+        except Exception: # if there was an error in the action then resend the same router
+            traceback.print_exc()
             ACTION_ERROR = True
         
     if (parsed_inbound is None) or ACTION_ERROR:
