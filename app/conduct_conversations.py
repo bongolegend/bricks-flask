@@ -9,17 +9,22 @@ RETRY = "Your response is not valid, try again.\n"
 
 def main():
     """Respond to SMS inbound with appropriate SMS outbound based on last exchange"""
+    
+    ACTION_ERROR = False
+
     inbound = request.values.get('Body')
     if inbound is None:
         return f"Please use a phone and text {os.environ.get('TWILIO_PHONE_NUMBER')}. This does not work thru the browser."
 
     user = query_user(request.values.get('From'))
+    print("USER: ", user['username'])
     exchange = query_last_exchange(user)
 
     if exchange is None:
         router = InitOnboarding()
     else:
         router = routers[exchange['router']]()
+    print("ROUTER: ", router.name)
 
     parsed_inbound = router.parse(inbound)
 
@@ -31,31 +36,36 @@ def main():
         # execute current exchange actions after getting inbound
         # this needs to run before selecting the next router, as 
         # these actions can influence the next router choice
-        action_results = router.run_actions(
-            user=user,
-            exchange=exchange,
-            inbound=parsed_inbound)
+        try:
+            action_results = router.run_actions(
+                user=user,
+                exchange=exchange,
+                inbound=parsed_inbound)
 
-        # decide on next router, including outbound and actions
-        next_router = router.next_router(
-            inbound=parsed_inbound,
-            user=user)()
+            # decide on next router, including outbound and actions
+            next_router = router.next_router(
+                inbound=parsed_inbound,
+                user=user,
+                action_results=action_results)()
+            
+            # append last router's confirmation to next router's outbound
+            if  router.confirmation is not None:
+                next_router.outbound = router.confirmation + " " + next_router.outbound
+            
+            # prepend points message
+            next_router.outbound = points_message + " " + next_router.outbound
         
-        # append last router's confirmation to next router's outbound
-        if  router.confirmation is not None:
-            next_router.outbound = router.confirmation + " " + next_router.outbound
+        except: # if there was an error in the action then resend the same router
+            ACTION_ERROR = True
         
-        # prepend points message
-        next_router.outbound = points_message + " " + next_router.outbound
-
-    else:
+    if (parsed_inbound is None) or ACTION_ERROR:
         # resend the same router
         action_results = dict()
         next_router = router
         # prepend a string to the outbound saying you need to try again
         next_router.outbound = RETRY + next_router.outbound
 
-    print("NEXT ROUTER: ", router.name)
+    print("NEXT ROUTER: ", next_router.name)
     # run the pre-actions for next router before sending the outbound message
     pre_action_results = next_router.run_pre_actions(
         user=user,
