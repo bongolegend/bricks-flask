@@ -6,15 +6,13 @@ from app.models import Task, AppUser, Team, TeamMember
 
 
 def task_chosen(user, tomorrow=False, **kwargs):
-    '''check if a task has been chosen for today or tomorrow'''
-    due_date = dt.datetime.today().replace(hour=0, minute=0, second=0, microsecond=0)
-    if tomorrow:
-        due_date = due_date + dt.timedelta(days=1)
+    '''check if user has a task due later than now'''
+    now = dt.datetime.now()
     
     task_chosen = db.session.query(Task).filter(
         Task.user_id == user['id'], 
         Task.active == True,
-        Task.due_date == due_date).first()
+        Task.due_date >= now).first()
 
     if task_chosen:
         return True
