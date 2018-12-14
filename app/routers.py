@@ -256,7 +256,7 @@ class ChooseTomorrowTask(Router):
 class DidYouDoIt(Router):
     outbound = 'Did you stack your brick today? (y/n)'
     inbound_format = parsers.YES_NO
-    participation_points = Points.DID_YOU_DO_IT
+    # participation_points = Points.DID_YOU_DO_IT
 
     @classmethod
     def next_router(self, inbound, **kwargs):
