@@ -2,7 +2,7 @@ import traceback
 from flask import request
 from twilio.twiml.messaging_response import MessagingResponse
 from app.queries import query_user, query_last_exchange, insert_exchange, update_exchange
-from app.routers import routers, InitOnboarding
+from app.routers import get_router, InitOnboarding
 
 
 RETRY = "Your response is not valid, try again.\n"
@@ -24,7 +24,7 @@ def main():
     if exchange is None:
         router = InitOnboarding()
     else:
-        router = routers[exchange['router']]()
+        router = get_router(exchange['router'])()
     print("ROUTER: ", router.name)
 
     parsed_inbound = router.parse(inbound)

@@ -8,7 +8,7 @@ from sqlalchemy import exists, and_
 from app import db
 from app.models import AppUser, Notification, Task
 from app.queries import notify
-from app.routers import routers, ChooseTask, MorningConfirmation, DidYouDoIt
+from app.routers import get_router, ChooseTask, MorningConfirmation, DidYouDoIt
 
 
 def main():
@@ -83,7 +83,7 @@ def main():
         reminder_utc_time = reminder_local_time.astimezone(pytz.utc).replace(tzinfo=None)
 
         if earliest_time <= reminder_utc_time <= latest_time:
-            router = routers[notif['router']]()
+            router = get_router(notif['router'])()
             notify(user, router)
             counter += 1
     

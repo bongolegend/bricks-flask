@@ -395,5 +395,20 @@ class InvitationRejected(Router):
     outbound = "Your friend rejected your invitation."
 
 
-# create a dict of all routers, where the key is the router class name
-routers = dict(inspect.getmembers(sys.modules[__name__], inspect.isclass))
+
+def get_router(router_name=None):
+    '''return the router associated with the router_name, or return a dict of routers'''
+
+    all_classes = inspect.getmembers(sys.modules[__name__], inspect.isclass)
+    
+    # only keep those that have Router as parent class
+    routers = dict()
+    for name, cls in all_classes:
+        if issubclass(cls, Router) and cls is not Router:
+            routers[name] = cls
+
+    if router_name:
+        assert router_name in routers, "This router name is not implemented as a router"
+        return routers[router_name]
+    else:
+        return routers
