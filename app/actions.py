@@ -96,7 +96,7 @@ def query_task(user, choose_task, choose_tomorrow_task, **kwargs):
     '''query the latest task'''
     exchange = db.session.query(Exchange).filter(
         Exchange.user_id == user['id'],
-        Exchange.router.in_(choose_task.name, choose_tomorrow_task.name)
+        Exchange.router.in_([choose_task.__name__, choose_tomorrow_task.__name__])
     ).order_by(Exchange.created.desc()).first()
 
     return exchange.inbound
