@@ -1,5 +1,6 @@
 import os
 import functools
+from flask import current_app
 from twilio.rest import Client
 from app import db
 from app.models import Exchange, AppUser
@@ -87,13 +88,16 @@ def update_exchange(current_exchange, next_exchange, inbound, **kwargs):
 def notify(user, router):
     '''send outbound to user with twilio'''
 
-    account_sid = os.environ.get('TWILIO_ACCOUNT_SID')
-    auth_token = os.environ.get('TWILIO_AUTH_TOKEN')
+    account_sid = current_app.config['TWILIO_ACCOUNT_SID']
+    auth_token = current_app.config['TWILIO_AUTH_TOKEN']
+    from_number = current_app.config['TWILIO_PHONE_NUMBER']
 
     client = Client(account_sid, auth_token)
 
-    client.messages.create(from_=os.environ.get('TWILIO_PHONE_NUMBER'),
+    message = client.messages.create(from_=from_number,
         to=user['phone_number'],
         body=router.outbound)
     
     insert_exchange(router, user)
+
+    return message

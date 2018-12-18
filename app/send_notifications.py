@@ -4,6 +4,7 @@ import datetime as dt
 import pytz
 import logging
 import settings
+from flask import current_app
 from sqlalchemy import exists, and_
 from app import db
 from app.models import AppUser, Notification, Task
@@ -20,7 +21,8 @@ def main():
     earliest_time = utc_time - margin
     latest_time = utc_time + margin
     counter = 0
-
+    messages = list()
+    
     # query all active choose_tasks if there is no task due today
     # if you have no task in the next 24 hours, you can run choose_task notif
     choose_task_notifs = db.session.query(Notification, AppUser).join(AppUser)\
@@ -82,12 +84,18 @@ def main():
 
         reminder_utc_time = reminder_local_time.astimezone(pytz.utc).replace(tzinfo=None)
 
+        
         if earliest_time <= reminder_utc_time <= latest_time:
             router = get_router(notif['router'])()
-            notify(user, router)
+
+            results = router.run_pre_actions(user=user, exchange=None)
+            router.outbound = router.outbound.format(**results)
+            message = notify(user, router)
+            messages.append(message.body)
             counter += 1
     
-    response = f"{counter} of {len(all_notifs)} active notifications were sent."
-    print(response)
+    status = f"{counter} of {len(all_notifs)} active notifications were sent."
+    print(status)
 
-    return response
+    # TODO is this right?
+    return current_app.make_response((str(messages), 201))
