@@ -309,7 +309,7 @@ class StateMorningFollowup(Router):
 
 
 class MorningConfirmation(Router):
-    outbound = "Are you still planning to do this task today: {query_task}? (y/n)"
+    outbound = "Are you still planning to do this task today: {query_latest_task}? (y/n)"
     inbound_format = parsers.YES_NO
     participation_points = Points.CHOOSE_TASK
 
@@ -322,9 +322,9 @@ class MorningConfirmation(Router):
     
     @classmethod
     def run_pre_actions(self, user, **kwargs):
-        query_task_result = actions.query_task(user, ChooseTask, ChooseTomorrowTask)
+        query_task_result = actions.query_latest_task(user, ChooseTask, ChooseTomorrowTask)
 
-        return {actions.query_task.__name__ : query_task_result}
+        return {actions.query_latest_task.__name__ : query_task_result}
 
 
 class Leaderboard(Router):

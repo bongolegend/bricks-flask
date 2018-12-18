@@ -92,14 +92,14 @@ def query_points(user, **kwargs):
         return points
 
 
-def query_task(user, choose_task, choose_tomorrow_task, **kwargs):
+def query_latest_task(user, choose_task, choose_tomorrow_task, **kwargs):
     '''query the latest task'''
-    exchange = db.session.query(Exchange).filter(
-        Exchange.user_id == user['id'],
-        Exchange.router.in_([choose_task.__name__, choose_tomorrow_task.__name__])
-    ).order_by(Exchange.created.desc()).first()
+    task = db.session.query(Task).filter(
+        Task.user_id == user['id'],
+        Task.active == True
+        ).order_by(Task.due_date.desc()).first()
 
-    return exchange.inbound
+    return task.description
 
 
 def insert_task(user, exchange, inbound, choose_task, choose_tomorrow_task, did_you_do_it, **kwargs):
