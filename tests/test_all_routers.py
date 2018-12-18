@@ -76,4 +76,4 @@ class TestAllRouters(BaseTestCase):
             exchange = Exchange(router=router_name, user=self.mitch)
             self.db.session.add(exchange)
             response = self.client.post('/sms', data=dict(Body='', From=self.number))
-    
+            
