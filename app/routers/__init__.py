@@ -1,9 +1,11 @@
 import sys, inspect
-from app import parsers, actions, conditions
+from app import parsers, conditions
+from app.routers import actions
 from app.constants import Outbounds, Points
+# from app.routers.base import BaseRouter
 
 
-class Router:
+class BaseRouter:
     pre_actions = None
     actions = None
     inbound_format = parsers.ANY
@@ -61,14 +63,13 @@ class Router:
             return str()
 
 
-class InitOnboarding(Router):
-
+class InitOnboarding(BaseRouter):
     @classmethod
     def next_router(self, **kwargs):
         return Welcome
 
 
-class Welcome(Router):
+class Welcome(BaseRouter):
     outbound = "Hey! Welcome to Bricks, a tool that helps you get stuff done. Would you like to create an account? (y/n)"
     inbound_format = parsers.YES_NO
 
@@ -80,7 +81,7 @@ class Welcome(Router):
             return Goodbye
 
 
-class EnterUsername(Router):
+class EnterUsername(BaseRouter):
     outbound = 'Please enter a username:'
     actions = (actions.update_username,)
     confirmation = "Your username is set."
@@ -89,7 +90,7 @@ class EnterUsername(Router):
     def next_router(self, **kwargs):
         return HowItWorks
 
-class Goodbye(Router):
+class Goodbye(BaseRouter):
     outbound = "Sorry to hear that. Goodbye."
     
     @classmethod
@@ -97,7 +98,7 @@ class Goodbye(Router):
         return Welcome
 
 
-class HowItWorks(Router):
+class HowItWorks(BaseRouter):
     outbound = Outbounds.HOW_IT_WORKS
     inbound_format = parsers.YES_NO
 
@@ -112,7 +113,7 @@ class HowItWorks(Router):
                 return Timezone
 
 
-class ContactSupport(Router):
+class ContactSupport(BaseRouter):
     outbound =  "Text me at 3124505311 and I'll walk you through it. Type anything to continue."
 
     @classmethod
@@ -123,7 +124,7 @@ class ContactSupport(Router):
             return Timezone
 
 
-class MainMenu(Router):
+class MainMenu(BaseRouter):
     outbound = Outbounds.MAIN_MENU
     inbound_format = parsers.MULTIPLE_CHOICE
 
@@ -151,7 +152,7 @@ class MainMenu(Router):
                 return CreateTeam
 
 
-class Timezone(Router):
+class Timezone(BaseRouter):
     outbound = Outbounds.WHAT_TIMEZONE
     actions = (actions.update_timezone,)
     inbound_format = parsers.MULTIPLE_CHOICE
@@ -167,7 +168,7 @@ class Timezone(Router):
             return ChooseTask
 
 
-class ChooseTask(Router):
+class ChooseTask(BaseRouter):
     outbound = "What's the most important thing you want to get done today?"
     participation_points = Points.CHOOSE_TASK
  
@@ -206,16 +207,16 @@ class ChooseTask(Router):
         
 
 
-class CurrentPoints(Router):
+class CurrentPoints(BaseRouter):
     pre_actions = (actions.query_points,)
     outbound = "You currently have +{query_points} pt."
 
 
-class StateNightFollowup(Router):
+class StateNightFollowup(BaseRouter):
     outbound = "I'll text you tonight at 9 pm to follow up. Good luck."
 
 
-class ChooseTomorrowTask(Router):
+class ChooseTomorrowTask(BaseRouter):
     outbound = "What's the most important thing you want to get done tomorrow?"
     participation_points = Points.CHOOSE_TASK
 
@@ -253,7 +254,7 @@ class ChooseTomorrowTask(Router):
             return Points.ALREADY_EARNED_MESSAGE 
 
 
-class DidYouDoIt(Router):
+class DidYouDoIt(BaseRouter):
     outbound = 'Did you stack your brick today? (y/n)'
     inbound_format = parsers.YES_NO
     # participation_points = Points.DID_YOU_DO_IT
@@ -276,7 +277,7 @@ class DidYouDoIt(Router):
 
 # TODO combine this with the one below it
 # TODO rename this to congrats
-class CompletionPoint(Router):
+class CompletionPoint(BaseRouter):
     pre_actions = (actions.query_points,)
     outbound = "Congrats! You earned +%s points. You now have {query_points} points. Do you want to choose tomorrow's task now? (y/n)" % Points.TASK_COMPLETED
     inbound_format = parsers.YES_NO
@@ -290,7 +291,7 @@ class CompletionPoint(Router):
             return StateMorningFollowup
 
 
-class NoCompletion(Router):
+class NoCompletion(BaseRouter):
     pre_actions = (actions.query_points,)
     outbound = "All good. Just make tomorrow count. You currently have {query_points} points. Do you want to choose tomorrow's task now? (y/n)"
     inbound_format = parsers.YES_NO
@@ -304,11 +305,11 @@ class NoCompletion(Router):
             return StateMorningFollowup
 
 
-class StateMorningFollowup(Router):
+class StateMorningFollowup(BaseRouter):
     outbound =  "Great. I'll message you tomorrow at 8 am to confirm."
 
 
-class MorningConfirmation(Router):
+class MorningConfirmation(BaseRouter):
     outbound = "Are you still planning to do this task today: {query_latest_task}? (y/n)"
     inbound_format = parsers.YES_NO
     participation_points = Points.CHOOSE_TASK
@@ -327,12 +328,12 @@ class MorningConfirmation(Router):
         return {actions.query_latest_task.__name__ : query_task_result}
 
 
-class Leaderboard(Router):
+class Leaderboard(BaseRouter):
     pre_actions = (actions.leaderboard,)
     outbound = "{leaderboard}"
     
 
-class CreateTeam(Router):
+class CreateTeam(BaseRouter):
     outbound = "What do you want to name your team?"
     actions = (actions.insert_team,)
     confirmation = "Team created."
@@ -342,7 +343,7 @@ class CreateTeam(Router):
         return AddMember
 
 
-class AddMember(Router):
+class AddMember(BaseRouter):
     pre_actions = (actions.list_teams,)
     outbound = """To invite a friend, enter the team number and your friend's phone number, e.g. "25, 123-456-7890". Your current teams:\n{list_teams}"""
     inbound_format = parsers.ADD_MEMBER
@@ -354,7 +355,7 @@ class AddMember(Router):
         return {actions.insert_member.__name__ : result}
 
 
-class InitOnboardingInvited(Router):
+class InitOnboardingInvited(BaseRouter):
     pre_actions = (actions.query_last_invitation,)
     outbound = "Hey! Your friend {query_last_invitation[0]} invited you to join their team {query_last_invitation[1]}, on the Bricks app. Do you want to accept? (y/n)"
     inbound_format = parsers.YES_NO
@@ -368,7 +369,7 @@ class InitOnboardingInvited(Router):
             return Goodbye
 
 
-class YouWereInvited(Router):
+class YouWereInvited(BaseRouter):
     pre_actions = (actions.query_last_invitation,)
     outbound = "Hey! Your friend {query_last_invitation[0]} invited you to join their team {query_last_invitation[1]}. Do you want to accept? (y/n)"
     inbound_format = parsers.YES_NO
@@ -387,28 +388,10 @@ class YouWereInvited(Router):
 #     outbound = "Current team members:\n{intro_to_team}\n I will notify you of the tasks they choose tomorrow"
 
 
-class InvitationAccepted(Router):
+class InvitationAccepted(BaseRouter):
     outbound = "Your friend accepted your invitation!" # TODO(Nico) specify who and what team
 
 
-class InvitationRejected(Router):
+class InvitationRejected(BaseRouter):
     outbound = "Your friend rejected your invitation."
 
-
-
-def get_router(router_name=None):
-    '''return the router associated with the router_name, or return a dict of routers'''
-
-    all_classes = inspect.getmembers(sys.modules[__name__], inspect.isclass)
-    
-    # only keep those that have Router as parent class
-    routers = dict()
-    for name, cls in all_classes:
-        if issubclass(cls, Router) and cls is not Router:
-            routers[name] = cls
-
-    if router_name:
-        assert router_name in routers, "This router name is not implemented as a router"
-        return routers[router_name]
-    else:
-        return routers

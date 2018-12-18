@@ -2,8 +2,8 @@ import traceback
 from flask import request
 from twilio.twiml.messaging_response import MessagingResponse
 from app.queries import query_user, query_last_exchange, insert_exchange, update_exchange
-from app.routers import get_router, InitOnboarding
-
+from app.routers import InitOnboarding
+from app.routers.tools import get_router
 
 RETRY = "Your response is not valid, try again.\n"
 
