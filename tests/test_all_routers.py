@@ -1,14 +1,34 @@
 """Module to test routers"""
 import datetime as dt
+import os
+import unittest
 from tests.config_test import BaseTestCase
 from app.models import AppUser, Exchange, Task, Team, TeamMember, Notification, Point
+from app import models
 from app.routers import DidYouDoIt
 from app.routers.tools import get_router
 from app.constants import US_TIMEZONES, Statuses
+from app import parsers
+
+
+def generator(router, inbound=str()):
+    '''function that returns one test function per router'''
+    def test(self):
+        print(f"""
+=============================
+TESTING ROUTER: {router.__name__}
+TESTING INBOUND: {inbound}
+=============================
+        """)
+        exchange = Exchange(router=router.__name__, user=self.mitch)
+        self.db.session.add(exchange)
+        response = self.client.post('/sms', data=dict(Body=inbound, From=self.number))
+
+    return test
 
 
 class TestAllRouters(BaseTestCase):
-    number = '+11234567890'
+    number = os.environ.get('TEST_FROM_NUMBER')
 
     def setUp(self):
         super().setUp()
@@ -17,8 +37,14 @@ class TestAllRouters(BaseTestCase):
             phone_number=self.number, 
             username='Mitch',
             timezone=US_TIMEZONES['b'])
+        
+        # self.blair = AppUser(
+        #     phone_number=self.number, 
+        #     username='Blair',
+        #     timezone=US_TIMEZONES['b'])
 
         self.db.session.add(self.mitch)
+        # self.db.session.add(self.blair)
 
         # add a notif
         self.notif = Notification(
@@ -35,7 +61,8 @@ class TestAllRouters(BaseTestCase):
         self.exchange = Exchange(
             router = DidYouDoIt.__name__,
             outbound = 'Did you do it?',
-            user = self.mitch)
+            user = self.mitch,
+            created = dt.datetime.now() - dt.timedelta(days=10))
 
         self.db.session.add(self.exchange)
 
@@ -62,19 +89,29 @@ class TestAllRouters(BaseTestCase):
         self.db.session.add(self.team)
 
         # add teammember
-        self.teammember = TeamMember(
+        self.mitch_member = TeamMember(
             user = self.mitch,
             team = self.team,
             invited_by = self.mitch,
             status = Statuses.PENDING)
         
-        self.db.session.add(self.teammember)
+        # add teammember
+        # self.blair_member = TeamMember(
+        #     user = self.blair,
+        #     team = self.team,
+        #     invited_by = self.mitch,
+        #     status = Statuses.PENDING)
+        
+        self.db.session.add(self.mitch_member)
+        # self.db.session.add(self.blair_member)
 
-    
-    def test_all_routers(self):
-        for router_name in get_router():
-            print("TESTING ROUTER: ", router_name)
-            exchange = Exchange(router=router_name, user=self.mitch)
-            self.db.session.add(exchange)
-            response = self.client.post('/sms', data=dict(Body='', From=self.number))
-            
+    def tearDown(self):
+        super().tearDown()
+        # TODO(Nico) figure out how to clear the db, as rolling back the session doesn't work if your code
+        models.Point.query.delete()
+        models.Task.query.delete()
+        models.TeamMember.query.delete()
+        models.Team.query.delete()
+        models.Notification.query.delete()
+        models.Exchange.query.delete()
+        models.AppUser.query.delete()
