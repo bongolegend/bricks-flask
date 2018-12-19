@@ -1,5 +1,5 @@
 import traceback
-from flask import request
+from flask import request, current_app
 from twilio.twiml.messaging_response import MessagingResponse
 from app.queries import query_user, query_last_exchange, insert_exchange, update_exchange
 from app.routers import InitOnboarding
@@ -56,9 +56,13 @@ def main():
             # prepend points message
             next_router.outbound = points_message + " " + next_router.outbound
         
-        except Exception: # if there was an error in the action then resend the same router
+        except Exception as error: # if there was an error in the action then resend the same router
             traceback.print_exc()
             ACTION_ERROR = True
+            # throw error if in testing mode
+            # TODO(Nico) there is probably a cleaner way to do this
+            if current_app.config['TESTING'] == True:
+                raise error
         
     if (parsed_inbound is None) or ACTION_ERROR:
         # resend the same router
