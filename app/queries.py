@@ -3,7 +3,7 @@ import functools
 from flask import current_app
 from twilio.rest import Client
 from app import db
-from app.models import Exchange, AppUser
+from app.models import Exchange, AppUser, TeamMember, Team
 from app.base_init import init_app, init_db
 
 
@@ -99,5 +99,34 @@ def notify(user, router):
         body=router.outbound)
     
     insert_exchange(router, user)
+
+    return message
+
+
+def query_team_members(user):
+    '''get the team members for this user.'''
+    team_ids = db.session.query(Team.id).join(TeamMember)\
+                .filter(TeamMember.user_id == user['id'])
+
+    team_members = db.session.query(AppUser).join(TeamMember.user)\
+        .filter(TeamMember.team_id.in_(team_ids))
+
+    return team_members
+
+# TODO(Nico) replace the older method with this version
+def notify_(user, outbound):
+    '''send outbound to user with twilio'''
+
+    account_sid = current_app.config['TWILIO_ACCOUNT_SID']
+    auth_token = current_app.config['TWILIO_AUTH_TOKEN']
+    from_number = current_app.config['TWILIO_PHONE_NUMBER']
+
+    client = Client(account_sid, auth_token)
+
+    message = client.messages.create(from_=from_number,
+        to=user['phone_number'],
+        body=outbound)
+    
+    print(f"MESSAGE SENT TO {user['username']}")
 
     return message

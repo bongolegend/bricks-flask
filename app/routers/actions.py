@@ -4,8 +4,8 @@ from sqlalchemy import func
 from app import db
 from app.models import AppUser, Notification, Point, Exchange, Task, Team, TeamMember
 from app.constants import Statuses, US_TIMEZONES
-from app.queries import query_user, query_last_exchange
-from app.queries import notify
+from app.queries import query_user, query_last_exchange, query_team_members
+from app import queries
     
 
 def insert_notifications(user, choose_task, morning_confirmation, did_you_do_it, **kwargs):
@@ -103,7 +103,10 @@ def query_latest_task(user, choose_task, choose_tomorrow_task, **kwargs):
 
 
 def insert_task(user, exchange, inbound, choose_task, choose_tomorrow_task, did_you_do_it, **kwargs):
-    '''insert task based on input, and set all other tasks with the same due date to inactive'''
+    '''
+    insert task based on input, and set all other tasks with the same due date to inactive.
+    If the user has team mates, send them a notification of this task.
+    '''
 
     # what day is it for user?
     today_local = dt.datetime.now(tz=pytz.timezone(user['timezone']))
@@ -147,6 +150,12 @@ def insert_task(user, exchange, inbound, choose_task, choose_tomorrow_task, did_
     
     db.session.add(new_task)
     db.session.commit()
+
+    # notify team members of this task
+    team_members = query_team_members(user)
+    for team_member in team_members:
+        outbound = f"Your friend {user['username']} is gonna do this: {inbound}."
+        queries.notify_(team_member.to_dict(), outbound)
 
 
 def leaderboard(**kwargs):
@@ -240,7 +249,7 @@ def insert_member(user, inbound, init_onboarding_invited, you_were_invited, **kw
 
     router.outbound = router.outbound.format(**results)
 
-    notify(invited_user, router)
+    queries.notify(invited_user, router)
 
 
 def query_last_invitation(user, **kwargs):
@@ -285,5 +294,5 @@ def notify_inviter(user, inbound, invitation_accepted, invitation_rejected, **kw
     else:
         router = invitation_rejected()
 
-    notify(inviter.to_dict(), router)
+    queries.notify(inviter.to_dict(), router)
     print("NO PRE_ACTIONS BEING RUN FOR ", router.name)
