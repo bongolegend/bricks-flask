@@ -126,7 +126,7 @@ class ContactSupport(BaseRouter):
 
 class MainMenu(BaseRouter):
     outbound = Outbounds.MAIN_MENU
-    inbound_format = parsers.MULTIPLE_CHOICE
+    inbound_format = parsers.MAIN_MENU
 
     @classmethod
     def next_router(self, inbound, user, **kwargs):
@@ -367,6 +367,14 @@ class InitOnboardingInvited(BaseRouter):
             return EnterUsername
         else:
             return Goodbye
+    
+    @classmethod
+    def run_actions(self, user, inbound, **kwargs):
+        confirm_result = actions.confirm_team_member(user)
+        notify_result = actions.notify_inviter(user, inbound, InvitationAccepted, InvitationRejected)
+        
+        return {actions.confirm_team_member.__name__ : confirm_result,
+            actions.notify_inviter.__name__ : notify_result}
 
 
 class YouWereInvited(BaseRouter):
@@ -381,6 +389,14 @@ class YouWereInvited(BaseRouter):
     #         return IntroToTeam
     #     else:
     #         return MainMenu
+
+    @classmethod
+    def run_actions(self, user, inbound, **kwargs):
+        confirm_result = actions.confirm_team_member(user)
+        notify_result = actions.notify_inviter(user, inbound, InvitationAccepted, InvitationRejected)
+        
+        return {actions.confirm_team_member.__name__ : confirm_result,
+            actions.notify_inviter.__name__ : notify_result}
 
 
 # class IntroToTeam(Router):

@@ -6,7 +6,8 @@ class Config:
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     TWILIO_ACCOUNT_SID = os.environ.get('TEST_ACCOUNT_SID')
     TWILIO_AUTH_TOKEN = os.environ.get('TEST_AUTH_TOKEN')
-    TWILIO_PHONE_NUMBER = os.environ.get('TEST_PHONE_NUMBER')
+    TWILIO_PHONE_NUMBER = os.environ.get('TEST_FROM_NUMBER')
+    TEST_TO_NUMBER = os.environ.get('TEST_TO_NUMBER')
 
 
 class DevConfig(Config):
