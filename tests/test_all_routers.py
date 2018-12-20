@@ -47,15 +47,15 @@ class TestAllRouters(BaseTestCase):
         # self.db.session.add(self.blair)
 
         # add a notif
-        self.notif = Notification(
-            router = DidYouDoIt.__name__,
-            body = DidYouDoIt.outbound,
-            hour = 21,
-            minute = 0,
-            active = True,
-            user = self.mitch)
+        # self.notif = Notification(
+        #     router = DidYouDoIt.__name__,
+        #     body = DidYouDoIt.outbound,
+        #     hour = 21,
+        #     minute = 0,
+        #     active = True,
+        #     user = self.mitch)
         
-        self.db.session.add(self.notif)
+        # self.db.session.add(self.notif)
 
         # add exchange
         self.exchange = Exchange(
