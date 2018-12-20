@@ -1,22 +1,31 @@
+'''Functions that support the main conversations module'''
+import sys, inspect
+from app import routers
 import os
 import functools
 from flask import current_app
 from twilio.rest import Client
 from app import db
 from app.models import Exchange, AppUser, TeamMember, Team
-from app.base_init import init_app, init_db
 
 
-def with_app_context(func):
-    '''inits a new app and db, and runs func within it. used for functions run by scheduler. useful for tests tho'''
-    @functools.wraps(func)
-    def wrapper(*args, **kwargs):
-        app = init_app()
-        db = init_db(app)
-        kwargs['db'] = db
-        with app.app_context():
-            return func(*args, **kwargs)
-    return wrapper
+def get_router(router_name=None):
+    '''return the router associated with the router_name, or return a dict of routers'''
+
+    all_classes = inspect.getmembers(routers, inspect.isclass)
+    
+    # only keep those that have Router as parent class
+    router_dict = dict()
+    for name, cls in all_classes:
+        if issubclass(cls, routers.BaseRouter) and cls is not routers.BaseRouter:
+            router_dict[name] = cls
+
+    if router_name:
+        assert router_name in router_dict, "This router name is not implemented as a router"
+        return router_dict[router_name]
+    else:
+        return router_dict
+
 
 
 def query_user_with_number(phone_number):
