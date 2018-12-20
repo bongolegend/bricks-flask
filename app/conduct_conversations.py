@@ -1,7 +1,7 @@
 import traceback
 from flask import request, current_app
 from twilio.twiml.messaging_response import MessagingResponse
-from app.queries import query_user, query_last_exchange, insert_exchange, update_exchange
+from app.queries import query_user_with_number, query_last_exchange, insert_exchange, update_exchange
 from app.routers import InitOnboarding, MainMenu
 from app.routers.tools import get_router
 from app.constants import Outbounds, Redirects
@@ -16,7 +16,7 @@ def main():
     if inbound is None:
         return f"Please use a phone and text {os.environ.get('TWILIO_PHONE_NUMBER')}. This does not work thru the browser."
 
-    user = query_user(request.values.get('From'))
+    user = query_user_with_number(request.values.get('From'))
     print("USER: ", user['username'])
     exchange = query_last_exchange(user)
 

@@ -4,7 +4,7 @@ from sqlalchemy import func
 from app import db
 from app.models import AppUser, Notification, Point, Exchange, Task, Team, TeamMember
 from app.constants import Statuses, US_TIMEZONES
-from app.queries import query_user, query_last_exchange, query_team_members
+from app.queries import query_user_with_number, query_last_exchange, query_team_members
 from app import queries
     
 
@@ -83,8 +83,9 @@ def insert_points(user, value, **kwargs):
     db.session.commit()
 
 
-def query_points(user, **kwargs):
-    points = db.session.query(func.sum(Point.value).label('points')).filter(Point.user_id == user['id']).one()[0]
+def query_total_points(user, **kwargs):
+    '''Get the total points for this user'''
+    points = db.session.query(func.sum(Point.value)).filter(Point.user_id == user['id']).one()[0]
 
     if points is None:
         return 0
@@ -102,7 +103,7 @@ def query_latest_task(user, choose_task, choose_tomorrow_task, **kwargs):
     return task.description
 
 
-def insert_task(user, exchange, inbound, choose_task, choose_tomorrow_task, did_you_do_it, **kwargs):
+def insert_task_and_notify(user, exchange, inbound, choose_task, choose_tomorrow_task, did_you_do_it, **kwargs):
     '''
     insert task based on input, and set all other tasks with the same due date to inactive.
     If the user has team mates, send them a notification of this task.
@@ -219,7 +220,7 @@ def insert_member(user, inbound, init_onboarding_invited, you_were_invited, **kw
         return None
 
     # lookup the phone-number, add if not already a user
-    invited_user = query_user(phone_number)
+    invited_user = query_user_with_number(phone_number)
     # TODO(Nico) you will need to ask this person for their user name and tz
 
     # insert invitee into db

@@ -184,7 +184,7 @@ class ChooseTask(BaseRouter):
             MorningConfirmation, 
             DidYouDoIt)
 
-        insert_task_result = actions.insert_task(
+        insert_task_result = actions.insert_task_and_notify(
             user, 
             exchange, 
             inbound, 
@@ -194,7 +194,7 @@ class ChooseTask(BaseRouter):
         
         return {
             actions.insert_notifications.__name__ : insert_notif_result,
-            actions.insert_task.__name__ : insert_task_result}
+            actions.insert_task_and_notify.__name__ : insert_task_result}
     
     @classmethod
     def insert_points(self, user, **kwargs):
@@ -232,7 +232,7 @@ class ChooseTomorrowTask(BaseRouter):
             MorningConfirmation, 
             DidYouDoIt)
 
-        insert_result = actions.insert_task(
+        insert_result = actions.insert_task_and_notify(
             user, 
             exchange, 
             inbound, 
@@ -242,7 +242,7 @@ class ChooseTomorrowTask(BaseRouter):
 
         return {
             actions.insert_notifications.__name__ : insert_notif_result,
-            actions.insert_task.__name__ : insert_result}
+            actions.insert_task_and_notify.__name__ : insert_result}
     
     @classmethod
     def insert_points(self, user, **kwargs):

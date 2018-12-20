@@ -19,7 +19,7 @@ def with_app_context(func):
     return wrapper
 
 
-def query_user(phone_number):
+def query_user_with_number(phone_number):
     '''
     use phone number to find user in db, else add to db
     returns the user object
