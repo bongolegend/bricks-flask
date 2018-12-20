@@ -281,18 +281,19 @@ def confirm_team_member(user, **kwargs):
     print("TEAM MEMBER CONFIRMED: ", user['username'])
 
 
-def notify_inviter(user, inbound, invitation_accepted, invitation_rejected, **kwargs):
+def notify_inviter(user, inbound, **kwargs):
     '''look up which membership was just responded to, and notify the inviter'''
     # find the inviter
-    inviter = db.session.query(AppUser).join(TeamMember.invited_by).filter(
+    inviter, team_name = db.session.query(AppUser, Team.name).join(TeamMember.invited_by, TeamMember.team).filter(
         TeamMember.user_id == user['id'],
         TeamMember.status == Statuses.CONFIRMED)\
         .order_by(TeamMember.updated.desc()).first()
 
     if inbound == 'yes':    
-        router = invitation_accepted()
+        outbound = "Your friend {username} just accepted your invitation to {team_name}."
     else:
-        router = invitation_rejected()
+        outbound = "Your friend {username} did not accept your invitation to {team_name}."
+    
+    outbound = outbound.format(username=user['username'], team_name=team_name)
 
-    queries.notify(inviter.to_dict(), router)
-    print("NO PRE_ACTIONS BEING RUN FOR ", router.name)
+    queries.notify_(inviter.to_dict(), outbound)

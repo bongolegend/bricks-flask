@@ -306,7 +306,7 @@ class NoCompletion(BaseRouter):
 
 
 class StateMorningFollowup(BaseRouter):
-    outbound =  "Great. I'll message you tomorrow at 8 am to confirm."
+    outbound =  "Great. I'll message you tomorrow at 8 am to remind you of your task."
 
 
 class MorningConfirmation(BaseRouter):
@@ -371,7 +371,7 @@ class InitOnboardingInvited(BaseRouter):
     @classmethod
     def run_actions(self, user, inbound, **kwargs):
         confirm_result = actions.confirm_team_member(user)
-        notify_result = actions.notify_inviter(user, inbound, InvitationAccepted, InvitationRejected)
+        notify_result = actions.notify_inviter(user, inbound)
         
         return {actions.confirm_team_member.__name__ : confirm_result,
             actions.notify_inviter.__name__ : notify_result}
@@ -393,7 +393,7 @@ class YouWereInvited(BaseRouter):
     @classmethod
     def run_actions(self, user, inbound, **kwargs):
         confirm_result = actions.confirm_team_member(user)
-        notify_result = actions.notify_inviter(user, inbound, InvitationAccepted, InvitationRejected)
+        notify_result = actions.notify_inviter(user, inbound)
         
         return {actions.confirm_team_member.__name__ : confirm_result,
             actions.notify_inviter.__name__ : notify_result}
@@ -402,12 +402,3 @@ class YouWereInvited(BaseRouter):
 # class IntroToTeam(Router):
 #     pre_actions = (actions.intro_to_team,)
 #     outbound = "Current team members:\n{intro_to_team}\n I will notify you of the tasks they choose tomorrow"
-
-
-class InvitationAccepted(BaseRouter):
-    outbound = "Your friend accepted your invitation!" # TODO(Nico) specify who and what team
-
-
-class InvitationRejected(BaseRouter):
-    outbound = "Your friend rejected your invitation."
-
