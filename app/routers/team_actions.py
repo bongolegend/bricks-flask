@@ -1,4 +1,3 @@
-import pytz
 from sqlalchemy import func
 from app import db
 from app.models import AppUser, Point, Exchange, Team, TeamMember
