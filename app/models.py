@@ -1,5 +1,5 @@
 from datetime import datetime as dt
-from sqlalchemy import func
+from sqlalchemy import func, UniqueConstraint
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.dialects import postgresql
 from app import db
@@ -43,6 +43,8 @@ class Notification(db.Model, Base):
         nullable=False)
     user = db.relationship('AppUser',
         backref=db.backref('notifications', lazy=True))
+
+    __table_args__ = (UniqueConstraint('user_id', 'router', 'active', name='unique_router_user_active'),)
     
     def to_dict(self):
         return dict(
