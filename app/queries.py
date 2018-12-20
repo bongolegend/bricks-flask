@@ -103,18 +103,6 @@ def notify(user, router):
     return message
 
 
-def query_team_members(user):
-    '''get the team members for this user. exclude this user from the results.'''
-    team_ids = db.session.query(Team.id).join(TeamMember)\
-                .filter(TeamMember.user_id == user['id'])
-
-    team_members = db.session.query(AppUser).join(TeamMember.user)\
-        .filter(
-            TeamMember.team_id.in_(team_ids),
-            TeamMember.user_id != user['id']).all()
-
-    return team_members
-
 # TODO(Nico) replace the older method with this version
 def notify_(user, outbound):
     '''send outbound to user with twilio'''
