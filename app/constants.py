@@ -1,6 +1,5 @@
 class Outbounds:
-    HOW_IT_WORKS = """How this works: every weekday, you input your most important task of the day. At the end of the day, you confirm that you did it.
-If you did, then you get +10 points. If you are consistent, you get extra points. You also get points just for participating. Makes sense? (y/n)"""
+    HOW_IT_WORKS = """Instructions: every day, enter your most important task. At the end of the day, if you complete your task, you get +10 points. If you stay consistent, you get bonuses that double your points. Does this make sense? (y/n)"""
 
     WHAT_TIMEZONE = """What's your timezone?
 a) PT
@@ -18,6 +17,8 @@ e) leaderboard
 f) create a team
 g) invite a friend to team
 """
+
+    RETRY = "Your response is not valid, try again.\n"
 
 
 class Points:
@@ -42,3 +43,7 @@ US_TIMEZONES = {
     'c': 'America/Chicago',
     'd': 'America/New_York',
 }
+
+
+class Redirects:
+    MAIN_MENU = 'main_menu'

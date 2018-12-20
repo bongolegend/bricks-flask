@@ -82,7 +82,7 @@ class Welcome(BaseRouter):
 
 
 class EnterUsername(BaseRouter):
-    outbound = 'Please enter a username:'
+    outbound = 'Please enter a username that your friends will recognize:'
     actions = (actions.update_username,)
     confirmation = "Your username is set."
 
@@ -345,7 +345,7 @@ class CreateTeam(BaseRouter):
 
 class AddMember(BaseRouter):
     pre_actions = (actions.list_teams,)
-    outbound = """To invite a friend, enter the team number and your friend's phone number, e.g. "25, 123-456-7890". Your current teams:\n{list_teams}"""
+    outbound = """Your teams:\n{list_teams}\n To invite a friend, enter the team number and your friend's phone number, separated by a comma. Type 'menu' to go back."""
     inbound_format = parsers.ADD_MEMBER
     confirmation = "Sent an invitation to your friend. I'll let you know when they respond."
 

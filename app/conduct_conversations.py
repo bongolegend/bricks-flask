@@ -2,10 +2,9 @@ import traceback
 from flask import request, current_app
 from twilio.twiml.messaging_response import MessagingResponse
 from app.queries import query_user, query_last_exchange, insert_exchange, update_exchange
-from app.routers import InitOnboarding
+from app.routers import InitOnboarding, MainMenu
 from app.routers.tools import get_router
-
-RETRY = "Your response is not valid, try again.\n"
+from app.constants import Outbounds, Redirects
 
 
 def main():
@@ -29,7 +28,12 @@ def main():
 
     parsed_inbound = router.parse(inbound)
 
-    if parsed_inbound is not None:
+    if parsed_inbound == Redirects.MAIN_MENU:
+        # send the user to the main menu
+        next_router = MainMenu()
+        action_results = dict()
+
+    elif parsed_inbound is not None:
 
         # give participation points
         points_message = router.insert_points(user)
@@ -69,7 +73,7 @@ def main():
         action_results = dict()
         next_router = router
         # prepend a string to the outbound saying you need to try again
-        next_router.outbound = RETRY + next_router.outbound
+        next_router.outbound = Outbounds.RETRY + next_router.outbound
 
     print("NEXT ROUTER: ", next_router.name)
     # run the pre-actions for next router before sending the outbound message
