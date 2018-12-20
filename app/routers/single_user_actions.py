@@ -2,9 +2,9 @@ import datetime as dt
 import pytz
 from sqlalchemy import func
 from app import db
-from app.models import AppUser, Notification, Point, Exchange, Task, Team, TeamMember
-from app.constants import Statuses, US_TIMEZONES
+from app.models import AppUser, Notification, Point, Task
 from app.routers.team_actions import query_team_members
+
 
 def insert_points(user, value, **kwargs):
     point = Point(value=value, user_id=user['id'])
@@ -30,6 +30,7 @@ def query_latest_task(user, choose_task, choose_tomorrow_task, **kwargs):
         ).order_by(Task.due_date.desc()).first()
 
     return task.description
+
 
 # TODO(Nico) split this into two funcs
 def insert_task_and_notify(user, exchange, inbound, choose_task, choose_tomorrow_task, did_you_do_it, **kwargs):

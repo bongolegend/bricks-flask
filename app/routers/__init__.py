@@ -1,6 +1,6 @@
 import sys, inspect
 from app import parsers, conditions
-from app.routers import actions, team_actions, account_actions, new_user_actions
+from app.routers import single_user_actions, team_actions, account_actions, new_user_actions
 from app.constants import Outbounds, Points
 # from app.routers.base import BaseRouter
 
@@ -57,7 +57,7 @@ class BaseRouter:
     def insert_points(self, user, **kwargs):
         '''Receive participation points'''
         if self.participation_points > 0:
-            actions.insert_points(user, self.participation_points)
+            single_user_actions.insert_points(user, self.participation_points)
             return Points.EARNED_MESSAGE.format(points=self.participation_points)
         else:
             return str()
@@ -184,7 +184,7 @@ class ChooseTask(BaseRouter):
             MorningConfirmation, 
             DidYouDoIt)
 
-        insert_task_result = actions.insert_task_and_notify(
+        insert_task_result = single_user_actions.insert_task_and_notify(
             user, 
             exchange, 
             inbound, 
@@ -194,13 +194,13 @@ class ChooseTask(BaseRouter):
         
         return {
             new_user_actions.insert_notifications.__name__ : insert_notif_result,
-            actions.insert_task_and_notify.__name__ : insert_task_result}
+            single_user_actions.insert_task_and_notify.__name__ : insert_task_result}
     
     @classmethod
     def insert_points(self, user, **kwargs):
         '''You only get points if you havent already chosen a task for today'''
         if not conditions.task_chosen(user):
-            actions.insert_points(user, self.participation_points)
+            single_user_actions.insert_points(user, self.participation_points)
             return Points.EARNED_MESSAGE.format(points=self.participation_points)
         else:
             return Points.ALREADY_EARNED_MESSAGE
@@ -208,7 +208,7 @@ class ChooseTask(BaseRouter):
 
 
 class CurrentPoints(BaseRouter):
-    pre_actions = (actions.query_total_points,)
+    pre_actions = (single_user_actions.query_total_points,)
     outbound = "You currently have +{query_total_points} pt."
 
 
@@ -232,7 +232,7 @@ class ChooseTomorrowTask(BaseRouter):
             MorningConfirmation, 
             DidYouDoIt)
 
-        insert_result = actions.insert_task_and_notify(
+        insert_result = single_user_actions.insert_task_and_notify(
             user, 
             exchange, 
             inbound, 
@@ -242,13 +242,13 @@ class ChooseTomorrowTask(BaseRouter):
 
         return {
             new_user_actions.insert_notifications.__name__ : insert_notif_result,
-            actions.insert_task_and_notify.__name__ : insert_result}
+            single_user_actions.insert_task_and_notify.__name__ : insert_result}
     
     @classmethod
     def insert_points(self, user, **kwargs):
         '''You only get points if you havent already chosen a task for tomorrow'''
         if not conditions.task_chosen(user, tomorrow=True):
-            actions.insert_points(user, self.participation_points)
+            single_user_actions.insert_points(user, self.participation_points)
             return Points.EARNED_MESSAGE.format(points=self.participation_points)
         else:
             return Points.ALREADY_EARNED_MESSAGE 
@@ -269,16 +269,16 @@ class DidYouDoIt(BaseRouter):
     @classmethod
     def run_actions(self, user, inbound, **kwargs):
         if inbound == 'yes':
-            result = actions.insert_points(user, Points.TASK_COMPLETED)
+            result = single_user_actions.insert_points(user, Points.TASK_COMPLETED)
         else:
             result = 0
-        return {actions.insert_points.__name__ : result}
+        return {single_user_actions.insert_points.__name__ : result}
 
 
 # TODO combine this with the one below it
 # TODO rename this to congrats
 class CompletionPoint(BaseRouter):
-    pre_actions = (actions.query_total_points,)
+    pre_actions = (single_user_actions.query_total_points,)
     outbound = "Congrats! You earned +%s points. You now have {query_total_points} points. Do you want to choose tomorrow's task now? (y/n)" % Points.TASK_COMPLETED
     inbound_format = parsers.YES_NO
     participation_points = Points.CHOOSE_TASK
@@ -292,7 +292,7 @@ class CompletionPoint(BaseRouter):
 
 
 class NoCompletion(BaseRouter):
-    pre_actions = (actions.query_total_points,)
+    pre_actions = (single_user_actions.query_total_points,)
     outbound = "All good. Just make tomorrow count. You currently have {query_total_points} points. Do you want to choose tomorrow's task now? (y/n)"
     inbound_format = parsers.YES_NO
     participation_points = Points.CHOOSE_TASK
@@ -323,9 +323,9 @@ class MorningConfirmation(BaseRouter):
     
     @classmethod
     def run_pre_actions(self, user, **kwargs):
-        query_task_result = actions.query_latest_task(user, ChooseTask, ChooseTomorrowTask)
+        query_task_result = single_user_actions.query_latest_task(user, ChooseTask, ChooseTomorrowTask)
 
-        return {actions.query_latest_task.__name__ : query_task_result}
+        return {single_user_actions.query_latest_task.__name__ : query_task_result}
 
 
 class Leaderboard(BaseRouter):
