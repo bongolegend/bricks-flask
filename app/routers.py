@@ -184,7 +184,7 @@ class ChooseTask(BaseRouter):
             MorningConfirmation, 
             DidYouDoIt)
 
-        insert_task_result = single_user.insert_task_and_notify(
+        insert_task_result = single_user.insert_task(
             user, 
             exchange, 
             inbound, 
@@ -192,9 +192,12 @@ class ChooseTask(BaseRouter):
             ChooseTomorrowTask,
             DidYouDoIt)
         
+        notify_teammembers_result = team.notify_team_members(user, inbound)
+        
         return {
             new_user.insert_notifications.__name__ : insert_notif_result,
-            single_user.insert_task_and_notify.__name__ : insert_task_result}
+            single_user.insert_task.__name__ : insert_task_result,
+            team.notify_team_members.__name__ : notify_teammembers_result}
     
     @classmethod
     def insert_points(self, user, **kwargs):
@@ -208,8 +211,8 @@ class ChooseTask(BaseRouter):
 
 
 class CurrentPoints(BaseRouter):
-    pre_actions = (single_user.query_total_points,)
-    outbound = "You currently have +{query_total_points} pt."
+    pre_actions = (single_user.get_total_points,)
+    outbound = "You currently have +{get_total_points} pt."
 
 
 class StateNightFollowup(BaseRouter):
@@ -232,17 +235,20 @@ class ChooseTomorrowTask(BaseRouter):
             MorningConfirmation, 
             DidYouDoIt)
 
-        insert_result = single_user.insert_task_and_notify(
+        insert_result = single_user.insert_task(
             user, 
             exchange, 
             inbound, 
             ChooseTask, 
             ChooseTomorrowTask,
             DidYouDoIt)
+        
+        notify_teammembers_result = team.notify_team_members(user, inbound)
 
         return {
             new_user.insert_notifications.__name__ : insert_notif_result,
-            single_user.insert_task_and_notify.__name__ : insert_result}
+            single_user.insert_task.__name__ : insert_result,
+            team.notify_team_members.__name__ : notify_teammembers_result}
     
     @classmethod
     def insert_points(self, user, **kwargs):
@@ -278,8 +284,8 @@ class DidYouDoIt(BaseRouter):
 # TODO combine this with the one below it
 # TODO rename this to congrats
 class CompletionPoint(BaseRouter):
-    pre_actions = (single_user.query_total_points,)
-    outbound = "Congrats! You earned +%s points. You now have {query_total_points} points. Do you want to choose tomorrow's task now? (y/n)" % Points.TASK_COMPLETED
+    pre_actions = (single_user.get_total_points,)
+    outbound = "Congrats! You earned +%s points. You now have {get_total_points} points. Do you want to choose tomorrow's task now? (y/n)" % Points.TASK_COMPLETED
     inbound_format = parsers.YES_NO
     participation_points = Points.CHOOSE_TASK
 
@@ -292,8 +298,8 @@ class CompletionPoint(BaseRouter):
 
 
 class NoCompletion(BaseRouter):
-    pre_actions = (single_user.query_total_points,)
-    outbound = "All good. Just make tomorrow count. You currently have {query_total_points} points. Do you want to choose tomorrow's task now? (y/n)"
+    pre_actions = (single_user.get_total_points,)
+    outbound = "All good. Just make tomorrow count. You currently have {get_total_points} points. Do you want to choose tomorrow's task now? (y/n)"
     inbound_format = parsers.YES_NO
     participation_points = Points.CHOOSE_TASK
 
@@ -310,7 +316,7 @@ class StateMorningFollowup(BaseRouter):
 
 
 class MorningConfirmation(BaseRouter):
-    outbound = "Are you still planning to do this task today: {query_latest_task}? (y/n)"
+    outbound = "Are you still planning to do this task today: {get_latest_task}? (y/n)"
     inbound_format = parsers.YES_NO
     participation_points = Points.CHOOSE_TASK
 
@@ -323,9 +329,9 @@ class MorningConfirmation(BaseRouter):
     
     @classmethod
     def run_pre_actions(self, user, **kwargs):
-        query_task_result = single_user.query_latest_task(user, ChooseTask, ChooseTomorrowTask)
+        query_task_result = single_user.get_latest_task(user, ChooseTask, ChooseTomorrowTask)
 
-        return {single_user.query_latest_task.__name__ : query_task_result}
+        return {single_user.get_latest_task.__name__ : query_task_result}
 
 
 class Leaderboard(BaseRouter):

@@ -160,3 +160,12 @@ def query_team_members(user):
             TeamMember.user_id != user['id']).all()
 
     return team_members
+
+
+def notify_team_members(user, inbound):
+    '''Send message to teammembers that user is doing inbound'''
+
+    team_members = query_team_members(user)
+    for team_member in team_members:
+        outbound = f"Your friend {user['username']} is gonna do this: {inbound}."
+        tools.send_message(team_member.to_dict(), outbound)
