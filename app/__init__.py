@@ -6,7 +6,7 @@ remember that you need to set the ngrok URL every time you restart the ngrok ser
 https://dashboard.ngrok.com/get-started
 '''
 import logging
-from app.base_init import init_scheduler, init_db, init_app
+from app.base_init import init_db, init_app
 
 
 # initialize logging so that `flask run` logs the scheduler

@@ -3,7 +3,6 @@ import os
 import logging
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
-from apscheduler.schedulers.background import BackgroundScheduler
 from config import DevConfig, TestConfig, ProdConfig
 
 
@@ -26,8 +25,3 @@ def init_db(app=None):
     if app is not None:
         db.init_app(app)
     return db
-
-def init_scheduler():
-    scheduler = BackgroundScheduler(daemon=True)
-    scheduler.start()
-    return scheduler
