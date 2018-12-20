@@ -4,7 +4,7 @@ import pytz
 from tests.config_test import BaseTestCase
 from app.models import AppUser, Exchange, Task, Team, TeamMember, Notification, Point
 from app.routers import DidYouDoIt, MorningConfirmation
-from app.tools import get_router
+from app.get_router import get_router
 from app.constants import US_TIMEZONES, Statuses
 
 

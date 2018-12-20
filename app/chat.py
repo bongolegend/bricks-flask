@@ -2,6 +2,7 @@ import traceback
 from flask import request, current_app
 from twilio.twiml.messaging_response import MessagingResponse
 from app import tools
+from app.get_router import get_router
 from app.routers import InitOnboarding, MainMenu
 from app.constants import Outbounds, Redirects
 
@@ -22,7 +23,7 @@ def main():
     if exchange is None:
         router = InitOnboarding()
     else:
-        router = tools.get_router(exchange['router'])()
+        router = get_router(exchange['router'])()
     print("ROUTER: ", router.name)
 
     parsed_inbound = router.parse(inbound)

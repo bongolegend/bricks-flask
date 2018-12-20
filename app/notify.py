@@ -9,7 +9,8 @@ from sqlalchemy import exists, and_
 from app import db
 from app.models import AppUser, Notification, Task
 from app.routers import ChooseTask, MorningConfirmation, DidYouDoIt
-from app.tools import get_router, send_message, insert_exchange
+from app.tools import send_message, insert_exchange
+from app.get_router import get_router
 
 
 def main():

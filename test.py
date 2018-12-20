@@ -1,7 +1,8 @@
 '''run tests from here'''
 import unittest
-from tests.test_all_routers import TestAllRouters, generator, get_router
+from tests.test_all_routers import TestAllRouters, generator
 from tests.test_notifications import TestNotifications
+from app.get_router import get_router
 
 
 if __name__ == '__main__':

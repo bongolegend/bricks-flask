@@ -6,7 +6,6 @@ from tests.config_test import BaseTestCase
 from app.models import AppUser, Exchange, Task, Team, TeamMember, Notification, Point
 from app import models
 from app.routers import DidYouDoIt
-from app.tools import get_router
 from app.constants import US_TIMEZONES, Statuses
 from app import parsers
 
