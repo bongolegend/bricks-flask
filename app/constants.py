@@ -1,6 +1,6 @@
 class Outbounds:
     HOW_IT_WORKS = """How this works: every weekday, you input your most important task of the day. At the end of the day, you confirm that you did it.
-If you did, then you get +X points. If you are consistent, you get extra points. You also get points just for participating. Makes sense? (y/n)"""
+If you did, then you get +10 points. If you are consistent, you get extra points. You also get points just for participating. Makes sense? (y/n)"""
 
     WHAT_TIMEZONE = """What's your timezone?
 a) PT

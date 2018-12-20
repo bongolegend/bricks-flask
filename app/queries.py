@@ -104,12 +104,14 @@ def notify(user, router):
 
 
 def query_team_members(user):
-    '''get the team members for this user.'''
+    '''get the team members for this user. exclude this user from the results.'''
     team_ids = db.session.query(Team.id).join(TeamMember)\
                 .filter(TeamMember.user_id == user['id'])
 
     team_members = db.session.query(AppUser).join(TeamMember.user)\
-        .filter(TeamMember.team_id.in_(team_ids))
+        .filter(
+            TeamMember.team_id.in_(team_ids),
+            TeamMember.user_id != user['id']).all()
 
     return team_members
 
@@ -127,6 +129,6 @@ def notify_(user, outbound):
         to=user['phone_number'],
         body=outbound)
     
-    print(f"MESSAGE SENT TO {user['username']}")
+    print(f"MESSAGE SENT TO {user['username']}: {outbound}")
 
     return message
