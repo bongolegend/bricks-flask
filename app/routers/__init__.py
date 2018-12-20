@@ -1,6 +1,6 @@
 import sys, inspect
 from app import parsers, conditions
-from app.routers import actions, team_actions
+from app.routers import actions, team_actions, account_actions, new_user_actions
 from app.constants import Outbounds, Points
 # from app.routers.base import BaseRouter
 
@@ -83,7 +83,7 @@ class Welcome(BaseRouter):
 
 class EnterUsername(BaseRouter):
     outbound = 'Please enter a username that your friends will recognize:'
-    actions = (actions.update_username,)
+    actions = (account_actions.update_username,)
     confirmation = "Your username is set."
 
     @classmethod
@@ -154,7 +154,7 @@ class MainMenu(BaseRouter):
 
 class Timezone(BaseRouter):
     outbound = Outbounds.WHAT_TIMEZONE
-    actions = (actions.update_timezone,)
+    actions = (account_actions.update_timezone,)
     inbound_format = parsers.MULTIPLE_CHOICE
     confirmation = "Your timezone is set."
 
@@ -178,7 +178,7 @@ class ChooseTask(BaseRouter):
     
     @classmethod
     def run_actions(self, user, exchange, inbound):
-        insert_notif_result = actions.insert_notifications(
+        insert_notif_result = new_user_actions.insert_notifications(
             user, 
             self, 
             MorningConfirmation, 
@@ -193,7 +193,7 @@ class ChooseTask(BaseRouter):
             DidYouDoIt)
         
         return {
-            actions.insert_notifications.__name__ : insert_notif_result,
+            new_user_actions.insert_notifications.__name__ : insert_notif_result,
             actions.insert_task_and_notify.__name__ : insert_task_result}
     
     @classmethod
@@ -226,7 +226,7 @@ class ChooseTomorrowTask(BaseRouter):
     
     @classmethod
     def run_actions(self, user, exchange, inbound, **kwargs):
-        insert_notif_result = actions.insert_notifications(
+        insert_notif_result = new_user_actions.insert_notifications(
             user, 
             ChooseTask, 
             MorningConfirmation, 
@@ -241,7 +241,7 @@ class ChooseTomorrowTask(BaseRouter):
             DidYouDoIt)
 
         return {
-            actions.insert_notifications.__name__ : insert_notif_result,
+            new_user_actions.insert_notifications.__name__ : insert_notif_result,
             actions.insert_task_and_notify.__name__ : insert_result}
     
     @classmethod
