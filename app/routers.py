@@ -335,8 +335,8 @@ class MorningConfirmation(BaseRouter):
 
 
 class Leaderboard(BaseRouter):
-    pre_actions = (team.leaderboard,)
-    outbound = "{leaderboard}"
+    pre_actions = (team.get_leaderboard,)
+    outbound = "{get_leaderboard}"
     
 
 class CreateTeam(BaseRouter):
@@ -362,10 +362,9 @@ class AddMember(BaseRouter):
 
 
 class InitOnboardingInvited(BaseRouter):
-    pre_actions = (team.query_last_invitation,)
-    outbound = "Hey! Your friend {query_last_invitation[0]} invited you to join their team {query_last_invitation[1]}, on the Bricks app. Do you want to accept? (y/n)"
+    pre_actions = (team.get_last_invitation,)
+    outbound = "Hey! Your friend {get_last_invitation[0]} invited you to join their team {get_last_invitation[1]}, on the Bricks app. Do you want to accept? (y/n)"
     inbound_format = parsers.YES_NO
-    actions = (team.confirm_team_member, team.notify_inviter)
 
     @classmethod
     def next_router(self, inbound, **kwargs):
@@ -376,18 +375,17 @@ class InitOnboardingInvited(BaseRouter):
     
     @classmethod
     def run_actions(self, user, inbound, **kwargs):
-        confirm_result = team.confirm_team_member(user)
-        notify_result = team.notify_inviter(user, inbound)
+        membership = team.respond_to_invite(user, inbound)
+        notify_result = team.notify_inviter(user, membership)
         
-        return {team.confirm_team_member.__name__ : confirm_result,
+        return {team.respond_to_invite.__name__ : membership,
             team.notify_inviter.__name__ : notify_result}
 
 
 class YouWereInvited(BaseRouter):
-    pre_actions = (team.query_last_invitation,)
-    outbound = "Hey! Your friend {query_last_invitation[0]} invited you to join their team {query_last_invitation[1]}. Do you want to accept? (y/n)"
+    pre_actions = (team.get_last_invitation,)
+    outbound = "Hey! Your friend {get_last_invitation[0]} invited you to join their team {get_last_invitation[1]}. Do you want to accept? (y/n)"
     inbound_format = parsers.YES_NO
-    actions = (team.confirm_team_member, team.notify_inviter)
 
     # @classmethod
     # def next_router(self, inbound, **kwargs):
@@ -398,10 +396,10 @@ class YouWereInvited(BaseRouter):
 
     @classmethod
     def run_actions(self, user, inbound, **kwargs):
-        confirm_result = team.confirm_team_member(user)
-        notify_result = team.notify_inviter(user, inbound)
+        membership = team.respond_to_invite(user, inbound)
+        notify_result = team.notify_inviter(user, membership)
         
-        return {team.confirm_team_member.__name__ : confirm_result,
+        return {team.respond_to_invite.__name__ : membership,
             team.notify_inviter.__name__ : notify_result}
 
 

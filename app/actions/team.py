@@ -5,8 +5,8 @@ from app.constants import Statuses
 from app import tools
 
 
-def leaderboard(**kwargs):
-    '''Make a leaderboard across all users, returning the top 5'''
+def get_leaderboard(**kwargs):
+    '''Make a leaderboard across all users, returning the top users'''
     users = db.session.query(AppUser.username, func.sum(Point.value))\
         .join(Point)\
         .group_by(AppUser.username)\
@@ -14,15 +14,16 @@ def leaderboard(**kwargs):
         .limit(10)\
         .all()
     
-    leaderboard = "{username:_<12}{points}\n".format(username='USERNAME', points='POINTS')
+    board = "{points:<8}{username}\n".format(username='USERNAME', points='POINTS')
     for user, value in users:
-        leaderboard = leaderboard + "{user:_<20}{value}\n".format(user=user[:16], value=value)
+        board = board + "{value:<15}{user}\n".format(user=user[:16], value=value)
 
-    return leaderboard
+    return board
 
 
 def insert_team(user, inbound, **kwargs):
-    '''Create a new team with the user as the founder, and the inbound as the team name. Automatically add user to this team'''
+    '''Create a new team with the user as the founder, and the inbound as the team name. 
+     add this user to this team in TeamMember'''
     team = Team(founder_id=user['id'], name=inbound)
 
     member = TeamMember(
@@ -40,7 +41,8 @@ def insert_team(user, inbound, **kwargs):
 
 def list_teams(user, **kwargs):
     '''List the teams that user is a member of'''
-    teams = db.session.query(Team.id, Team.name).join(TeamMember).filter(TeamMember.user_id == user['id']).all()
+    teams = db.session.query(Team.id, Team.name).join(TeamMember)\
+        .filter(TeamMember.user_id == user['id']).all()
 
     if teams:
         team_list = str()
@@ -52,7 +54,8 @@ def list_teams(user, **kwargs):
 
 
 def insert_member(user, inbound, init_onboarding_invited, you_were_invited, **kwargs):
-    '''Add member to the given team as a PENDING member. Inbound should be parsed as (team_id, phone_number_str)'''
+    '''Add member to the given team as PENDING. 
+    Inbound should already be parsed as tuple(team_id, phone_number_str)'''
 
     team_id, phone_number = inbound
 
@@ -67,7 +70,6 @@ def insert_member(user, inbound, init_onboarding_invited, you_were_invited, **kw
 
     # lookup the phone-number, add if not already a user
     invited_user = tools.query_user_with_number(phone_number)
-    # TODO(Nico) you will need to ask this person for their user name and tz
 
     # insert invitee into db
     invited_member = TeamMember(
@@ -102,7 +104,7 @@ def insert_member(user, inbound, init_onboarding_invited, you_were_invited, **kw
     tools.insert_exchange(router, invited_user)
 
 
-def query_last_invitation(user, **kwargs):
+def get_last_invitation(user, **kwargs):
     '''find the most recent invitation for user'''
     inviter, team = db.session.query(AppUser.username, Team.name)\
         .join(TeamMember.invited_by, TeamMember.team)\
@@ -113,43 +115,52 @@ def query_last_invitation(user, **kwargs):
 
     return inviter, team
 
-
+# TODO(Nico) create this 
 def intro_to_team(**kwargs):
     return "Me, You and Larry"
 
 
-def notify_inviter(user, inbound, **kwargs):
+def notify_inviter(user, membership, **kwargs):
     '''look up which membership was just responded to, and notify the inviter'''
     # find the inviter
-    inviter, team_name = db.session.query(AppUser, Team.name).join(TeamMember.invited_by, TeamMember.team).filter(
-        TeamMember.user_id == user['id'],
-        TeamMember.status == Statuses.CONFIRMED)\
+    inviter, team_name = db.session.query(AppUser, Team.name)\
+        .join(TeamMember.invited_by, TeamMember.team).filter(
+            TeamMember.user_id == user['id'],
+            TeamMember.invited_by_id == membership.invited_by_id,
+            TeamMember.team_id == membership.team_id)\
         .order_by(TeamMember.updated.desc()).first()
 
-    if inbound == 'yes':    
+    if membership.status == Statuses.CONFIRMED:    
         outbound = "Your friend {username} just accepted your invitation to {team_name}."
-    else:
+    elif membership.status == Statuses.REJECTED:
         outbound = "Your friend {username} did not accept your invitation to {team_name}."
+    else:
+        raise NotImplementedError
     
     outbound = outbound.format(username=user['username'], team_name=team_name)
 
     tools.send_message(inviter.to_dict(), outbound)
 
 
-def confirm_team_member(user, **kwargs):
+def respond_to_invite(user, inbound, **kwargs):
     '''look up which membership was just accepted, and set it to confirmed'''
     membership = db.session.query(TeamMember).filter(
         TeamMember.user_id == user['id'],
         TeamMember.status == Statuses.PENDING)\
         .order_by(TeamMember.created.desc()).first()
     
-    membership.status = Statuses.CONFIRMED
+    if inbound == 'yes':
+        membership.status = Statuses.CONFIRMED
+        print("INVITATION CONFIRMED: ", user['username'])
+    else:
+        membership.status = Statuses.REJECTED
+        print("INVITATION REJECTED BY: ", user['username'])
     db.session.commit()
 
-    print("TEAM MEMBER CONFIRMED: ", user['username'])
+    return membership
 
 
-def query_team_members(user):
+def get_team_members(user):
     '''get the team members for this user. exclude this user from the results.'''
     team_ids = db.session.query(Team.id).join(TeamMember)\
                 .filter(TeamMember.user_id == user['id'])
@@ -165,7 +176,7 @@ def query_team_members(user):
 def notify_team_members(user, inbound):
     '''Send message to teammembers that user is doing inbound'''
 
-    team_members = query_team_members(user)
+    team_members = get_team_members(user)
     for team_member in team_members:
         outbound = f"Your friend {user['username']} is gonna do this: {inbound}."
         tools.send_message(team_member.to_dict(), outbound)
