@@ -1,9 +1,8 @@
 import traceback
 from flask import request, current_app
 from twilio.twiml.messaging_response import MessagingResponse
-from app.queries import query_user_with_number, query_last_exchange, insert_exchange, update_exchange
+from app import tools
 from app.routers import InitOnboarding, MainMenu
-from app.routers.tools import get_router
 from app.constants import Outbounds, Redirects
 
 
@@ -16,14 +15,14 @@ def main():
     if inbound is None:
         return f"Please use a phone and text {os.environ.get('TWILIO_PHONE_NUMBER')}. This does not work thru the browser."
 
-    user = query_user_with_number(request.values.get('From'))
+    user = tools.query_user_with_number(request.values.get('From'))
     print("USER: ", user['username'])
-    exchange = query_last_exchange(user)
+    exchange = tools.query_last_exchange(user)
 
     if exchange is None:
         router = InitOnboarding()
     else:
-        router = get_router(exchange['router'])()
+        router = tools.get_router(exchange['router'])()
     print("ROUTER: ", router.name)
 
     parsed_inbound = router.parse(inbound)
@@ -86,10 +85,10 @@ def main():
     next_router.outbound = next_router.outbound.format(**results) # TODO do I want to mutate this?
 
     # insert the next router into db as the next exchange
-    next_exchange = insert_exchange(next_router, user)
+    next_exchange = tools.insert_exchange(next_router, user)
 
     # update current exchange in DB with inbound and next exchange info
-    update_exchange(exchange, next_exchange, parsed_inbound)
+    tools.update_exchange(exchange, next_exchange, parsed_inbound)
 
     # send outbound    
     resp = MessagingResponse()

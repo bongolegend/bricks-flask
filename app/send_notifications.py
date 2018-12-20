@@ -8,9 +8,8 @@ from flask import current_app
 from sqlalchemy import exists, and_
 from app import db
 from app.models import AppUser, Notification, Task
-from app.queries import notify
 from app.routers import ChooseTask, MorningConfirmation, DidYouDoIt
-from app.routers.tools import get_router
+from app.tools import get_router, notify
 
 
 def main():

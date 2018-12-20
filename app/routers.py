@@ -1,6 +1,6 @@
 import sys, inspect
 from app import parsers, conditions
-from app.routers import single_user_actions, team_actions, account_actions, new_user_actions
+from app.actions import single_user_actions, team_actions, account_actions, new_user_actions
 from app.constants import Outbounds, Points
 # from app.routers.base import BaseRouter
 

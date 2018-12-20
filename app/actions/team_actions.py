@@ -2,8 +2,7 @@ from sqlalchemy import func
 from app import db
 from app.models import AppUser, Point, Exchange, Team, TeamMember
 from app.constants import Statuses
-from app.queries import query_user_with_number, query_last_exchange
-from app import queries
+from app import tools
 
 
 def leaderboard(**kwargs):
@@ -67,7 +66,7 @@ def insert_member(user, inbound, init_onboarding_invited, you_were_invited, **kw
         return None
 
     # lookup the phone-number, add if not already a user
-    invited_user = query_user_with_number(phone_number)
+    invited_user = tools.query_user_with_number(phone_number)
     # TODO(Nico) you will need to ask this person for their user name and tz
 
     # insert invitee into db
@@ -84,7 +83,7 @@ def insert_member(user, inbound, init_onboarding_invited, you_were_invited, **kw
     # you need to get the right router
     # you should trigger a new router, but does that
 
-    exchange = query_last_exchange(invited_user)
+    exchange = tools.query_last_exchange(invited_user)
     if exchange is None:
         router = init_onboarding_invited()
     else:
@@ -97,7 +96,7 @@ def insert_member(user, inbound, init_onboarding_invited, you_were_invited, **kw
 
     router.outbound = router.outbound.format(**results)
 
-    queries.notify(invited_user, router)
+    tools.notify(invited_user, router)
 
 
 def query_last_invitation(user, **kwargs):
@@ -131,7 +130,7 @@ def notify_inviter(user, inbound, **kwargs):
     
     outbound = outbound.format(username=user['username'], team_name=team_name)
 
-    queries.notify_(inviter.to_dict(), outbound)
+    tools.notify_(inviter.to_dict(), outbound)
 
 
 def confirm_team_member(user, **kwargs):
