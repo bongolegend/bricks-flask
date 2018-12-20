@@ -3,7 +3,7 @@ import pytz
 from sqlalchemy import func
 from app import db
 from app.models import AppUser, Notification, Point, Task
-from app.actions.team_actions import query_team_members
+from app.actions.team import query_team_members
 
 
 def insert_points(user, value, **kwargs):

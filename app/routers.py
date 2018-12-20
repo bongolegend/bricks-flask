@@ -1,6 +1,6 @@
 import sys, inspect
 from app import parsers, conditions
-from app.actions import single_user_actions, team_actions, account_actions, new_user_actions
+from app.actions import single_user, team, account, new_user
 from app.constants import Outbounds, Points
 # from app.routers.base import BaseRouter
 
@@ -57,7 +57,7 @@ class BaseRouter:
     def insert_points(self, user, **kwargs):
         '''Receive participation points'''
         if self.participation_points > 0:
-            single_user_actions.insert_points(user, self.participation_points)
+            single_user.insert_points(user, self.participation_points)
             return Points.EARNED_MESSAGE.format(points=self.participation_points)
         else:
             return str()
@@ -83,7 +83,7 @@ class Welcome(BaseRouter):
 
 class EnterUsername(BaseRouter):
     outbound = 'Please enter a username that your friends will recognize:'
-    actions = (account_actions.update_username,)
+    actions = (account.update_username,)
     confirmation = "Your username is set."
 
     @classmethod
@@ -154,7 +154,7 @@ class MainMenu(BaseRouter):
 
 class Timezone(BaseRouter):
     outbound = Outbounds.WHAT_TIMEZONE
-    actions = (account_actions.update_timezone,)
+    actions = (account.update_timezone,)
     inbound_format = parsers.MULTIPLE_CHOICE
     confirmation = "Your timezone is set."
 
@@ -178,13 +178,13 @@ class ChooseTask(BaseRouter):
     
     @classmethod
     def run_actions(self, user, exchange, inbound):
-        insert_notif_result = new_user_actions.insert_notifications(
+        insert_notif_result = new_user.insert_notifications(
             user, 
             self, 
             MorningConfirmation, 
             DidYouDoIt)
 
-        insert_task_result = single_user_actions.insert_task_and_notify(
+        insert_task_result = single_user.insert_task_and_notify(
             user, 
             exchange, 
             inbound, 
@@ -193,14 +193,14 @@ class ChooseTask(BaseRouter):
             DidYouDoIt)
         
         return {
-            new_user_actions.insert_notifications.__name__ : insert_notif_result,
-            single_user_actions.insert_task_and_notify.__name__ : insert_task_result}
+            new_user.insert_notifications.__name__ : insert_notif_result,
+            single_user.insert_task_and_notify.__name__ : insert_task_result}
     
     @classmethod
     def insert_points(self, user, **kwargs):
         '''You only get points if you havent already chosen a task for today'''
         if not conditions.task_chosen(user):
-            single_user_actions.insert_points(user, self.participation_points)
+            single_user.insert_points(user, self.participation_points)
             return Points.EARNED_MESSAGE.format(points=self.participation_points)
         else:
             return Points.ALREADY_EARNED_MESSAGE
@@ -208,7 +208,7 @@ class ChooseTask(BaseRouter):
 
 
 class CurrentPoints(BaseRouter):
-    pre_actions = (single_user_actions.query_total_points,)
+    pre_actions = (single_user.query_total_points,)
     outbound = "You currently have +{query_total_points} pt."
 
 
@@ -226,13 +226,13 @@ class ChooseTomorrowTask(BaseRouter):
     
     @classmethod
     def run_actions(self, user, exchange, inbound, **kwargs):
-        insert_notif_result = new_user_actions.insert_notifications(
+        insert_notif_result = new_user.insert_notifications(
             user, 
             ChooseTask, 
             MorningConfirmation, 
             DidYouDoIt)
 
-        insert_result = single_user_actions.insert_task_and_notify(
+        insert_result = single_user.insert_task_and_notify(
             user, 
             exchange, 
             inbound, 
@@ -241,14 +241,14 @@ class ChooseTomorrowTask(BaseRouter):
             DidYouDoIt)
 
         return {
-            new_user_actions.insert_notifications.__name__ : insert_notif_result,
-            single_user_actions.insert_task_and_notify.__name__ : insert_result}
+            new_user.insert_notifications.__name__ : insert_notif_result,
+            single_user.insert_task_and_notify.__name__ : insert_result}
     
     @classmethod
     def insert_points(self, user, **kwargs):
         '''You only get points if you havent already chosen a task for tomorrow'''
         if not conditions.task_chosen(user, tomorrow=True):
-            single_user_actions.insert_points(user, self.participation_points)
+            single_user.insert_points(user, self.participation_points)
             return Points.EARNED_MESSAGE.format(points=self.participation_points)
         else:
             return Points.ALREADY_EARNED_MESSAGE 
@@ -269,16 +269,16 @@ class DidYouDoIt(BaseRouter):
     @classmethod
     def run_actions(self, user, inbound, **kwargs):
         if inbound == 'yes':
-            result = single_user_actions.insert_points(user, Points.TASK_COMPLETED)
+            result = single_user.insert_points(user, Points.TASK_COMPLETED)
         else:
             result = 0
-        return {single_user_actions.insert_points.__name__ : result}
+        return {single_user.insert_points.__name__ : result}
 
 
 # TODO combine this with the one below it
 # TODO rename this to congrats
 class CompletionPoint(BaseRouter):
-    pre_actions = (single_user_actions.query_total_points,)
+    pre_actions = (single_user.query_total_points,)
     outbound = "Congrats! You earned +%s points. You now have {query_total_points} points. Do you want to choose tomorrow's task now? (y/n)" % Points.TASK_COMPLETED
     inbound_format = parsers.YES_NO
     participation_points = Points.CHOOSE_TASK
@@ -292,7 +292,7 @@ class CompletionPoint(BaseRouter):
 
 
 class NoCompletion(BaseRouter):
-    pre_actions = (single_user_actions.query_total_points,)
+    pre_actions = (single_user.query_total_points,)
     outbound = "All good. Just make tomorrow count. You currently have {query_total_points} points. Do you want to choose tomorrow's task now? (y/n)"
     inbound_format = parsers.YES_NO
     participation_points = Points.CHOOSE_TASK
@@ -323,19 +323,19 @@ class MorningConfirmation(BaseRouter):
     
     @classmethod
     def run_pre_actions(self, user, **kwargs):
-        query_task_result = single_user_actions.query_latest_task(user, ChooseTask, ChooseTomorrowTask)
+        query_task_result = single_user.query_latest_task(user, ChooseTask, ChooseTomorrowTask)
 
-        return {single_user_actions.query_latest_task.__name__ : query_task_result}
+        return {single_user.query_latest_task.__name__ : query_task_result}
 
 
 class Leaderboard(BaseRouter):
-    pre_actions = (team_actions.leaderboard,)
+    pre_actions = (team.leaderboard,)
     outbound = "{leaderboard}"
     
 
 class CreateTeam(BaseRouter):
     outbound = "What do you want to name your team?"
-    actions = (team_actions.insert_team,)
+    actions = (team.insert_team,)
     confirmation = "Team created."
 
     @classmethod
@@ -344,22 +344,22 @@ class CreateTeam(BaseRouter):
 
 
 class AddMember(BaseRouter):
-    pre_actions = (team_actions.list_teams,)
+    pre_actions = (team.list_teams,)
     outbound = """Your teams:\n{list_teams}\n To invite a friend, enter the team number and your friend's phone number, separated by a comma. Type 'menu' to go back."""
     inbound_format = parsers.ADD_MEMBER
     confirmation = "Sent an invitation to your friend. I'll let you know when they respond."
 
     @classmethod
     def run_actions(self, user, inbound, **kwargs):
-        result = team_actions.insert_member(user, inbound, InitOnboardingInvited, YouWereInvited)
-        return {team_actions.insert_member.__name__ : result}
+        result = team.insert_member(user, inbound, InitOnboardingInvited, YouWereInvited)
+        return {team.insert_member.__name__ : result}
 
 
 class InitOnboardingInvited(BaseRouter):
-    pre_actions = (team_actions.query_last_invitation,)
+    pre_actions = (team.query_last_invitation,)
     outbound = "Hey! Your friend {query_last_invitation[0]} invited you to join their team {query_last_invitation[1]}, on the Bricks app. Do you want to accept? (y/n)"
     inbound_format = parsers.YES_NO
-    actions = (team_actions.confirm_team_member, team_actions.notify_inviter)
+    actions = (team.confirm_team_member, team.notify_inviter)
 
     @classmethod
     def next_router(self, inbound, **kwargs):
@@ -370,18 +370,18 @@ class InitOnboardingInvited(BaseRouter):
     
     @classmethod
     def run_actions(self, user, inbound, **kwargs):
-        confirm_result = team_actions.confirm_team_member(user)
-        notify_result = team_actions.notify_inviter(user, inbound)
+        confirm_result = team.confirm_team_member(user)
+        notify_result = team.notify_inviter(user, inbound)
         
-        return {team_actions.confirm_team_member.__name__ : confirm_result,
-            team_actions.notify_inviter.__name__ : notify_result}
+        return {team.confirm_team_member.__name__ : confirm_result,
+            team.notify_inviter.__name__ : notify_result}
 
 
 class YouWereInvited(BaseRouter):
-    pre_actions = (team_actions.query_last_invitation,)
+    pre_actions = (team.query_last_invitation,)
     outbound = "Hey! Your friend {query_last_invitation[0]} invited you to join their team {query_last_invitation[1]}. Do you want to accept? (y/n)"
     inbound_format = parsers.YES_NO
-    actions = (team_actions.confirm_team_member, team_actions.notify_inviter)
+    actions = (team.confirm_team_member, team.notify_inviter)
 
     # @classmethod
     # def next_router(self, inbound, **kwargs):
@@ -392,13 +392,13 @@ class YouWereInvited(BaseRouter):
 
     @classmethod
     def run_actions(self, user, inbound, **kwargs):
-        confirm_result = team_actions.confirm_team_member(user)
-        notify_result = team_actions.notify_inviter(user, inbound)
+        confirm_result = team.confirm_team_member(user)
+        notify_result = team.notify_inviter(user, inbound)
         
-        return {team_actions.confirm_team_member.__name__ : confirm_result,
-            team_actions.notify_inviter.__name__ : notify_result}
+        return {team.confirm_team_member.__name__ : confirm_result,
+            team.notify_inviter.__name__ : notify_result}
 
 
 # class IntroToTeam(Router):
-#     pre_actions = (team_actions.intro_to_team,)
+#     pre_actions = (team.intro_to_team,)
 #     outbound = "Current team members:\n{intro_to_team}\n I will notify you of the tasks they choose tomorrow"
