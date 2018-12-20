@@ -1,6 +1,6 @@
 import phonenumbers as phone
 from app.models import Team
-
+from app.constants import Redirects
 
 ANY = '*'
 
@@ -48,7 +48,11 @@ def parse_add_member(inbound):
     '''
     Take inbound as a string "123, 123-456-7890" and return Tuple(int(123), int(1234567890)).
     This can handle many phone number formats.
+    If inbound == 'menu', return to menu
     '''
+
+    if inbound.lower() == 'menu':
+        return Redirects.MAIN_MENU
 
     parts = inbound.split(',')
     if len(parts) != 2:
