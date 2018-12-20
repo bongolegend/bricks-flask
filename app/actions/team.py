@@ -96,7 +96,10 @@ def insert_member(user, inbound, init_onboarding_invited, you_were_invited, **kw
 
     router.outbound = router.outbound.format(**results)
 
-    tools.notify(invited_user, router)
+    tools.send_message(invited_user, router.outbound)
+
+    # record the fact that this invitation was sent to a user
+    tools.insert_exchange(router, invited_user)
 
 
 def query_last_invitation(user, **kwargs):
@@ -130,7 +133,7 @@ def notify_inviter(user, inbound, **kwargs):
     
     outbound = outbound.format(username=user['username'], team_name=team_name)
 
-    tools.notify_(inviter.to_dict(), outbound)
+    tools.send_message(inviter.to_dict(), outbound)
 
 
 def confirm_team_member(user, **kwargs):

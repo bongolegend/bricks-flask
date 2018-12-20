@@ -4,6 +4,7 @@ from sqlalchemy import func
 from app import db
 from app.models import AppUser, Notification, Point, Task
 from app.actions.team import query_team_members
+from app.tools import send_message
 
 
 def insert_points(user, value, **kwargs):
@@ -86,4 +87,4 @@ def insert_task_and_notify(user, exchange, inbound, choose_task, choose_tomorrow
     team_members = query_team_members(user)
     for team_member in team_members:
         outbound = f"Your friend {user['username']} is gonna do this: {inbound}."
-        queries.notify_(team_member.to_dict(), outbound)
+        send_message(team_member.to_dict(), outbound)

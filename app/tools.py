@@ -93,27 +93,7 @@ def update_exchange(current_exchange, next_exchange, inbound, **kwargs):
         return None
 
 
-# TODO(Nico) what's the diff btwn notif and router aside from time?
-def notify(user, router):
-    '''send outbound to user with twilio'''
-
-    account_sid = current_app.config['TWILIO_ACCOUNT_SID']
-    auth_token = current_app.config['TWILIO_AUTH_TOKEN']
-    from_number = current_app.config['TWILIO_PHONE_NUMBER']
-
-    client = Client(account_sid, auth_token)
-
-    message = client.messages.create(from_=from_number,
-        to=user['phone_number'],
-        body=router.outbound)
-    
-    insert_exchange(router, user)
-
-    return message
-
-
-# TODO(Nico) replace the older method with this version
-def notify_(user, outbound):
+def send_message(user, outbound):
     '''send outbound to user with twilio'''
 
     account_sid = current_app.config['TWILIO_ACCOUNT_SID']

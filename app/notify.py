@@ -9,7 +9,7 @@ from sqlalchemy import exists, and_
 from app import db
 from app.models import AppUser, Notification, Task
 from app.routers import ChooseTask, MorningConfirmation, DidYouDoIt
-from app.tools import get_router, notify
+from app.tools import get_router, send_message, insert_exchange
 
 
 def main():
@@ -90,7 +90,8 @@ def main():
 
             results = router.run_pre_actions(user=user, exchange=None)
             router.outbound = router.outbound.format(**results)
-            message = notify(user, router)
+            message = send_message(user, router.outbound)
+            insert_exchange(router, user)
             messages.append(message.body)
             counter += 1
     
