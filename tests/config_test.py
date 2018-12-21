@@ -1,5 +1,6 @@
 import unittest
 from app import create_app, db 
+from app import models
 
 
 def clean_db(db):
@@ -36,5 +37,14 @@ class BaseTestCase(unittest.TestCase):
     def tearDown(self):
         self.db.session.rollback()
         self.app_context.pop()
+        
+        # TODO(Nico) figure out how to clear the db, as rolling back the session doesn't work if your code
+        models.Point.query.delete()
+        models.Task.query.delete()
+        models.TeamMember.query.delete()
+        models.Team.query.delete()
+        models.Notification.query.delete()
+        models.Exchange.query.delete()
+        models.AppUser.query.delete()
 
         super(BaseTestCase, self).tearDown()

@@ -9,7 +9,7 @@ d) ET
 """
 
     MAIN_MENU = """MAIN MENU
-{get_username}: +{get_total_points}pts
+{get_username}: {get_total_points}pts
 What do you want to do?
 a) choose a task
 b) invite a friend

@@ -137,7 +137,7 @@ def notify_inviter(user, membership, **kwargs):
     elif membership.status == Statuses.PENDING: 
         return None
     
-    outbound = outbound.format(username=user['phone_number'], team_name=team_name)
+    outbound = outbound.format(phone_number=user['phone_number'], team_name=team_name)
 
     tools.send_message(inviter.to_dict(), outbound)
 

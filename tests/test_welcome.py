@@ -1,3 +1,4 @@
+'''separate test for Welcome since it doesn't work with the all_routers setUp (the notif)'''
 """Module to test routers"""
 import datetime as dt
 import os
@@ -5,21 +6,18 @@ import unittest
 from tests.config_test import BaseTestCase
 from app.models import AppUser, Exchange, Task, Team, TeamMember, Notification, Point
 from app import models
-from app.routers import DidYouDoIt, Welcome, InitOnboardingInvited
+from app.routers import DidYouDoIt, Welcome
 from app.constants import US_TIMEZONES, Statuses
 from app import parsers
 from app.get_router import get_router
 
 
-class TestAllRouters(BaseTestCase):
+class TestWelcome(BaseTestCase):
     inviter_number = os.environ.get('TEST_FROM_NUMBER')
 
     @classmethod
     def get_routers(self):
-        routers = get_router()
-        routers.pop(Welcome.__name__)
-        routers.pop(InitOnboardingInvited.__name__)
-        return routers
+        return {Welcome.__name__: Welcome}
 
     def setUp(self):
         super().setUp()
@@ -31,17 +29,6 @@ class TestAllRouters(BaseTestCase):
 
         self.db.session.add(self.mitch)
         # self.db.session.add(self.blair)
-
-        # add a notif
-        self.notif = Notification(
-            router = DidYouDoIt.__name__,
-            body = DidYouDoIt.outbound,
-            hour = 21,
-            minute = 0,
-            active = True,
-            user = self.mitch)
-        
-        self.db.session.add(self.notif)
 
         # add exchange
         self.exchange = Exchange(
@@ -82,4 +69,3 @@ class TestAllRouters(BaseTestCase):
             status = Statuses.PENDING)
         
         self.db.session.add(self.mitch_member)
-    
