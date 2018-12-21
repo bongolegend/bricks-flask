@@ -83,3 +83,6 @@ def insert_task(user, exchange, inbound, choose_task, choose_tomorrow_task, did_
     db.session.commit()
 
 
+def get_username(user, **kwargs):
+    '''Get the username for this user'''
+    return user['username']

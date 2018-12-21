@@ -72,7 +72,7 @@ class InitOnboarding(BaseRouter):
 
 
 class Welcome(BaseRouter):
-    outbound = "Hey! Welcome to Bricks, a tool that helps you get stuff done. Would you like to create an profile? (y/n)"
+    outbound = "Hey! Welcome to Bricks, a tool that helps you get stuff done. Would you like to create a profile? (y/n)"
     inbound_format = parsers.YES_NO
 
     @classmethod
@@ -96,18 +96,29 @@ class Welcome(BaseRouter):
 
 
 class EnterUsername(BaseRouter):
-    outbound = 'Please enter a username that your friends will recognize:'
+    outbound = 'Please enter a username, preferably one that your friends will recognize:'
     actions = (profile.update_username,)
     confirmation = "Your username is set."
 
     @classmethod
-    def next_router(self, **kwargs):
-        return HowItWorks
+    def next_router(self, user, **kwargs):
+        if conditions.timezone_set(user):
+            return MainMenu
+        else:
+            return HowItWorks
 
 
 class Goodbye(BaseRouter):
-    outbound = "Sorry to hear that. Goodbye."
+    outbound = "Sorry to hear that. Why don't you want to use this app?"
     
+    @classmethod
+    def next_router(self, **kwargs):
+        return ThanksForFeedback
+
+
+class ThanksForFeedback(BaseRouter):
+    outbound = "Thanks for your feedback!"
+
     @classmethod
     def next_router(self, **kwargs):
         return Welcome
@@ -129,7 +140,7 @@ class HowItWorks(BaseRouter):
 
 
 class ContactSupport(BaseRouter):
-    outbound =  "Text me at 3124505311 and I'll walk you through it. Type anything to continue."
+    outbound =  "Text the developer at 3124505311 and I'll walk you through it. Type anything to continue."
 
     @classmethod
     def next_router(self, user, **kwargs):
@@ -140,6 +151,7 @@ class ContactSupport(BaseRouter):
 
 
 class MainMenu(BaseRouter):
+    pre_actions = (solo.get_username, solo.get_total_points)
     outbound = Outbounds.MAIN_MENU
     inbound_format = parsers.MAIN_MENU
 
@@ -151,20 +163,32 @@ class MainMenu(BaseRouter):
             else:
                 return ChooseTask
         elif inbound == 'b':
-            return Timezone
-        elif inbound == 'c':
-            return HowItWorks
-        elif inbound == 'd':
-            return CurrentPoints
-        elif inbound == 'e':
-            return Leaderboard
-        elif inbound == 'f':
-            return CreateTeam
-        elif inbound == 'g':
             if conditions.is_member_of_team(user):
                 return AddMember
             else:
                 return CreateTeam
+        elif inbound == 'c':
+            return CreateTeam            
+        elif inbound == 'd':
+            return Leaderboard
+        elif inbound == 'e':
+            return ProfileMenu
+
+
+class ProfileMenu(BaseRouter):
+    outbound = Outbounds.PROFILE_MENU
+    inbound_format = parsers.MULTIPLE_CHOICE
+
+    @classmethod
+    def next_router(self, inbound, user, **kwargs):
+        if inbound == 'a':
+            return Timezone
+        elif inbound == 'b':
+            return EnterUsername
+        elif inbound == 'c':
+            return HowItWorks
+        elif inbound == 'd':
+            return MainMenu
 
 
 class Timezone(BaseRouter):

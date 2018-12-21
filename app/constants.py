@@ -8,17 +8,24 @@ c) CT
 d) ET
 """
 
-    MAIN_MENU = """What do you want to do?
+    MAIN_MENU = """MAIN MENU
+{get_username}: +{get_total_points}pts
+What do you want to do?
 a) choose a task
-b) change timezone
-c) help
-d) my points
-e) leaderboard
-f) create a team
-g) invite a friend to team
+b) invite a friend
+c) create a team
+d) view leaderboard
+e) PROFILE MENU
 """
 
     RETRY = "Your response is not valid, try again.\n"
+
+    PROFILE_MENU = """PROFILE MENU
+What do you want to do?
+a) change timezone
+b) change username
+c) help
+d) MAIN MENU"""
 
 
 class Points:
