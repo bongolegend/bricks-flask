@@ -5,7 +5,7 @@ import unittest
 from tests.config_test import BaseTestCase
 from app.models import AppUser, Exchange, Task, Team, TeamMember, Notification, Point
 from app import models
-from app.routers import DidYouDoIt
+from app.routers import DidYouDoIt, Welcome
 from app.constants import US_TIMEZONES, Statuses
 from app import parsers
 
@@ -46,15 +46,15 @@ class TestAllRouters(BaseTestCase):
         # self.db.session.add(self.blair)
 
         # add a notif
-        # self.notif = Notification(
-        #     router = DidYouDoIt.__name__,
-        #     body = DidYouDoIt.outbound,
-        #     hour = 21,
-        #     minute = 0,
-        #     active = True,
-        #     user = self.mitch)
+        self.notif = Notification(
+            router = DidYouDoIt.__name__,
+            body = DidYouDoIt.outbound,
+            hour = 21,
+            minute = 0,
+            active = True,
+            user = self.mitch)
         
-        # self.db.session.add(self.notif)
+        self.db.session.add(self.notif)
 
         # add exchange
         self.exchange = Exchange(
@@ -114,3 +114,11 @@ class TestAllRouters(BaseTestCase):
         models.Notification.query.delete()
         models.Exchange.query.delete()
         models.AppUser.query.delete()
+    
+
+    def test_Welcome(self):
+        '''separate test for Welcome since it doesn't work with setUp (the notif)'''
+        self.db.session.expunge(self.notif)
+
+        for inbound in Welcome.inbound_format:
+            generator(Welcome, inbound)(self)

@@ -74,6 +74,18 @@ class Welcome(BaseRouter):
     inbound_format = parsers.YES_NO
 
     @classmethod
+    def run_actions(self, user, inbound, **kwargs):
+        if inbound == 'yes':
+            insert_notif_result = new_user.insert_notifications(
+                user, 
+                self, 
+                MorningConfirmation, 
+                DidYouDoIt)
+            return {new_user.insert_notifications.__name__ : insert_notif_result}
+        else:
+            return dict()
+
+    @classmethod
     def next_router(self, inbound, **kwargs):
         if inbound == 'yes':
             return EnterUsername
@@ -89,6 +101,7 @@ class EnterUsername(BaseRouter):
     @classmethod
     def next_router(self, **kwargs):
         return HowItWorks
+
 
 class Goodbye(BaseRouter):
     outbound = "Sorry to hear that. Goodbye."
@@ -178,12 +191,6 @@ class ChooseTask(BaseRouter):
     
     @classmethod
     def run_actions(self, user, exchange, inbound):
-        insert_notif_result = new_user.insert_notifications(
-            user, 
-            self, 
-            MorningConfirmation, 
-            DidYouDoIt)
-
         insert_task_result = single_user.insert_task(
             user, 
             exchange, 
@@ -195,7 +202,6 @@ class ChooseTask(BaseRouter):
         notify_teammembers_result = team.notify_team_members(user, inbound)
         
         return {
-            new_user.insert_notifications.__name__ : insert_notif_result,
             single_user.insert_task.__name__ : insert_task_result,
             team.notify_team_members.__name__ : notify_teammembers_result}
     
@@ -229,12 +235,6 @@ class ChooseTomorrowTask(BaseRouter):
     
     @classmethod
     def run_actions(self, user, exchange, inbound, **kwargs):
-        insert_notif_result = new_user.insert_notifications(
-            user, 
-            ChooseTask, 
-            MorningConfirmation, 
-            DidYouDoIt)
-
         insert_result = single_user.insert_task(
             user, 
             exchange, 
@@ -246,7 +246,6 @@ class ChooseTomorrowTask(BaseRouter):
         notify_teammembers_result = team.notify_team_members(user, inbound)
 
         return {
-            new_user.insert_notifications.__name__ : insert_notif_result,
             single_user.insert_task.__name__ : insert_result,
             team.notify_team_members.__name__ : notify_teammembers_result}
     
