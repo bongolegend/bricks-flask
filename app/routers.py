@@ -92,7 +92,7 @@ class Welcome(BaseRouter):
         if inbound == 'yes':
             return EnterUsername
         else:
-            return Goodbye
+            return GoodbyeFeedback
 
 
 class EnterUsername(BaseRouter):
@@ -108,7 +108,7 @@ class EnterUsername(BaseRouter):
             return HowItWorks
 
 
-class Goodbye(BaseRouter):
+class GoodbyeFeedback(BaseRouter):
     outbound = "Sorry to hear that. Why don't you want to use this app?"
     
     @classmethod
@@ -135,6 +135,8 @@ class HowItWorks(BaseRouter):
         elif inbound == 'yes':
             if conditions.timezone_set(user):
                 return MainMenu
+            elif conditions.is_new_user(user):
+                return InitOnboardingInvited
             else:
                 return Timezone
 
@@ -146,6 +148,8 @@ class ContactSupport(BaseRouter):
     def next_router(self, user, **kwargs):
         if conditions.timezone_set(user):
             return MainMenu
+        elif conditions.is_new_user(user):
+            return InitOnboardingInvited
         else:
             return Timezone
 
@@ -208,7 +212,7 @@ class Timezone(BaseRouter):
 
 
 class ChooseTask(BaseRouter):
-    outbound = "What's the most important thing you want to get done today?"
+    outbound = "What's your top task for today?"
     participation_points = Points.CHOOSE_TASK
  
     @classmethod   
@@ -246,7 +250,7 @@ class StateNightFollowup(BaseRouter):
 
 
 class ChooseTomorrowTask(BaseRouter):
-    outbound = "What's the most important thing you want to get done tomorrow?"
+    outbound = "What's your top task for tomorrow?"
     participation_points = Points.CHOOSE_TASK
 
     @classmethod
@@ -317,7 +321,7 @@ class CompletionPoint(BaseRouter):
 
 class NoCompletion(BaseRouter):
     pre_actions = (solo.get_total_points,)
-    outbound = "All good. Just make tomorrow count. You currently have {get_total_points} points. Do you want to choose tomorrow's task now? (y/n)"
+    outbound = "All good, just make tomorrow count. You currently have {get_total_points} points. Do you want to choose tomorrow's task now? (y/n)"
     inbound_format = parsers.YES_NO
     participation_points = Points.CHOOSE_TASK
 
@@ -360,7 +364,7 @@ class Leaderboard(BaseRouter):
     
 
 class CreateTeam(BaseRouter):
-    outbound = "What do you want to name your team?"
+    outbound = "Enter a name for a new team:"
     actions = (multiplayer.insert_team,)
     confirmation = "Team created."
 
@@ -371,27 +375,38 @@ class CreateTeam(BaseRouter):
 
 class AddMember(BaseRouter):
     pre_actions = (multiplayer.list_teams,)
-    outbound = """Your teams:\n{list_teams}\n To invite a friend, enter the team number and your friend's phone number, separated by a comma. Type 'menu' to go back."""
+    outbound = """Your teams:\n{list_teams}\n  Invite a friend by entering the team number and your friend's phone number, separated by a comma. (Type 'menu' to go back)"""
     inbound_format = parsers.ADD_MEMBER
-    confirmation = "Sent an invitation to your friend. I'll let you know when they respond."
 
     @classmethod
     def run_actions(self, user, inbound, **kwargs):
         result = multiplayer.insert_member(user, inbound, InitOnboardingInvited, YouWereInvited)
         return {multiplayer.insert_member.__name__ : result}
+    
+    @classmethod
+    def next_router(self, **kwargs):
+        return AddMemberConfirmed
+
+
+class AddMemberConfirmed(BaseRouter):
+    outbound = "Sent an invitation to your friend. I'll let you know when they respond."
 
 
 class InitOnboardingInvited(BaseRouter):
     pre_actions = (multiplayer.get_last_invitation,)
-    outbound = "Hey! Your friend {get_last_invitation[0]} invited you to join their team {get_last_invitation[1]}, on the Bricks app. Do you want to accept? (y/n)"
-    inbound_format = parsers.YES_NO
+    outbound = Outbounds.INIT_ONBOARDING_INVITATION
+    inbound_format = parsers.MULTIPLE_CHOICE
 
     @classmethod
     def next_router(self, inbound, **kwargs):
-        if inbound == 'yes':
+        if inbound == 'a':
             return EnterUsername
-        else:
-            return Goodbye
+        elif inbound == 'b':
+            return GoodbyeFeedback
+        elif inbound == 'c':
+            return HowItWorks
+        elif inbound == 'd':
+            return WhoIsUsername
     
     @classmethod
     def run_actions(self, user, inbound, **kwargs):
@@ -402,9 +417,22 @@ class InitOnboardingInvited(BaseRouter):
             multiplayer.notify_inviter.__name__ : notify_result}
 
 
+class WhoIsUsername(BaseRouter):
+    pre_actions = (multiplayer.get_phonenumber,)
+    outbound = "Your friend's number is {get_phonenumber}. Hope that helps you identify them. Go back to invitation? (y/n)"
+    inbound_format = parsers.YES_NO
+
+    @classmethod
+    def next_router(self, inbound, **kwargs):
+        if inbound == 'yes':
+            return InitOnboardingInvited
+        else:
+            return GoodbyeFeedback
+
+
 class YouWereInvited(BaseRouter):
     pre_actions = (multiplayer.get_last_invitation,)
-    outbound = "Hey! Your friend {get_last_invitation[0]} invited you to join their multiplayer {get_last_invitation[1]}. Do you want to accept? (y/n)"
+    outbound = "Hey! Your friend {get_last_invitation[0]} invited you to join their team {get_last_invitation[1]}. Do you want to accept? (y/n)"
     inbound_format = parsers.YES_NO
 
     # @classmethod

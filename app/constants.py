@@ -27,6 +27,14 @@ b) change username
 c) help
 d) MAIN MENU"""
 
+    INIT_ONBOARDING_INVITATION = """
+Hey! Your friend {get_last_invitation[0]} invited you to join their team {get_last_invitation[1]}, on the Bricks app. 
+a) Accept
+b) Decline
+c) What is this?
+d) Who is {get_last_invitation[0]}?
+"""
+
 
 class Points:
     DEFAULT = 0
@@ -54,3 +62,7 @@ US_TIMEZONES = {
 
 class Redirects:
     MAIN_MENU = 'main_menu'
+
+
+class Reserved:
+    NEW_USER = 'NEW_USER'

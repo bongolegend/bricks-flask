@@ -3,7 +3,7 @@ from sqlalchemy import func, UniqueConstraint
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.dialects import postgresql
 from app import db
-
+from app.constants import Reserved
 
 class Base:
     id = db.Column(db.Integer, primary_key=True)
@@ -14,7 +14,7 @@ Base = declarative_base(cls=Base)
 
 
 class AppUser(db.Model, Base):
-    username = db.Column(db.String(64), default='NEW_USER')
+    username = db.Column(db.String(64), default=Reserved.NEW_USER)
     phone_number = db.Column(db.String(32), unique=True, nullable=False)
     timezone = db.Column(db.String(32))
 

@@ -106,14 +106,14 @@ def insert_member(user, inbound, init_onboarding_invited, you_were_invited, **kw
 
 def get_last_invitation(user, **kwargs):
     '''find the most recent invitation for user'''
-    inviter, team = db.session.query(AppUser.username, Team.name)\
+    inviter_username, inviter_phone_number, team_name = db.session.query(AppUser.username, AppUser.phone_number, Team.name)\
         .join(TeamMember.invited_by, TeamMember.team)\
         .filter(
             TeamMember.user_id == user['id'],
             TeamMember.status == Statuses.PENDING)\
         .order_by(TeamMember.created.desc()).first()
 
-    return inviter, team
+    return inviter_username, team_name, inviter_phone_number
 
 # TODO(Nico) create this 
 def intro_to_team(**kwargs):
@@ -131,13 +131,13 @@ def notify_inviter(user, membership, **kwargs):
         .order_by(TeamMember.updated.desc()).first()
 
     if membership.status == Statuses.CONFIRMED:    
-        outbound = "Your friend {username} just accepted your invitation to {team_name}."
+        outbound = "Your friend @{phone_number} just accepted your invitation to {team_name}."
     elif membership.status == Statuses.REJECTED:
-        outbound = "Your friend {username} did not accept your invitation to {team_name}."
-    else:
-        raise NotImplementedError
+        outbound = "Your friend @{phone_number} did not accept your invitation to {team_name}."
+    elif membership.status == Statuses.PENDING: 
+        return None
     
-    outbound = outbound.format(username=user['username'], team_name=team_name)
+    outbound = outbound.format(username=user['phone_number'], team_name=team_name)
 
     tools.send_message(inviter.to_dict(), outbound)
 
@@ -149,12 +149,14 @@ def respond_to_invite(user, inbound, **kwargs):
         TeamMember.status == Statuses.PENDING)\
         .order_by(TeamMember.created.desc()).first()
     
-    if inbound == 'yes':
+    if inbound == 'a':
         membership.status = Statuses.CONFIRMED
-        print("INVITATION CONFIRMED: ", user['username'])
-    else:
+        print("INVITATION CONFIRMED: ", user['phone_number'])
+    elif inbound == 'b':
         membership.status = Statuses.REJECTED
-        print("INVITATION REJECTED BY: ", user['username'])
+        print("INVITATION REJECTED BY: ", user['phone_number'])
+    else:
+        print('INVITEE IS TRYING TO UNDERSTAND INVITATION.')
     db.session.commit()
 
     return membership
@@ -180,3 +182,9 @@ def notify_team_members(user, inbound):
     for team_member in team_members:
         outbound = f"Your friend {user['username']} is gonna do this: {inbound}."
         tools.send_message(team_member.to_dict(), outbound)
+
+
+def get_phonenumber(user, **kwargs):
+    inviter_username, team_name, inviter_phone_number = get_last_invitation(user)
+
+    return inviter_phone_number

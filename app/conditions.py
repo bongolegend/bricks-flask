@@ -3,7 +3,7 @@ import datetime as dt
 import pytz
 from app import db
 from app.models import Task, AppUser, Team, TeamMember
-
+from app.constants import Reserved
 
 def task_chosen(user, tomorrow=False, **kwargs):
     '''check if user has a task due later than now'''
@@ -46,6 +46,14 @@ def is_member_of_team(user, **kwargs):
     teams = db.session.query(Team).join(TeamMember).filter(TeamMember.user_id == user['id']).all()
 
     if teams:
+        return True
+    else:
+        return False
+
+
+def is_new_user(user, **kwargs):
+    '''Check if the user has accepted their invitation yet, by having set a new username'''
+    if user['username'] == Reserved.NEW_USER:
         return True
     else:
         return False
