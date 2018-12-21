@@ -1,7 +1,7 @@
 from sqlalchemy import func
 from app import db
 from app.models import AppUser, Point, Exchange, Team, TeamMember
-from app.constants import Statuses
+from app.constants import Statuses, Reserved
 from app import tools
 
 
@@ -86,7 +86,7 @@ def insert_member(user, inbound, init_onboarding_invited, you_were_invited, **kw
     # you should trigger a new router, but does that
 
     exchange = tools.query_last_exchange(invited_user)
-    if exchange is None:
+    if exchange is None or invited_user.username == Reserved.NEW_USER:
         router = init_onboarding_invited()
     else:
         router = you_were_invited()
