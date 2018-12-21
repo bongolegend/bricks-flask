@@ -239,12 +239,6 @@ class ChooseTask(BaseRouter):
             return Points.EARNED_MESSAGE.format(points=self.participation_points)
         else:
             return Points.ALREADY_EARNED_MESSAGE
-        
-
-
-class CurrentPoints(BaseRouter):
-    pre_actions = (solo.get_total_points,)
-    outbound = "You currently have +{get_total_points} pt."
 
 
 class StateNightFollowup(BaseRouter):
@@ -286,9 +280,8 @@ class ChooseTomorrowTask(BaseRouter):
 
 
 class DidYouDoIt(BaseRouter):
-    outbound = 'Did you stack your brick today? (y/n)'
+    outbound = 'Did you do your task today? (y/n)'
     inbound_format = parsers.YES_NO
-    # participation_points = Points.DID_YOU_DO_IT
 
     @classmethod
     def next_router(self, inbound, **kwargs):
@@ -337,6 +330,8 @@ class NoCompletion(BaseRouter):
 
 
 class StateMorningFollowup(BaseRouter):
+    # TODO(Nico) when you add feature for changing morning message, add this pre_action
+    # pre_actions = (solo.get_morning_confirmation_time,)
     outbound =  "Great. I'll message you tomorrow at 8 am to remind you of your task."
 
 
