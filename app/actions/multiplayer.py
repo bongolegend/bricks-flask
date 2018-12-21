@@ -144,10 +144,18 @@ def notify_inviter(user, membership, **kwargs):
 
 def respond_to_invite(user, inbound, **kwargs):
     '''look up which membership was just accepted, and set it to confirmed'''
+
+    # find all memberships
+    members = TeamMember.query.all()
+    for member in members:
+        print("member:", member.to_dict())
+
     membership = db.session.query(TeamMember).filter(
         TeamMember.user_id == user['id'],
         TeamMember.status == Statuses.PENDING)\
         .order_by(TeamMember.created.desc()).first()
+
+    assert membership is not None
     
     if inbound == 'a':
         membership.status = Statuses.CONFIRMED

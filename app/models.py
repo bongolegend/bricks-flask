@@ -138,6 +138,13 @@ class TeamMember(db.Model, Base):
     team = db.relationship('Team', backref=db.backref('members', lazy=True))
     invited_by = db.relationship('AppUser', foreign_keys=[invited_by_id], backref=db.backref('invited', lazy=True))
 
+    def to_dict(self):
+        return dict(
+            user_id = self.user_id,
+            team_id = self.team_id,
+            invited_by_id = self.invited_by_id,
+            status = self.status)
+
 
     def __repr__(self):
         return f"<TeamMember {self.user} team={self.team} >"
