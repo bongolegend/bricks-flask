@@ -33,7 +33,6 @@ def get_latest_task(user, choose_task, choose_tomorrow_task, **kwargs):
     return task.description
 
 
-# TODO(Nico) split this into two funcs
 def insert_task(user, exchange, inbound, choose_task, choose_tomorrow_task, did_you_do_it, **kwargs):
     '''
     insert task based on input, and set all other tasks with the same due date to inactive.
