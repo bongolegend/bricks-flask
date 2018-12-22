@@ -38,7 +38,7 @@ class TestInitOnboardingInvited(BaseTestCase):
             user=self.inviter,
             team=self.team,
             invited_by=self.inviter,
-            status=Statuses.CONFIRMED)
+            status=Statuses.ACTIVE)
         
         self.invitee_member = TeamMember(
             user=self.mitch,

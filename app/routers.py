@@ -174,8 +174,10 @@ class MainMenu(BaseRouter):
         elif inbound == 'c':
             return CreateTeam            
         elif inbound == 'd':
-            return Leaderboard
+            return ViewTeamMembers
         elif inbound == 'e':
+            return Leaderboard
+        elif inbound == 'f':
             return ProfileMenu
 
 
@@ -454,3 +456,8 @@ class YouWereInvited(BaseRouter):
 # class IntroToTeam(Router):
 #     pre_actions = (multiplayer.intro_to_team,)
 #     outbound = "Current multiplayer members:\n{intro_to_team}\n I will notify you of the tasks they choose tomorrow"
+
+
+class ViewTeamMembers(BaseRouter):
+    pre_actions = (multiplayer.view_team_members,)
+    outbound = "{view_team_members}"

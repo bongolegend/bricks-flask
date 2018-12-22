@@ -130,7 +130,7 @@ def notify_inviter(user, membership, **kwargs):
             TeamMember.team_id == membership.team_id)\
         .order_by(TeamMember.updated.desc()).first()
 
-    if membership.status == Statuses.CONFIRMED:    
+    if membership.status == Statuses.ACTIVE:    
         outbound = "Your friend @{phone_number} just accepted your invitation to {team_name}."
     elif membership.status == Statuses.REJECTED:
         outbound = "Your friend @{phone_number} did not accept your invitation to {team_name}."
@@ -152,7 +152,7 @@ def respond_to_invite(user, inbound, **kwargs):
     assert membership is not None
     
     if inbound == 'a':
-        membership.status = Statuses.CONFIRMED
+        membership.status = Statuses.ACTIVE
         print("INVITATION CONFIRMED: ", user['phone_number'])
     elif inbound == 'b':
         membership.status = Statuses.REJECTED
@@ -169,10 +169,11 @@ def get_team_members(user):
     team_ids = db.session.query(Team.id).join(TeamMember)\
                 .filter(TeamMember.user_id == user['id'])
 
-    team_members = db.session.query(AppUser).join(TeamMember.user)\
+    team_members = db.session.query(AppUser, Team).join(TeamMember.user, TeamMember.team)\
         .filter(
             TeamMember.team_id.in_(team_ids),
-            TeamMember.user_id != user['id']).all()
+            TeamMember.user_id != user['id'],
+            TeamMember.status == Statuses.ACTIVE).all()
 
     return team_members
 
@@ -181,7 +182,7 @@ def notify_team_members(user, inbound):
     '''Send message to teammembers that user is doing inbound'''
 
     team_members = get_team_members(user)
-    for team_member in team_members:
+    for team_member, team in team_members:
         outbound = f"Your friend {user['username']} is gonna do this: {inbound}."
         tools.send_message(team_member.to_dict(), outbound)
 
@@ -190,3 +191,20 @@ def get_phonenumber(user, **kwargs):
     inviter_username, team_name, inviter_phone_number = get_last_invitation(user)
 
     return inviter_phone_number
+
+
+def view_team_members(user, **kwargs):
+    '''list all teams and corresponding members for user'''
+    team_members = get_team_members(user)
+    teams = dict()
+    for member, team in team_members:
+        if not  team.name in teams:
+            teams[team.name] = str()
+        teams[team.name] += f"\n- {member.username}"
+    
+    all_teams = str()
+    for key, value in teams.items():
+        all_teams += "\n" + key + value 
+    
+    return all_teams
+

@@ -10,12 +10,14 @@ d) ET
 
     MAIN_MENU = """MAIN MENU
 {get_username}: {get_total_points}pts
+
 What do you want to do?
 a) choose a task
 b) invite a friend
 c) create a team
-d) view leaderboard
-e) PROFILE MENU
+d) view team members
+e) view leaderboard
+f) PROFILE MENU
 """
 
     RETRY = "Your response is not valid, try again.\n"
@@ -46,10 +48,10 @@ class Points:
 
 
 class Statuses:
-    PENDING = 'pending'
-    ACTIVE = 'active'
-    REJECTED = 'rejected'
-    CONFIRMED = 'confirmed'
+    PENDING = 'PENDING'
+    ACTIVE = 'ACTIVE'
+    REJECTED = 'REJECTED'
+    CONFIRMED = 'CONFIRMED'
 
 
 US_TIMEZONES = {
@@ -61,7 +63,7 @@ US_TIMEZONES = {
 
 
 class Redirects:
-    MAIN_MENU = 'main_menu'
+    MAIN_MENU = 'MAIN_MENU'
 
 
 class Reserved:
