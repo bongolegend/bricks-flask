@@ -164,7 +164,7 @@ def respond_to_invite(user, inbound, **kwargs):
     return membership
 
 
-def get_team_members(user):
+def get_team_members(user, **kwargs):
     '''get the team members for this user. exclude this user from the results.'''
     team_ids = db.session.query(Team.id).join(TeamMember)\
                 .filter(TeamMember.user_id == user['id'])
@@ -178,7 +178,7 @@ def get_team_members(user):
     return team_members
 
 
-def notify_team_members(user, inbound):
+def notify_team_members(user, inbound, **kwargs):
     '''Send message to teammembers that user is doing inbound'''
 
     team_members = get_team_members(user)

@@ -4,6 +4,7 @@ from sqlalchemy import func
 from app import db
 from app.models import AppUser, Notification, Point, Task
 from app.tools import send_message
+from app.constants import RouterNames
 
 
 def insert_points(user, value, **kwargs):
@@ -23,7 +24,7 @@ def get_total_points(user, **kwargs):
         return points
 
 
-def get_latest_task(user, choose_task, choose_tomorrow_task, **kwargs):
+def get_latest_task(user, **kwargs):
     '''query the latest task'''
     task = db.session.query(Task).filter(
         Task.user_id == user['id'],
@@ -33,7 +34,7 @@ def get_latest_task(user, choose_task, choose_tomorrow_task, **kwargs):
     return task.description
 
 
-def insert_task(user, exchange, inbound, choose_task, choose_tomorrow_task, did_you_do_it, **kwargs):
+def insert_task(user, exchange, inbound, **kwargs):
     '''
     insert task based on input, and set all other tasks with the same due date to inactive.
     If the user has team mates, send them a notification of this task.
@@ -42,10 +43,10 @@ def insert_task(user, exchange, inbound, choose_task, choose_tomorrow_task, did_
     # what day is it for user?
     today_local = dt.datetime.now(tz=pytz.timezone(user['timezone']))
 
-    # what time today are your tasks due? look at the Notif did_you_do_it
+    # what time today are your tasks due? look at the Notif DidYouDoIt
     hour, minute = db.session.query(Notification.hour, Notification.minute).filter(
         Notification.user_id == user['id'],
-        Notification.router == did_you_do_it.__name__,
+        Notification.router == RouterNames.DID_YOU_DO_IT,
         Notification.active == True).one()
 
     # local time that task is due
@@ -55,9 +56,9 @@ def insert_task(user, exchange, inbound, choose_task, choose_tomorrow_task, did_
     due_today = due_today_local.astimezone(pytz.utc).replace(tzinfo=None)
 
     # determine the due date based on the router id
-    if exchange['router'] == choose_task.__name__:
+    if exchange['router'] == RouterNames.CHOOSE_TASK:
         due_date = due_today
-    elif exchange['router'] == choose_tomorrow_task.__name__:
+    elif exchange['router'] == RouterNames.CHOOSE_TOMORROW_TASK:
         due_date = due_today + dt.timedelta(days=1)
     else:
         raise NotImplementedError(f"The router {exchange['router']} is not valid for inserting tasks.")

@@ -203,27 +203,13 @@ class Timezone(BaseRouter):
 
 class ChooseTask(BaseRouter):
     outbound = "What's your top task for today?"
+    actions = (solo.insert_task, multiplayer.notify_team_members)
     participation_points = Points.CHOOSE_TASK
+
  
     @classmethod   
     def next_router(self, **kwargs):
         return StateNightFollowup
-    
-    @classmethod
-    def run_actions(self, user, exchange, inbound):
-        insert_task_result = solo.insert_task(
-            user, 
-            exchange, 
-            inbound, 
-            self, 
-            ChooseTomorrowTask,
-            DidYouDoIt)
-        
-        notify_teammembers_result = multiplayer.notify_team_members(user, inbound)
-        
-        return {
-            solo.insert_task.__name__ : insert_task_result,
-            multiplayer.notify_team_members.__name__ : notify_teammembers_result}
     
     @classmethod
     def insert_points(self, user, **kwargs):
@@ -241,27 +227,12 @@ class StateNightFollowup(BaseRouter):
 
 class ChooseTomorrowTask(BaseRouter):
     outbound = "What's your top task for tomorrow?"
+    actions = (solo.insert_task, multiplayer.notify_team_members)
     participation_points = Points.CHOOSE_TASK
 
     @classmethod
     def next_router(self, **kwargs):
         return StateMorningFollowup
-    
-    @classmethod
-    def run_actions(self, user, exchange, inbound, **kwargs):
-        insert_result = solo.insert_task(
-            user, 
-            exchange, 
-            inbound, 
-            ChooseTask, 
-            ChooseTomorrowTask,
-            DidYouDoIt)
-        
-        notify_teammembers_result = multiplayer.notify_team_members(user, inbound)
-
-        return {
-            solo.insert_task.__name__ : insert_result,
-            multiplayer.notify_team_members.__name__ : notify_teammembers_result}
     
     @classmethod
     def insert_points(self, user, **kwargs):
@@ -330,6 +301,7 @@ class StateMorningFollowup(BaseRouter):
 
 
 class MorningConfirmation(BaseRouter):
+    pre_actions = (solo.get_latest_task,)
     outbound = "Are you still planning to do this task today: {get_latest_task}? (y/n)"
     inbound_format = parsers.YES_NO
     participation_points = Points.CHOOSE_TASK
@@ -340,12 +312,6 @@ class MorningConfirmation(BaseRouter):
             return StateNightFollowup
         elif inbound == 'no':
             return ChooseTask
-    
-    @classmethod
-    def run_pre_actions(self, user, **kwargs):
-        query_task_result = solo.get_latest_task(user, ChooseTask, ChooseTomorrowTask)
-
-        return {solo.get_latest_task.__name__ : query_task_result}
 
 
 class Leaderboard(BaseRouter):

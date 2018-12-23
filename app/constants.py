@@ -76,3 +76,10 @@ class Redirects:
 
 class Reserved:
     NEW_USER = 'NEW_USER'
+
+
+class RouterNames:
+    CHOOSE_TASK = 'ChooseTask'
+    CHOOSE_TOMORROW_TASK = 'ChooseTomorrowTask'
+    MORNING_CONFIRMATION = 'MorningConfirmation'
+    DID_YOU_DO_IT = 'DidYouDoIt'

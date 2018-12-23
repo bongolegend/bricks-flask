@@ -3,8 +3,7 @@ from flask import current_app
 from twilio.rest import Client
 from app import db
 from app.models import Exchange, AppUser, Notification
-from app.routers import ChooseTask, MorningConfirmation, DidYouDoIt
-
+from app.constants import RouterNames
 
 def query_user_with_number(phone_number):
     '''
@@ -98,8 +97,7 @@ def insert_notifications(user):
 
     # create ChooseTask notif
     notif = Notification(
-        router=ChooseTask.__name__,
-        body=ChooseTask.outbound,
+        router=RouterNames.CHOOSE_TASK,
         day_of_week='mon-fri',
         hour=8,
         minute=0,
@@ -109,8 +107,7 @@ def insert_notifications(user):
     
     # create morning confirm notif
     notif = Notification(
-        router=MorningConfirmation.__name__,
-        body=MorningConfirmation.outbound,
+        router=RouterNames.MORNING_CONFIRMATION,
         day_of_week='mon-fri',
         hour=8,
         minute=0,
@@ -120,8 +117,7 @@ def insert_notifications(user):
 
     # create did you do it notif
     notif = Notification(
-        router=DidYouDoIt.__name__,
-        body=DidYouDoIt.outbound,
+        router=RouterNames.DID_YOU_DO_IT,
         day_of_week='mon-fri',
         hour=21,
         minute=0,
