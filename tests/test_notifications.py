@@ -3,9 +3,8 @@ import datetime as dt
 import pytz
 from tests.config_test import BaseTestCase
 from app.models import AppUser, Exchange, Task, Team, TeamMember, Notification, Point
-from app.routers import DidYouDoIt, MorningConfirmation
 from app.get_router import get_router
-from app.constants import US_TIMEZONES, Statuses
+from app.constants import US_TIMEZONES, Statuses, RouterNames
 
 
 class TestNotifications(BaseTestCase):
@@ -33,8 +32,7 @@ class TestNotifications(BaseTestCase):
 
         # add a notif
         self.did_you_do_it_notif = Notification(
-            router = DidYouDoIt.__name__,
-            body = DidYouDoIt.outbound,
+            router = RouterNames.DID_YOU_DO_IT,
             hour = self.local_now.hour,
             minute = self.local_now.minute,
             active = True,
@@ -43,8 +41,7 @@ class TestNotifications(BaseTestCase):
         self.db.session.add(self.did_you_do_it_notif)
 
         self.morning_conf_notif = Notification(
-            router = MorningConfirmation.__name__,
-            body = MorningConfirmation.outbound,
+            router = RouterNames.MORNING_CONFIRMATION,
             hour = self.local_now.hour,
             minute = self.local_now.minute,
             active = True,

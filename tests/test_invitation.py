@@ -2,7 +2,7 @@
 import datetime as dt
 import os
 from tests.config_test import BaseTestCase
-from app.models import AppUser, Exchange, Task, Team, TeamMember, Notification, Point
+from app.models import AppUser, Exchange, Task, Team, TeamMember, Point
 from app.routers import InitOnboardingInvited
 from app.constants import US_TIMEZONES, Statuses
 

@@ -5,8 +5,7 @@ import unittest
 from tests.config_test import BaseTestCase
 from app.models import AppUser, Exchange, Task, Team, TeamMember, Notification, Point
 from app import models
-from app.routers import DidYouDoIt, InitOnboardingInvited
-from app.constants import US_TIMEZONES, Statuses
+from app.constants import US_TIMEZONES, Statuses, RouterNames
 from app import parsers
 from app.get_router import get_router
 
@@ -17,7 +16,7 @@ class TestAllRouters(BaseTestCase):
     @classmethod
     def get_routers(self):
         routers = get_router()
-        routers.pop(InitOnboardingInvited.__name__)
+        routers.pop(RouterNames.INIT_ONBOARDING_INVITED)
         return routers
 
     def setUp(self):
@@ -33,8 +32,7 @@ class TestAllRouters(BaseTestCase):
 
         # add a notif
         self.notif = Notification(
-            router = DidYouDoIt.__name__,
-            body = DidYouDoIt.outbound,
+            router = RouterNames.DID_YOU_DO_IT,
             hour = 21,
             minute = 0,
             active = True,
@@ -44,7 +42,7 @@ class TestAllRouters(BaseTestCase):
 
         # add exchange
         self.exchange = Exchange(
-            router = DidYouDoIt.__name__,
+            router = RouterNames.DID_YOU_DO_IT,
             outbound = 'Did you do it?',
             user = self.mitch,
             created = dt.datetime.now() - dt.timedelta(days=10))

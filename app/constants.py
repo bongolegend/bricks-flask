@@ -83,3 +83,4 @@ class RouterNames:
     CHOOSE_TOMORROW_TASK = 'ChooseTomorrowTask'
     MORNING_CONFIRMATION = 'MorningConfirmation'
     DID_YOU_DO_IT = 'DidYouDoIt'
+    INIT_ONBOARDING_INVITED = 'InitOnboardingInvited'

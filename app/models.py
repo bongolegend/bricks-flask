@@ -33,7 +33,6 @@ class AppUser(db.Model, Base):
 
 class Notification(db.Model, Base):
     router = db.Column(db.String(32), nullable=False)
-    body = db.Column(db.Text, nullable=False)
     day_of_week = db.Column(db.String(32)) 
     hour = db.Column(db.Integer, nullable=False)
     minute = db.Column(db.Integer, nullable=False)
@@ -49,7 +48,6 @@ class Notification(db.Model, Base):
     def to_dict(self):
         return dict(
             router = self.router,
-            body = self.body,
             day_of_week = self.day_of_week, 
             hour = self.hour,
             minute = self.minute,
