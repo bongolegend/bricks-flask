@@ -2,11 +2,8 @@
 from flask import current_app
 from twilio.rest import Client
 from app import db
-from app.models import Exchange, AppUser
-
-
-
-
+from app.models import Exchange, AppUser, Notification
+from app.routers import ChooseTask, MorningConfirmation, DidYouDoIt
 
 
 def query_user_with_number(phone_number):
@@ -23,7 +20,11 @@ def query_user_with_number(phone_number):
         new_user = AppUser(phone_number=phone_number)
         db.session.add(new_user)
         db.session.commit()
-        return new_user.to_dict()
+        
+        new_user = new_user.to_dict()
+        insert_notifications(new_user)
+        
+        return new_user
 
 
 def query_last_exchange(user):
@@ -90,3 +91,42 @@ def send_message(user, outbound):
     print(f"MESSAGE SENT TO {user['username']}: {outbound}")
 
     return message
+
+
+def insert_notifications(user):
+    '''Create two morning and one evening notif. Add notif to db. pass the input classes as instances'''
+
+    # create ChooseTask notif
+    notif = Notification(
+        router=ChooseTask.__name__,
+        body=ChooseTask.outbound,
+        day_of_week='mon-fri',
+        hour=8,
+        minute=0,
+        active=True,
+        user_id=user['id'])
+    db.session.add(notif)
+    
+    # create morning confirm notif
+    notif = Notification(
+        router=MorningConfirmation.__name__,
+        body=MorningConfirmation.outbound,
+        day_of_week='mon-fri',
+        hour=8,
+        minute=0,
+        active=True,
+        user_id=user['id'])
+    db.session.add(notif)
+
+    # create did you do it notif
+    notif = Notification(
+        router=DidYouDoIt.__name__,
+        body=DidYouDoIt.outbound,
+        day_of_week='mon-fri',
+        hour=21,
+        minute=0,
+        active=True,
+        user_id=user['id'])
+    db.session.add(notif)
+
+    db.session.commit()

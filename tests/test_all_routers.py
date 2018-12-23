@@ -5,7 +5,7 @@ import unittest
 from tests.config_test import BaseTestCase
 from app.models import AppUser, Exchange, Task, Team, TeamMember, Notification, Point
 from app import models
-from app.routers import DidYouDoIt, Welcome, InitOnboardingInvited
+from app.routers import DidYouDoIt, InitOnboardingInvited
 from app.constants import US_TIMEZONES, Statuses
 from app import parsers
 from app.get_router import get_router
@@ -17,7 +17,6 @@ class TestAllRouters(BaseTestCase):
     @classmethod
     def get_routers(self):
         routers = get_router()
-        routers.pop(Welcome.__name__)
         routers.pop(InitOnboardingInvited.__name__)
         return routers
 

@@ -4,7 +4,6 @@ from app.models import Exchange
 from tests.test_all_routers import TestAllRouters
 from tests.test_notifications import TestNotifications
 from tests.test_invitation import TestInitOnboardingInvited
-from tests.test_welcome import TestWelcome
 
 def generator(router, inbound=str()):
     '''function that returns one test function per router'''
@@ -39,6 +38,5 @@ def generate_tests_for_class(test_class):
 if __name__ == '__main__':
     generate_tests_for_class(TestAllRouters)
     generate_tests_for_class(TestInitOnboardingInvited)
-    generate_tests_for_class(TestWelcome)
 
     unittest.main(warnings='ignore')    

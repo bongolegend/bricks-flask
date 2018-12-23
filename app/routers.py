@@ -1,6 +1,6 @@
 import sys, inspect
 from app import parsers, conditions
-from app.actions import solo, multiplayer, profile, onboarding
+from app.actions import solo, multiplayer, settings
 from app.constants import Outbounds, Points
 # from app.routers.base import BaseRouter
 
@@ -72,20 +72,8 @@ class InitOnboarding(BaseRouter):
 
 
 class Welcome(BaseRouter):
-    outbound = "Hey! Welcome to Bricks, a tool that helps you get stuff done. Would you like to create a profile? (y/n)"
+    outbound = "Hey! Welcome to Bricks, a tool that helps you get stuff done. Would you like to create a settings? (y/n)"
     inbound_format = parsers.YES_NO
-
-    @classmethod
-    def run_actions(self, user, inbound, **kwargs):
-        if inbound == 'yes':
-            insert_notif_result = onboarding.insert_notifications(
-                user, 
-                self, 
-                MorningConfirmation, 
-                DidYouDoIt)
-            return {onboarding.insert_notifications.__name__ : insert_notif_result}
-        else:
-            return dict()
 
     @classmethod
     def next_router(self, inbound, **kwargs):
@@ -97,7 +85,7 @@ class Welcome(BaseRouter):
 
 class EnterUsername(BaseRouter):
     outbound = 'Please enter a username, preferably one that your friends will recognize:'
-    actions = (profile.update_username,)
+    actions = (settings.update_username,)
     confirmation = "Your username is set."
 
     @classmethod
@@ -199,7 +187,7 @@ class Settings(BaseRouter):
 
 class Timezone(BaseRouter):
     outbound = Outbounds.WHAT_TIMEZONE
-    actions = (profile.update_timezone,)
+    actions = (settings.update_timezone,)
     inbound_format = parsers.MULTIPLE_CHOICE
     confirmation = "Your timezone is set."
 
