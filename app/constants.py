@@ -31,10 +31,18 @@ d) Main Menu"""
 
     INIT_ONBOARDING_INVITATION = """
 Hey! Your friend {get_last_invitation[0]} invited you to join their team {get_last_invitation[1]}, on Bricks, a productivity chatbot. 
+Current team members:{view_members_for_team}
+
 a) Accept
 b) Decline
 c) What is this?
 d) Who is {get_last_invitation[0]}?
+"""
+
+    YOU_WERE_INVITED = """
+Hey! Your friend {get_last_invitation[0]} invited you to join their team {get_last_invitation[1]}. 
+Current team members:{view_members_for_team}
+Do you want to accept? (y/n)
 """
 
 

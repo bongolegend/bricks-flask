@@ -209,10 +209,10 @@ def view_team_members(user, **kwargs):
     return all_teams
 
 def get_members_for_team(user, **kwargs):
-    '''get team members for team that user just accepted'''
+    '''get team members for team that user is invited to'''
     team_id = db.session.query(TeamMember.team_id).filter(
         TeamMember.user_id == user['id'],
-        TeamMember.status == Statuses.ACTIVE)\
+        TeamMember.status == Statuses.PENDING)\
             .order_by(TeamMember.updated.desc()).first()
     
     team_members = db.session.query(AppUser)\
