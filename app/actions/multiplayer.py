@@ -208,3 +208,26 @@ def view_team_members(user, **kwargs):
     
     return all_teams
 
+def get_members_for_team(user, **kwargs):
+    '''get team members for team that user just accepted'''
+    team_id = db.session.query(TeamMember.team_id).filter(
+        TeamMember.user_id == user['id'],
+        TeamMember.status == Statuses.ACTIVE)\
+            .order_by(TeamMember.updated.desc()).first()
+    
+    team_members = db.session.query(AppUser)\
+        .join(TeamMember.user)\
+        .filter(TeamMember.team_id == team_id,
+            TeamMember.status == Statuses.ACTIVE).all()
+    
+    return team_members
+
+
+def view_members_for_team(user, **kwargs):
+    '''list team members of user for team as string'''
+    team_members = get_members_for_team(user)
+    member_str = str()
+    for member in team_members:
+        member_str += '\n- ' + member.username
+    
+    return member_str

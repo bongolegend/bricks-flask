@@ -12,25 +12,25 @@ d) ET
 {get_username}: {get_total_points}pts
 
 What do you want to do?
-a) choose a task
-b) invite a friend
-c) create a team
-d) view team members
-e) view leaderboard
-f) PROFILE MENU
+a) Choose a task
+b) Invite a friend
+c) Create a team
+d) View team members
+e) View leaderboard
+f) Settings
 """
 
     RETRY = "Your response is not valid, try again.\n"
 
-    PROFILE_MENU = """PROFILE MENU
-What do you want to do?
-a) change timezone
-b) change username
-c) help
-d) MAIN MENU"""
+    SETTINGS = """SETTINGS
+
+a) Change timezone
+b) Change username
+c) Help
+d) Main Menu"""
 
     INIT_ONBOARDING_INVITATION = """
-Hey! Your friend {get_last_invitation[0]} invited you to join their team {get_last_invitation[1]}, on the Bricks app. 
+Hey! Your friend {get_last_invitation[0]} invited you to join their team {get_last_invitation[1]}, on Bricks, a productivity chatbot. 
 a) Accept
 b) Decline
 c) What is this?

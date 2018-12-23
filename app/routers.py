@@ -178,11 +178,11 @@ class MainMenu(BaseRouter):
         elif inbound == 'e':
             return Leaderboard
         elif inbound == 'f':
-            return ProfileMenu
+            return Settings
 
 
-class ProfileMenu(BaseRouter):
-    outbound = Outbounds.PROFILE_MENU
+class Settings(BaseRouter):
+    outbound = Outbounds.SETTINGS
     inbound_format = parsers.MULTIPLE_CHOICE
 
     @classmethod
@@ -395,7 +395,7 @@ class AddMemberConfirmed(BaseRouter):
 
 
 class InitOnboardingInvited(BaseRouter):
-    pre_actions = (multiplayer.get_last_invitation,)
+    pre_actions = (multiplayer.get_last_invitation, )
     outbound = Outbounds.INIT_ONBOARDING_INVITATION
     inbound_format = parsers.MULTIPLE_CHOICE
 
@@ -437,12 +437,12 @@ class YouWereInvited(BaseRouter):
     outbound = "Hey! Your friend {get_last_invitation[0]} invited you to join their team {get_last_invitation[1]}. Do you want to accept? (y/n)"
     inbound_format = parsers.YES_NO
 
-    # @classmethod
-    # def next_router(self, inbound, **kwargs):
-    #     if inbound == 'yes':
-    #         return IntroToTeam
-    #     else:
-    #         return MainMenu
+    @classmethod
+    def next_router(self, inbound, **kwargs):
+        if inbound == 'yes':
+            return IntroToTeam
+        else:
+            return MainMenu
 
     @classmethod
     def run_actions(self, user, inbound, **kwargs):
@@ -453,9 +453,9 @@ class YouWereInvited(BaseRouter):
             multiplayer.notify_inviter.__name__ : notify_result}
 
 
-# class IntroToTeam(Router):
-#     pre_actions = (multiplayer.intro_to_team,)
-#     outbound = "Current multiplayer members:\n{intro_to_team}\n I will notify you of the tasks they choose tomorrow"
+class IntroToTeam(BaseRouter):
+    pre_actions = (multiplayer.view_members_for_team,)
+    outbound = "Welcome! Current team members:{view_members_for_team}"
 
 
 class ViewTeamMembers(BaseRouter):
