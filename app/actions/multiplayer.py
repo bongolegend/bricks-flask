@@ -1,3 +1,4 @@
+import traceback
 from sqlalchemy import func
 from app import db
 from app.models import AppUser, Point, Exchange, Team, TeamMember
@@ -86,7 +87,7 @@ def insert_member(user, inbound, init_onboarding_invited, you_were_invited, **kw
     # you should trigger a new router, but does that
 
     exchange = tools.query_last_exchange(invited_user)
-    if exchange is None or invited_user.username == Reserved.NEW_USER:
+    if exchange is None or invited_user['username'] == Reserved.NEW_USER:
         router = init_onboarding_invited()
     else:
         router = you_were_invited()
@@ -184,7 +185,11 @@ def notify_team_members(user, inbound, **kwargs):
     team_members = get_team_members(user)
     for team_member, team in team_members:
         outbound = f"Your friend {user['username']} is gonna do this: {inbound}."
-        tools.send_message(team_member.to_dict(), outbound)
+        try:
+            tools.send_message(team_member.to_dict(), outbound)
+        except Exception as error:
+            traceback.print_exc()
+            continue
 
 
 def get_phonenumber(user, **kwargs):

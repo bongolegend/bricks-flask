@@ -24,7 +24,7 @@ class TestNotifications(BaseTestCase):
 
         # add exchange
         self.exchange = Exchange(
-            router = DidYouDoIt.__name__,
+            router = RouterNames.DID_YOU_DO_IT,
             outbound = 'Did you do it?',
             user = self.mitch)
 
