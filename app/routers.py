@@ -93,7 +93,7 @@ class EnterUsername(BaseRouter):
         if conditions.timezone_set(user):
             return MainMenu
         else:
-            return HowItWorks
+            return Timezone
 
 
 class GoodbyeFeedback(BaseRouter):
@@ -121,12 +121,10 @@ class HowItWorks(BaseRouter):
         if inbound == 'no':
             return ContactSupport
         elif inbound == 'yes':
-            if conditions.timezone_set(user):
-                return MainMenu
-            elif conditions.is_new_user(user):
+            if conditions.is_new_user(user):
                 return InitOnboardingInvited
             else:
-                return Timezone
+                return MainMenu
 
 
 class ContactSupport(BaseRouter):

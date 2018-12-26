@@ -1,5 +1,8 @@
 class Outbounds:
-    HOW_IT_WORKS = """Instructions: every day, enter your most important task. At the end of the day, if you complete your task, you get +10 points. If you stay consistent, you get bonuses that double your points. Does this make sense? (y/n)"""
+    HOW_IT_WORKS = """
+Instructions: every day, enter your most important task. 
+At the end of the day, if you complete your task, you get +10 points. 
+Does this make sense? (y/n)"""
 
     WHAT_TIMEZONE = """What's your timezone?
 a) PT
@@ -12,7 +15,7 @@ d) ET
 {get_username}: {get_total_points}pts
 
 What do you want to do?
-a) Choose a task
+a) Create a task
 b) Invite a friend
 c) Create a team
 d) View team members
