@@ -178,8 +178,10 @@ class Settings(BaseRouter):
         elif inbound == 'b':
             return EnterUsername
         elif inbound == 'c':
-            return HowItWorks
+            return LeaveTeam
         elif inbound == 'd':
+            return HowItWorks
+        elif inbound == 'e':
             return MainMenu
 
 
@@ -412,3 +414,11 @@ class YouJoinedTeam(BaseRouter):
 class ViewTeamMembers(BaseRouter):
     pre_actions = (multiplayer.view_team_members,)
     outbound = "{view_team_members}"
+
+
+class LeaveTeam(BaseRouter):
+    pre_actions = (multiplayer.list_teams,)
+    outbound = "Your teams:\n{list_teams}\nPlease enter the team number that you want to leave."
+    inbound_format = parsers.INTEGER
+    actions = (multiplayer.leave_team,)
+    confirmation = "Team left."

@@ -122,6 +122,12 @@ class Team(db.Model, Base):
 
     founder = db.relationship('AppUser', backref=db.backref('teams', lazy=True))
 
+    def to_dict(self):
+        return dict(
+            id = self.id,
+            founder_id = self.founder_id,
+            name = self.name)
+
     def __repr__(self):
         return f"<Team {self.name}>"
 

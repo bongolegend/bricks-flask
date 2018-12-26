@@ -29,8 +29,9 @@ f) Settings
 
 a) Change timezone
 b) Change username
-c) Help
-d) Main Menu"""
+c) Leave team
+d) Help
+e) Main Menu"""
 
     INIT_ONBOARDING_INVITATION = """
 Hey! Your friend {get_last_invitation[0]} invited you to join their team {get_last_invitation[1]}, on Bricks, a productivity chatbot. 
@@ -63,6 +64,7 @@ class Statuses:
     ACTIVE = 'ACTIVE'
     REJECTED = 'REJECTED'
     CONFIRMED = 'CONFIRMED'
+    LEFT = 'LEFT'
 
 
 US_TIMEZONES = {

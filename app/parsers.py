@@ -27,6 +27,7 @@ YES_NO = {
 
 ADD_MEMBER = 'add_member_parser'
 
+INTEGER = "INTEGER_PARSER"
 
 def parse(inbound, inbound_format):
     '''combine all parsers'''
@@ -34,6 +35,11 @@ def parse(inbound, inbound_format):
         return inbound
     elif inbound_format == ADD_MEMBER:
         return parse_add_member(inbound)
+    elif inbound_format == INTEGER:
+        try:
+            return int(inbound)
+        except:
+            return None
     else:
         inbound = inbound.lower()
         for term, matches in inbound_format.items():

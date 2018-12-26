@@ -43,7 +43,9 @@ def insert_team(user, inbound, **kwargs):
 def list_teams(user, **kwargs):
     '''List the teams that user is a member of'''
     teams = db.session.query(Team.id, Team.name).join(TeamMember)\
-        .filter(TeamMember.user_id == user['id']).all()
+        .filter(
+            TeamMember.user_id == user['id'],
+            TeamMember.status == Statuses.ACTIVE).all()
 
     if teams:
         team_list = str()
@@ -63,11 +65,9 @@ def insert_member(user, inbound, init_onboarding_invited, you_were_invited, **kw
     # confirm that user is part of team
     team = db.session.query(Team).join(TeamMember).filter(
         Team.id == team_id, 
-        TeamMember.user_id == user['id']
+        TeamMember.user_id == user['id'],
+        TeamMember.status == Statuses.ACTIVE
     ).one()
-
-    if not team:
-        return None
 
     # lookup the phone-number, add if not already a user
     invited_user = tools.query_user_with_number(phone_number)
@@ -168,7 +168,9 @@ def respond_to_invite(user, inbound, **kwargs):
 def get_team_members(user, **kwargs):
     '''get the team members for this user. exclude this user from the results.'''
     team_ids = db.session.query(Team.id).join(TeamMember)\
-                .filter(TeamMember.user_id == user['id'])
+                .filter(
+                    TeamMember.user_id == user['id'],
+                    TeamMember.status == Statuses.ACTIVE).all()
 
     team_members = db.session.query(AppUser, Team).join(TeamMember.user, TeamMember.team)\
         .filter(
@@ -201,6 +203,9 @@ def get_phonenumber(user, **kwargs):
 def view_team_members(user, **kwargs):
     '''list all teams and corresponding members for user'''
     team_members = get_team_members(user)
+    if not team_members:
+        return "You have no team members. Invite some by going back to the main menu."
+
     teams = dict()
     for member, team in team_members:
         if not  team.name in teams:
@@ -213,6 +218,7 @@ def view_team_members(user, **kwargs):
     
     return all_teams
 
+# TODO (Nico) reconcile this with the other function
 def get_members_for_team(user, **kwargs):
     '''get team members for team that user is invited to'''
     team_id = db.session.query(TeamMember.team_id).filter(
@@ -236,3 +242,17 @@ def view_members_for_team(user, **kwargs):
         member_str += '\n- ' + member.username
     
     return member_str
+
+
+def leave_team(user, inbound, **kwargs):
+    '''leave the team specified by inbound if the user is a part of it'''
+
+    # check that user is part of team
+    membership = db.session.query(TeamMember).filter(
+        TeamMember.team_id == inbound,
+        TeamMember.user_id == user['id'],
+        TeamMember.status == Statuses.ACTIVE).one()
+    
+    membership.status = Statuses.LEFT
+
+    db.session.commit()
