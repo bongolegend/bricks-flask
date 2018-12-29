@@ -1,3 +1,4 @@
+import functools
 from app.base_init import init_app, init_db
 import unittest
 from app.models import Exchange

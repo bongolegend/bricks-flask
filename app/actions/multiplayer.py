@@ -56,6 +56,45 @@ def list_teams(user, **kwargs):
         return "You have no teams. Return to the main menu and create one."
 
 
+def get_open_teams(user, id_only=False, **kwargs):
+    '''List teams that don't have 5 active members yet'''
+
+    all_team_ids = db.session.query(Team.id).join(TeamMember.team)\
+        .filter(TeamMember.user_id == user['id']).subquery()
+    
+    teams = db.session.query(Team.id, Team.name, func.count(TeamMember.team_id).label('size'))\
+        .join(TeamMember.team)\
+        .filter(
+            Team.id.in_(all_team_ids),
+            TeamMember.status == 'ACTIVE')\
+        .group_by(Team).all()
+    
+    # filter out teams with 5 or more members
+    if not teams:
+        return None
+
+    open_teams = list()
+    for team in teams:
+        if team.size < 5:
+            if id_only:
+                open_teams.append(team.id)
+            else:
+                open_teams.append(team)
+    
+    return open_teams
+
+
+def str_open_teams(user, **kwargs):
+    '''return open teams as a str'''
+    teams = get_open_teams(user)
+    if not teams:
+        return "You have no open teams."
+    team_list = str()
+    for team_id, name, _ in teams:
+        team_list += f"{team_id}: {name}\n"
+    return team_list
+
+
 def insert_member(user, inbound, init_onboarding_invited, you_were_invited, **kwargs):
     '''Add member to the given team as PENDING. 
     Inbound should already be parsed as tuple(team_id, phone_number_str)'''
@@ -68,6 +107,10 @@ def insert_member(user, inbound, init_onboarding_invited, you_were_invited, **kw
         TeamMember.user_id == user['id'],
         TeamMember.status == Statuses.ACTIVE
     ).one()
+
+    # confirm that this team is open
+    open_team_ids = get_open_teams(user, id_only=True)
+    assert team.id in open_team_ids
 
     # lookup the phone-number, add if not already a user
     invited_user = tools.query_user_with_number(phone_number)

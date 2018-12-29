@@ -330,8 +330,8 @@ class CreateTeam(BaseRouter):
 
 
 class AddMember(BaseRouter):
-    pre_actions = (multiplayer.list_teams,)
-    outbound = """Your teams:\n{list_teams}\n  Invite a friend by entering the team number and your friend's phone number, separated by a comma. (Type 'menu' to go back)"""
+    pre_actions = (multiplayer.str_open_teams,)
+    outbound = """Your teams:\n{str_open_teams}\n  Invite a friend by entering the team number and your friend's phone number, separated by a comma. (Type 'menu' to go back)"""
     inbound_format = parsers.ADD_MEMBER
 
     @classmethod
