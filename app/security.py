@@ -27,3 +27,28 @@ def validate_twilio_request(func):
         else:
             return abort(403)
     return decorated_function
+
+
+def validate_google_cron_request(func):
+    '''
+    Validate that incoming requests genuinely originate from Google App Engine's Cron tool
+    source: https://cloud.google.com/appengine/docs/standard/python/config/cron#Securing_URLs_for_Cron
+    '''
+    @wraps(func)
+    def decorated_function(*args, **kwargs):
+        # validate the IP address 
+        url_valid = request.headers.get('X-Appengine-User-Ip', '') == os.environ.get('APPENGINE_USER_IP') 
+
+        # validate this header:: X-Appengine-Cron: true
+        header_valid = bool(request.headers.get('X-Appengine-Cron', '')) == True
+
+        if url_valid and header_valid:
+            request_valid = True
+        else:
+            request_valid = False
+        
+        if request_valid or current_app.debug:
+            return func(*args, **kwargs)
+        else:
+            return abort(403)
+    return decorated_function

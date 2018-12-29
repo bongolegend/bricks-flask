@@ -4,7 +4,7 @@ from datetime import timedelta
 from flask import Blueprint, current_app, session
 from app import chat 
 from app import notify
-from app.security import validate_twilio_request
+from app.security import validate_twilio_request, validate_google_cron_request
 
 main = Blueprint('main', __name__)
 
@@ -30,8 +30,8 @@ def landing_page():
 Please text {os.environ.get('TWILIO_PHONE_NUMBER')} to get started.
 """
 
-# TODO(Nico) only allow cron job tool to hit this endpoint
 @main.route("/notifications", methods=['GET'])
+@validate_google_cron_request
 def send_notifications_wrapper():
     return notify.main()
 
