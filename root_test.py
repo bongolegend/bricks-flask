@@ -5,6 +5,7 @@ from tests.test_all_routers import TestAllRouters
 from tests.test_notifications import TestNotifications
 from tests.test_invitation import TestInitOnboardingInvited
 from tests.actions.test_multiplayer import TestMultiplayer
+from tests.actions.test_settings import TestSettings
 
 
 def generator(router, inbound=str()):
