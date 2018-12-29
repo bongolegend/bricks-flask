@@ -56,7 +56,7 @@ class TestNotifications(BaseTestCase):
 
     def test_notify(self):
         '''test that one notification sends whose time corresponds with now'''
-        response = self.client.get('/notifications')
+        response = self.client.get('/notify')
 
         print(response.data)
 

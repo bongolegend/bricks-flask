@@ -2,7 +2,7 @@
 
 cron:
 - description: "run notifications"
-  url: /notifications
+  url: /notify
   schedule: every 30 minutes synchronized
 # this means to start at 00:00 every day
 

@@ -20,7 +20,7 @@ TESTING INBOUND: {inbound}
         """)
         exchange = Exchange(router=router.__name__, user=self.mitch)
         self.db.session.add(exchange)
-        response = self.client.post('/sms', data=dict(Body=inbound, From=self.mitch.phone_number))
+        response = self.client.post('/chat', data=dict(Body=inbound, From=self.mitch.phone_number))
 
     return test
 

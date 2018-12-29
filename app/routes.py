@@ -9,7 +9,7 @@ from app.security import validate_twilio_request, validate_google_cron_request
 main = Blueprint('main', __name__)
 
 
-@main.route( "/sms", methods=['GET', 'POST'])
+@main.route( "/chat", methods=['GET', 'POST'])
 @validate_twilio_request
 def conduct_conversations_wrapper():
     return chat.main()
@@ -30,7 +30,7 @@ def landing_page():
 Please text {os.environ.get('TWILIO_PHONE_NUMBER')} to get started.
 """
 
-@main.route("/notifications", methods=['GET'])
+@main.route("/notify", methods=['GET'])
 @validate_google_cron_request
 def send_notifications_wrapper():
     return notify.main()
