@@ -349,7 +349,7 @@ class AddMemberConfirmed(BaseRouter):
 
 
 class InitOnboardingInvited(BaseRouter):
-    pre_actions = (multiplayer.get_last_invitation, multiplayer.view_members_for_team)
+    pre_actions = (multiplayer.get_last_invitation, multiplayer.str_members_of_invited_team)
     outbound = Outbounds.INIT_ONBOARDING_INVITATION
     inbound_format = parsers.MULTIPLE_CHOICE
 
@@ -387,7 +387,7 @@ class WhoIsUsername(BaseRouter):
 
 
 class YouWereInvited(BaseRouter):
-    pre_actions = (multiplayer.get_last_invitation, multiplayer.view_members_for_team)
+    pre_actions = (multiplayer.get_last_invitation, multiplayer.str_members_of_invited_team)
     outbound = Outbounds.YOU_WERE_INVITED
     inbound_format = parsers.YES_NO
 
@@ -412,8 +412,8 @@ class YouJoinedTeam(BaseRouter):
 
 
 class ViewTeamMembers(BaseRouter):
-    pre_actions = (multiplayer.view_team_members,)
-    outbound = "{view_team_members}"
+    pre_actions = (multiplayer.str_all_teams,)
+    outbound = "{str_all_teams}"
 
 
 class LeaveTeam(BaseRouter):

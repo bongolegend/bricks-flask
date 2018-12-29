@@ -165,7 +165,7 @@ def respond_to_invite(user, inbound, **kwargs):
     return membership
 
 
-def get_team_members(user, **kwargs):
+def get_current_team_members(user, **kwargs):
     '''get the team members for this user. exclude this user from the results.'''
     team_ids = db.session.query(Team.id).join(TeamMember)\
                 .filter(
@@ -184,7 +184,7 @@ def get_team_members(user, **kwargs):
 def notify_team_members(user, inbound, **kwargs):
     '''Send message to teammembers that user is doing inbound'''
 
-    team_members = get_team_members(user)
+    team_members = get_current_team_members(user)
     for team_member, team in team_members:
         outbound = f"Your friend {user['username']} is gonna do this: {inbound}."
         try:
@@ -200,9 +200,9 @@ def get_phonenumber(user, **kwargs):
     return inviter_phone_number
 
 
-def view_team_members(user, **kwargs):
+def str_all_teams(user, **kwargs):
     '''list all teams and corresponding members for user'''
-    team_members = get_team_members(user)
+    team_members = get_current_team_members(user)
     if not team_members:
         return "You have no team members. Invite some by going back to the main menu."
 
@@ -219,7 +219,7 @@ def view_team_members(user, **kwargs):
     return all_teams
 
 # TODO (Nico) reconcile this with the other function
-def get_members_for_team(user, **kwargs):
+def members_of_invited_team(user, **kwargs):
     '''get team members for team that user is invited to'''
     team_id = db.session.query(TeamMember.team_id).filter(
         TeamMember.user_id == user['id'],
@@ -234,9 +234,9 @@ def get_members_for_team(user, **kwargs):
     return team_members
 
 
-def view_members_for_team(user, **kwargs):
+def str_members_of_invited_team(user, **kwargs):
     '''list team members of user for team as string'''
-    team_members = get_members_for_team(user)
+    team_members = members_of_invited_team(user)
     member_str = str()
     for member in team_members:
         member_str += '\n- ' + member.username
