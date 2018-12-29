@@ -135,18 +135,18 @@ class Team(db.Model, Base):
 class TeamMember(db.Model, Base):
     user_id = db.Column(db.Integer, db.ForeignKey('app_user.id'), nullable=False)
     team_id = db.Column(db.Integer, db.ForeignKey('team.id'), nullable=False)
-    invited_by_id = db.Column(db.Integer, db.ForeignKey('app_user.id'), nullable=False)
+    inviter_id = db.Column(db.Integer, db.ForeignKey('app_user.id'), nullable=False)
     status = db.Column(db.String(32), nullable=False)
 
     user = db.relationship('AppUser', foreign_keys=[user_id], backref=db.backref('is_member', lazy=True))
     team = db.relationship('Team', backref=db.backref('members', lazy=True))
-    invited_by = db.relationship('AppUser', foreign_keys=[invited_by_id], backref=db.backref('invited', lazy=True))
+    inviter = db.relationship('AppUser', foreign_keys=[inviter_id], backref=db.backref('inviter', lazy=True))
 
     def to_dict(self):
         return dict(
             user_id = self.user_id,
             team_id = self.team_id,
-            invited_by_id = self.invited_by_id,
+            inviter_id = self.inviter_id,
             status = self.status)
 
 

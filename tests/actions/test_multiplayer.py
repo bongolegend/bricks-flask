@@ -32,14 +32,14 @@ class TestMultiplayer(BaseTestCase):
         self.mitch_member = TeamMember(
             user = self.mitch,
             team = self.team,
-            invited_by = self.mitch,
+            inviter = self.mitch,
             status = Statuses.ACTIVE)       
         self.db.session.add(self.mitch_member)
 
         self.billy_member = TeamMember(
             user = self.billy,
             team = self.team,
-            invited_by = self.mitch,
+            inviter = self.mitch,
             status = Statuses.PENDING)       
         self.db.session.add(self.billy_member)
 

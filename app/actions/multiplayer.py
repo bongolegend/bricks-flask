@@ -30,7 +30,7 @@ def insert_team(user, inbound, **kwargs):
     member = TeamMember(
         user_id=user['id'],
         team=team,
-        invited_by_id=user['id'],
+        inviter_id=user['id'],
         status=Statuses.ACTIVE)
 
     db.session.add(team)
@@ -76,7 +76,7 @@ def insert_member(user, inbound, init_onboarding_invited, you_were_invited, **kw
     invited_member = TeamMember(
         user_id = invited_user['id'],
         team_id = team_id,
-        invited_by_id = user['id'],
+        inviter_id = user['id'],
         status = Statuses.PENDING)
     
     db.session.add(invited_member)
@@ -95,7 +95,7 @@ def insert_member(user, inbound, init_onboarding_invited, you_were_invited, **kw
     results = router.run_pre_actions(
         user=invited_user,
         exchange=exchange,
-        invited_by=user)
+        inviter=user)
 
     router.outbound = router.outbound.format(**results)
 
@@ -108,7 +108,7 @@ def insert_member(user, inbound, init_onboarding_invited, you_were_invited, **kw
 def get_last_invitation(user, **kwargs):
     '''find the most recent invitation for user'''
     inviter_username, inviter_phone_number, team_name = db.session.query(AppUser.username, AppUser.phone_number, Team.name)\
-        .join(TeamMember.invited_by, TeamMember.team)\
+        .join(TeamMember.inviter, TeamMember.team)\
         .filter(
             TeamMember.user_id == user['id'],
             TeamMember.status == Statuses.PENDING)\
@@ -125,9 +125,9 @@ def notify_inviter(user, membership, **kwargs):
     '''look up which membership was just responded to, and notify the inviter'''
     # find the inviter
     inviter, team_name = db.session.query(AppUser, Team.name)\
-        .join(TeamMember.invited_by, TeamMember.team).filter(
+        .join(TeamMember.inviter, TeamMember.team).filter(
             TeamMember.user_id == user['id'],
-            TeamMember.invited_by_id == membership.invited_by_id,
+            TeamMember.inviter_id == membership.inviter_id,
             TeamMember.team_id == membership.team_id)\
         .order_by(TeamMember.updated.desc()).first()
 
