@@ -72,6 +72,9 @@ def main():
         user = user.to_dict()
         notif = notif.to_dict()
 
+        if user['timezone'] is None:
+            continue
+
         notif_tz = pytz.timezone(user['timezone'])
         local_time = dt.datetime.now(notif_tz)
         # TODO(Nico) assumes that every notif gets sent every day

@@ -5,7 +5,7 @@ from tests.config_test import BaseTestCase
 from app.models import AppUser, Exchange, Task, Team, TeamMember, Notification, Point
 from app.get_router import get_router
 from app.constants import US_TIMEZONES, Statuses, RouterNames
-
+from app import notify
 
 class TestNotifications(BaseTestCase):
     mitch_tz = US_TIMEZONES['b']
@@ -19,7 +19,6 @@ class TestNotifications(BaseTestCase):
             phone_number=self.number, 
             username='Mitch',
             timezone=self.mitch_tz)
-
         self.db.session.add(self.mitch)
 
         # add exchange
@@ -27,7 +26,6 @@ class TestNotifications(BaseTestCase):
             router = RouterNames.DID_YOU_DO_IT,
             outbound = 'Did you do it?',
             user = self.mitch)
-
         self.db.session.add(self.exchange)
 
         # add a notif
@@ -37,7 +35,6 @@ class TestNotifications(BaseTestCase):
             minute = self.local_now.minute,
             active = True,
             user = self.mitch)
-        
         self.db.session.add(self.did_you_do_it_notif)
 
         self.morning_conf_notif = Notification(
@@ -46,7 +43,6 @@ class TestNotifications(BaseTestCase):
             minute = self.local_now.minute,
             active = True,
             user = self.mitch)
-        
         self.db.session.add(self.morning_conf_notif)
 
         # add task
@@ -56,11 +52,16 @@ class TestNotifications(BaseTestCase):
             active = True,
             exchange = self.exchange,
             user = self.mitch)
-        
         self.db.session.add(self.task)
 
-    def test_notification(self):
-        '''send one notification whose time corresponds with now'''
+    def test_notify(self):
+        '''test that one notification sends whose time corresponds with now'''
         response = self.client.get('/notifications')
 
         print(response.data)
+
+    def test_no_notifications(self):
+        '''test that no notifications are sent if user tz is None'''
+        self.mitch.timezone = None
+        message = notify.main()
+        assert message.response[0] == b'[]' 
