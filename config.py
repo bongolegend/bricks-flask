@@ -21,7 +21,6 @@ class TestConfig(Config):
     TESTING = True
 
 
-
 class ProdConfig(Config):
     db_user = os.environ.get('CLOUD_SQL_USERNAME')
     db_password = os.environ.get('CLOUD_SQL_PASSWORD')
@@ -31,3 +30,4 @@ class ProdConfig(Config):
     TWILIO_ACCOUNT_SID = os.environ.get('TWILIO_ACCOUNT_SID')
     TWILIO_AUTH_TOKEN = os.environ.get('TWILIO_AUTH_TOKEN')
     TWILIO_PHONE_NUMBER = os.environ.get('TWILIO_PHONE_NUMBER')
+    DEBUG = False
