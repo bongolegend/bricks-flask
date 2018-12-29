@@ -3,7 +3,7 @@ from sqlalchemy import func, UniqueConstraint
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.dialects import postgresql
 from app import db
-from app.constants import Reserved
+from app.constants import Reserved, Sizes
 
 class Base:
     id = db.Column(db.Integer, primary_key=True)
@@ -60,8 +60,8 @@ class Notification(db.Model, Base):
 
 class Exchange(db.Model, Base):
     router = db.Column(db.String(32), nullable=False)
-    outbound = db.Column(db.String(612))
-    inbound = db.Column(db.String(612))
+    outbound = db.Column(db.String(Sizes.INBOUND_MAX_LENGTH))
+    inbound = db.Column(db.String(Sizes.INBOUND_MAX_LENGTH))
     confirmation = db.Column(db.String(128))
     next_router = db.Column(db.String(32))
     next_exchange_id = db.Column(db.Integer) # this needs to be nullable because it is not known when an exchange is first created

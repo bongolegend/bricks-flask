@@ -89,3 +89,7 @@ class RouterNames:
     MORNING_CONFIRMATION = 'MorningConfirmation'
     DID_YOU_DO_IT = 'DidYouDoIt'
     INIT_ONBOARDING_INVITED = 'InitOnboardingInvited'
+
+
+class Sizes:
+    INBOUND_MAX_LENGTH = 612

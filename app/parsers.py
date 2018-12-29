@@ -1,6 +1,6 @@
 import phonenumbers as phone
 from app.models import Team
-from app.constants import Redirects
+from app.constants import Redirects, Sizes
 
 ANY = '*'
 
@@ -31,6 +31,8 @@ INTEGER = "INTEGER_PARSER"
 
 def parse(inbound, inbound_format):
     '''combine all parsers'''
+    if len(inbound) > Sizes.INBOUND_MAX_LENGTH:
+        return None
     if inbound_format == ANY:
         return inbound
     elif inbound_format == ADD_MEMBER:
