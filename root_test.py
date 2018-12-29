@@ -4,6 +4,7 @@ from app.models import Exchange
 from tests.test_all_routers import TestAllRouters
 from tests.test_notify import TestNotifications
 from tests.test_invitation import TestInitOnboardingInvited
+from tests.test_chat import TestChat
 from tests.actions.test_multiplayer import TestMultiplayer
 from tests.actions.test_settings import TestSettings
 
