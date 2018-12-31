@@ -430,5 +430,11 @@ class WeekReflection(BaseRouter):
 
 class WeekReflectionPart2(BaseRouter):
     outbound = "And what hindered your productivity?"
-    confirmation = "Thanks for reflecting!"
     participation_points = Points.TASK_COMPLETED
+
+    @classmethod
+    def next_router(self, **kwargs):
+        return WeekReflectionPart3
+
+class WeekReflectionPart3(BaseRouter):
+    outbound = "Thanks for reflecting!"
