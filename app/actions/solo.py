@@ -87,3 +87,28 @@ def insert_task(user, exchange, inbound, **kwargs):
 def get_username(user, **kwargs):
     '''Get the username for this user'''
     return user['username']
+
+
+def get_past_tasks(user, **kwargs):
+    '''Get the tasks submitted this past week'''
+
+    tasks = db.session.query(Task.description).filter(
+        Task.user_id == user['id'],
+        Task.active == True,
+        Task.due_date > dt.datetime.now() - dt.timedelta(days=7)
+    ).all()
+    return tasks
+
+
+def str_past_tasks(user, **kwargs):
+    '''get tasks submitted this past week as str'''
+    tasks = get_past_tasks(user)
+
+    if not tasks:
+        return "You didn't create any tasks this past week."
+    
+    str_tasks = str()
+    for task in tasks:
+        str_tasks += '\n- ' + task.description
+
+    return str_tasks 

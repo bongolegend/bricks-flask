@@ -31,6 +31,7 @@ class TestNotifications(BaseTestCase):
         # add a notif
         self.did_you_do_it_notif = Notification(
             router = RouterNames.DID_YOU_DO_IT,
+            day_of_week = 'daily',
             hour = self.local_now.hour,
             minute = self.local_now.minute,
             active = True,
@@ -39,11 +40,21 @@ class TestNotifications(BaseTestCase):
 
         self.morning_conf_notif = Notification(
             router = RouterNames.MORNING_CONFIRMATION,
+            day_of_week = 'daily',
             hour = self.local_now.hour,
             minute = self.local_now.minute,
             active = True,
             user = self.mitch)
         self.db.session.add(self.morning_conf_notif)
+
+        self.week_reflection_notif = Notification(
+            router = RouterNames.WEEK_REFLECTION,
+            day_of_week = 'daily',
+            hour = self.local_now.hour,
+            minute = self.local_now.minute,
+            active = True,
+            user = self.mitch)
+        self.db.session.add(self.week_reflection_notif)        
 
         # add task
         self.task = Task(
@@ -55,7 +66,7 @@ class TestNotifications(BaseTestCase):
         self.db.session.add(self.task)
 
     def test_notify(self):
-        '''test that one notification sends whose time corresponds with now'''
+        '''test that notifications send whose time corresponds with now'''
         response = self.client.get('/notify')
 
         print(response.data)

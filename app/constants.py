@@ -89,7 +89,21 @@ class RouterNames:
     MORNING_CONFIRMATION = 'MorningConfirmation'
     DID_YOU_DO_IT = 'DidYouDoIt'
     INIT_ONBOARDING_INVITED = 'InitOnboardingInvited'
+    WEEK_REFLECTION = 'WeekReflection'
 
 
 class Sizes:
     INBOUND_MAX_LENGTH = 612
+
+WEEKDAYS = {
+    'mon': (0,),
+    'tue': (1,),
+    'wed': (2,),
+    'thur': (3,),
+    'fri': (4,),
+    'sat': (5,),
+    'sun': (6,),
+    'mon-fri': (0,1,2,3,4),
+    'mon-sat': (0,1,2,3,4,5),
+    'daily': (0,1,2,3,4,5,6,),
+}

@@ -93,12 +93,13 @@ def send_message(user, outbound):
 
 
 def insert_notifications(user):
-    '''Create two morning and one evening notif. Add notif to db. pass the input classes as instances'''
+    '''Create two morning and one evening notif. Also create a sunday relfection notif.
+    Add notif to db. pass the input classes as instances'''
 
     # create ChooseTask notif
     notif = Notification(
         router=RouterNames.CHOOSE_TASK,
-        day_of_week='mon-fri',
+        day_of_week='mon-sat',
         hour=8,
         minute=0,
         active=True,
@@ -108,7 +109,7 @@ def insert_notifications(user):
     # create morning confirm notif
     notif = Notification(
         router=RouterNames.MORNING_CONFIRMATION,
-        day_of_week='mon-fri',
+        day_of_week='mon-sat',
         hour=8,
         minute=0,
         active=True,
@@ -118,8 +119,18 @@ def insert_notifications(user):
     # create did you do it notif
     notif = Notification(
         router=RouterNames.DID_YOU_DO_IT,
-        day_of_week='mon-fri',
+        day_of_week='mon-sat',
         hour=21,
+        minute=0,
+        active=True,
+        user_id=user['id'])
+    db.session.add(notif)
+
+    # create week reflection notif
+    notif = Notification(
+        router=RouterNames.WEEK_REFLECTION,
+        day_of_week='sun',
+        hour=17,
         minute=0,
         active=True,
         user_id=user['id'])

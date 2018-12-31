@@ -416,3 +416,18 @@ class LeaveTeam(BaseRouter):
     inbound_format = parsers.INTEGER
     actions = (multiplayer.leave_team,)
     confirmation = "Team left."
+
+
+class WeekReflection(BaseRouter):
+    pre_actions = (solo.str_past_tasks,)
+    outbound = "Your tasks this past week: \n{str_past_tasks}\n What enabled you to be productive this past week?"
+    
+    @classmethod
+    def next_router(self, **kwargs):
+        return WeekReflectionPart2
+
+
+class WeekReflectionPart2(BaseRouter):
+    outbound = "And what hindered your productivity?"
+    confirmation = "Thanks for reflecting!"
+    participation_points = Points.TASK_COMPLETED

@@ -11,6 +11,7 @@ from app.models import AppUser, Notification, Task
 from app.routers import ChooseTask, MorningConfirmation, DidYouDoIt
 from app.tools import send_message, insert_exchange
 from app.get_router import get_router
+from app.constants import RouterNames, WEEKDAYS
 
 
 def main():
@@ -29,7 +30,7 @@ def main():
     choose_task_notifs = db.session.query(Notification, AppUser).join(AppUser)\
         .filter(
             Notification.active == True,
-            Notification.router.in_([ChooseTask.__name__]),
+            Notification.router == RouterNames.CHOOSE_TASK,
             ~exists().where(
                 and_(
                     AppUser.id == Task.user_id,
@@ -42,7 +43,7 @@ def main():
     morning_confirm_notifs = db.session.query(Notification, AppUser).join(AppUser)\
         .filter(
             Notification.active == True,
-            Notification.router.in_([MorningConfirmation.__name__]),
+            Notification.router == RouterNames.MORNING_CONFIRMATION,
             exists().where(
                 and_(
                     AppUser.id == Task.user_id,
@@ -55,7 +56,7 @@ def main():
     did_you_do_it_notifs = db.session.query(Notification, AppUser).join(AppUser)\
         .filter(
             Notification.active == True,
-            Notification.router.in_([DidYouDoIt.__name__]),
+            Notification.router == RouterNames.DID_YOU_DO_IT,
             exists().where(
                 and_(
                     AppUser.id == Task.user_id,
@@ -64,20 +65,31 @@ def main():
                     Task.due_date <= latest_time))
         ).all()
 
+    # query all week_reflections (handle day matching later)
+    week_reflection_notifs = db.session.query(Notification, AppUser).join(AppUser)\
+        .filter(
+            Notification.active == True,
+            Notification.router == RouterNames.WEEK_REFLECTION,
+        ).all()
+
     # combine both lists of notifs
-    all_notifs = choose_task_notifs + morning_confirm_notifs + did_you_do_it_notifs
+    all_notifs = choose_task_notifs + morning_confirm_notifs + did_you_do_it_notifs + week_reflection_notifs
 
     # run each notif based on user's local time
     for (notif, user) in all_notifs:
         user = user.to_dict()
         notif = notif.to_dict()
 
-        if user['timezone'] is None:
+        if user['timezone'] is None: # skip users who havent set a tz yet
             continue
 
         notif_tz = pytz.timezone(user['timezone'])
         local_time = dt.datetime.now(notif_tz)
-        # TODO(Nico) assumes that every notif gets sent every day
+
+        # skip to the next notif if the weekday isnt correct
+        if local_time.weekday() not in WEEKDAYS[notif['day_of_week']]:
+            continue
+
         reminder_local_time = dt.datetime(
             local_time.year, 
             local_time.month, 
@@ -87,7 +99,6 @@ def main():
             tzinfo=notif_tz)
 
         reminder_utc_time = reminder_local_time.astimezone(pytz.utc).replace(tzinfo=None)
-
         
         if earliest_time <= reminder_utc_time <= latest_time:
             router = get_router(notif['router'])()
@@ -96,6 +107,7 @@ def main():
             router.outbound = router.outbound.format(**results)
             message = send_message(user, router.outbound)
             insert_exchange(router, user)
+            
             messages.append(message.body)
             counter += 1
     
