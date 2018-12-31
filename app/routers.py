@@ -246,7 +246,8 @@ class ChooseTomorrowTask(BaseRouter):
 
 
 class DidYouDoIt(BaseRouter):
-    outbound = 'On a scale of 0 to 10, how well did you complete your task today?'
+    pre_actions = (solo.get_latest_task,)
+    outbound = 'On a scale of 0 to 10, how well did you complete this? {get_latest_task}'
     inbound_format = parsers.ZERO_TO_TEN
     actions = (solo.insert_points,)
 
@@ -420,7 +421,7 @@ class LeaveTeam(BaseRouter):
 
 class WeekReflection(BaseRouter):
     pre_actions = (solo.str_past_tasks,)
-    outbound = "Your tasks this past week: \n{str_past_tasks}\n What enabled you to be productive this past week?"
+    outbound = "Your tasks this past week:{str_past_tasks}\n\n What enabled you to be productive this past week?"
     
     @classmethod
     def next_router(self, **kwargs):
