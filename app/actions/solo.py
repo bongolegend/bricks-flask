@@ -7,9 +7,9 @@ from app.tools import send_message
 from app.constants import RouterNames
 
 
-def insert_points(user, value, **kwargs):
-    '''insert arbitrary number of points for user'''
-    point = Point(value=value, user_id=user['id'])
+def insert_points(user, inbound, **kwargs):
+    '''insert arbitrary number of points for user. assume that inbound is an integer'''
+    point = Point(value=inbound, user_id=user['id'])
     db.session.add(point)
     db.session.commit()
 

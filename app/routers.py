@@ -49,7 +49,8 @@ class BaseRouter:
                     current_router=self,
                     inbound=inbound, 
                     user=user,
-                    exchange=exchange)
+                    exchange=exchange,
+                    **kwargs)
                 print('ACTION EXECUTED: ', action.__name__)
                 result_dict[action.__name__] = result
             return result_dict
@@ -245,23 +246,16 @@ class ChooseTomorrowTask(BaseRouter):
 
 
 class DidYouDoIt(BaseRouter):
-    outbound = 'Did you do your task today? (y/n)'
-    inbound_format = parsers.YES_NO
+    outbound = 'On a scale of 0 to 10, how well did you complete your task today?'
+    inbound_format = parsers.ZERO_TO_TEN
+    actions = (solo.insert_points,)
 
     @classmethod
     def next_router(self, inbound, **kwargs):
-        if inbound == 'yes':
+        if inbound > 3:
             return CompletionPoint
-        elif inbound == 'no':
-            return NoCompletion
-    
-    @classmethod
-    def run_actions(self, user, inbound, **kwargs):
-        if inbound == 'yes':
-            result = solo.insert_points(user, Points.TASK_COMPLETED)
         else:
-            result = 0
-        return {solo.insert_points.__name__ : result}
+            return NoCompletion
 
 
 # TODO combine this with the one below it

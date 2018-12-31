@@ -3,6 +3,7 @@ import datetime as dt
 import os
 import unittest
 from tests.config_test import BaseTestCase
+from tests.constants import TEST_TEAM_ID
 from app.models import AppUser, Exchange, Task, Team, TeamMember, Notification, Point
 from app import models
 from app.constants import US_TIMEZONES, Statuses, RouterNames
@@ -64,19 +65,28 @@ class TestAllRouters(BaseTestCase):
         
         self.db.session.add(self.task)
 
-        # add team
-        self.team = Team(
+        self.inteam = Team(
+            id = TEST_TEAM_ID,
             founder = self.mitch,
-            name = 'The Cherrys')
+            name = 'inteam')
+        self.db.session.add(self.inteam)
 
-        self.db.session.add(self.team)
+        self.pendingteam = Team(
+            founder = self.mitch,
+            name = 'pendingteam')
+        self.db.session.add(self.pendingteam)
 
-        # add teammember
         self.mitch_member = TeamMember(
             user = self.mitch,
-            team = self.team,
+            team = self.inteam,
+            inviter = self.mitch,
+            status = Statuses.ACTIVE)
+        self.db.session.add(self.mitch_member)
+
+        self.mitch_member2 = TeamMember(
+            user = self.mitch,
+            team = self.pendingteam,
             inviter = self.mitch,
             status = Statuses.PENDING)
-        
-        self.db.session.add(self.mitch_member)
+        self.db.session.add(self.mitch_member2)
     

@@ -34,7 +34,7 @@ TESTING INBOUND: {inbound}
 def generate_tests_for_class(test_class):
     '''For a given test class, generate all of its tests'''
     for name, router in test_class.get_routers().items():
-        if isinstance(router.inbound_format, dict):
+        if isinstance(router.inbound_format, (dict, tuple)):
             for inbound in router.inbound_format:
                 test_name = f'test_{name}_{inbound}'
                 test = generator(router,  inbound)

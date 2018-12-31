@@ -1,6 +1,8 @@
 import phonenumbers as phone
 from app.models import Team
 from app.constants import Redirects, Sizes
+from tests.constants import TEST_TEAM_ID
+
 
 ANY = '*'
 
@@ -25,9 +27,11 @@ YES_NO = {
     'no': ['no', 'n', 'na', 'nope'],
 }
 
-ADD_MEMBER = 'add_member_parser'
+ADD_MEMBER = (f"{TEST_TEAM_ID}, 3124505311",)
 
 INTEGER = "INTEGER_PARSER"
+
+ZERO_TO_TEN = ('0','1','2','3','4','5','6','7','8','9','10')
 
 def parse(inbound, inbound_format):
     '''combine all parsers'''
@@ -40,6 +44,14 @@ def parse(inbound, inbound_format):
     elif inbound_format == INTEGER:
         try:
             return int(inbound)
+        except:
+            return None
+    elif inbound_format == ZERO_TO_TEN:
+        try:
+            assert inbound in ZERO_TO_TEN
+            inbound = int(inbound)
+            assert 0 <= inbound <= 10
+            return inbound
         except:
             return None
     else:
