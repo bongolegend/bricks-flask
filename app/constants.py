@@ -19,7 +19,7 @@ a) Create a task
 b) Invite a friend
 c) Create a team
 d) View team members
-e) View leaderboard
+e) Leaderboard Menu
 f) Settings
 """
 
@@ -32,6 +32,13 @@ b) Change username
 c) Leave team
 d) Help
 e) Main Menu"""
+
+    LEADERBOARD_MENU = """LEADERBOARDS
+
+a) Team (you vs your team mates)
+b) League (your teams vs other teams)
+c) Global (you vs all)
+d) Main Menu"""
 
     INIT_ONBOARDING_INVITATION = """
 Hey! Your friend {get_last_invitation[0]} invited you to join their team {get_last_invitation[1]}, on Bricks, a productivity chatbot. 

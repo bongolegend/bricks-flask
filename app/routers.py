@@ -163,10 +163,26 @@ class MainMenu(BaseRouter):
         elif inbound == 'd':
             return ViewTeamMembers
         elif inbound == 'e':
-            return Leaderboard
+            return LeaderboardMenu
         elif inbound == 'f':
             return Settings
 
+
+class LeaderboardMenu(BaseRouter):
+    outbound = Outbounds.LEADERBOARD_MENU
+    inbound_format = parsers.MULTIPLE_CHOICE
+
+    @classmethod
+    def next_router(self, inbound, **kwargs):
+        if inbound == 'a':
+            return TeamLeaderboard
+        elif inbound == 'b':
+            return TrapDoor
+        elif inbound == 'c':
+            return Leaderboard
+        elif inbound == 'd':
+            return MainMenu
+        
 
 class Settings(BaseRouter):
     outbound = Outbounds.SETTINGS
@@ -312,6 +328,10 @@ class MorningConfirmation(BaseRouter):
 class Leaderboard(BaseRouter):
     pre_actions = (multiplayer.get_leaderboard,)
     outbound = "{get_leaderboard}"
+
+    @classmethod
+    def next_router(self, **kwargs):
+        return LeaderboardMenu
     
 
 class CreateTeam(BaseRouter):
@@ -436,5 +456,19 @@ class WeekReflectionPart2(BaseRouter):
     def next_router(self, **kwargs):
         return WeekReflectionPart3
 
+
 class WeekReflectionPart3(BaseRouter):
     outbound = "Thanks for reflecting!"
+
+
+class TeamLeaderboard(BaseRouter):
+    pre_actions = (multiplayer.get_team_leaderboard,)
+    outbound = "{get_team_leaderboard}"
+
+    @classmethod
+    def next_router(self, **kwargs):
+        return LeaderboardMenu
+
+
+class TrapDoor(BaseRouter):
+    outbound = "Sorry, this feature doesn't exist yet. If you really want it, text Nico at 312-450-5311"

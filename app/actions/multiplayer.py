@@ -3,6 +3,7 @@ from sqlalchemy import func
 from app import db
 from app.models import AppUser, Point, Exchange, Team, TeamMember
 from app.constants import Statuses, Reserved
+from app.actions import solo
 from app import tools
 
 
@@ -19,6 +20,36 @@ def get_leaderboard(**kwargs):
     for user, value in users:
         board = board + "{value:<15}{user}\n".format(user=user[:16], value=value)
 
+    return board
+
+
+def get_team_leaderboard(user, **kwargs):
+    '''Make a leaderboard for the teams you are on'''
+    team_members = get_current_team_members(user, exclude_user=False)
+
+    teams = dict()
+    for member, team in team_members:
+        if not  team.name in teams:
+            teams[team.name] = list()
+        # get points for member
+        points = solo.get_total_points(member.to_dict())
+        # add uname, points to team list
+        teams[team.name].append((points, member.username))
+    
+    board = str()
+    for team, user_list in teams.items():
+        team_board = '\n' + team + str_leaderboard(user_list) + '\n'
+        board += team_board
+
+    return board
+
+
+def str_leaderboard(user_list):
+    '''sort users by points and return as a str'''
+    user_list = sorted(user_list, reverse=True)
+    board = str()
+    for points, user in user_list:
+        board = board + "\n{points:<15}{user}".format(points=points, user=user[:16])
     return board
 
 
@@ -208,18 +239,22 @@ def respond_to_invite(user, inbound, **kwargs):
     return membership
 
 
-def get_current_team_members(user, **kwargs):
-    '''get the team members for this user. exclude this user from the results.'''
+def get_current_team_members(user, exclude_user=True, **kwargs):
+    '''get the team members for this user. optionally exclude this user from the results.'''
     team_ids = db.session.query(Team.id).join(TeamMember)\
                 .filter(
                     TeamMember.user_id == user['id'],
                     TeamMember.status == Statuses.ACTIVE).all()
 
-    team_members = db.session.query(AppUser, Team).join(TeamMember.user, TeamMember.team)\
-        .filter(
+    filters = [
             TeamMember.team_id.in_(team_ids),
-            TeamMember.user_id != user['id'],
-            TeamMember.status == Statuses.ACTIVE).all()
+            TeamMember.status == Statuses.ACTIVE]
+    
+    if exclude_user:
+        filters.append(TeamMember.user_id != user['id'])
+
+    team_members = db.session.query(AppUser, Team).join(TeamMember.user, TeamMember.team)\
+        .filter(*filters).all()
 
     return team_members
 
