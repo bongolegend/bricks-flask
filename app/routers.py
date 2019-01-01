@@ -265,21 +265,21 @@ class DidYouDoIt(BaseRouter):
     pre_actions = (solo.get_latest_task,)
     outbound = 'On a scale of 0 to 10, how well did you complete this? {get_latest_task}'
     inbound_format = parsers.ZERO_TO_TEN
-    actions = (solo.insert_points,)
+
+    @classmethod
+    def insert_points(self, inbound, user, **kwargs):
+        '''insert points based on inbound and send a confirmation message.'''
+        solo.insert_points(user, inbound)
+        return Points.EARNED_MESSAGE.format(points=inbound)
 
     @classmethod
     def next_router(self, inbound, **kwargs):
-        if inbound > 3:
-            return CompletionPoint
-        else:
-            return NoCompletion
+        return TaskCompleted
 
-
-# TODO combine this with the one below it
-# TODO rename this to congrats
-class CompletionPoint(BaseRouter):
+    
+class TaskCompleted(BaseRouter):
     pre_actions = (solo.get_total_points,)
-    outbound = "Congrats! You earned +%s points. You now have {get_total_points} points. Do you want to choose tomorrow's task now? (y/n)" % Points.TASK_COMPLETED
+    outbound = "You now have {get_total_points} points. Do you want to choose tomorrow's task now? (y/n)"
     inbound_format = parsers.YES_NO
     participation_points = Points.CHOOSE_TASK
 
@@ -288,27 +288,16 @@ class CompletionPoint(BaseRouter):
         if inbound == 'yes':
             return ChooseTomorrowTask
         elif inbound == 'no':
-            return StateMorningFollowup
-
-
-class NoCompletion(BaseRouter):
-    pre_actions = (solo.get_total_points,)
-    outbound = "All good, just make tomorrow count. You currently have {get_total_points} points. Do you want to choose tomorrow's task now? (y/n)"
-    inbound_format = parsers.YES_NO
-    participation_points = Points.CHOOSE_TASK
-
-    @classmethod
-    def next_router(self, inbound, **kwargs):
-        if inbound == 'yes':
-            return ChooseTomorrowTask
-        elif inbound == 'no':
-            return StateMorningFollowup
+            return StateMorningChooseTask
 
 
 class StateMorningFollowup(BaseRouter):
-    # TODO(Nico) when you add feature for changing morning message, add this pre_action
-    # pre_actions = (solo.get_morning_confirmation_time,)
-    outbound =  "Great. I'll message you tomorrow at 8 am to remind you of your task."
+    outbound =  "Great. I'll message you tomorrow at 8 am to remind you."
+
+
+class StateMorningChooseTask(BaseRouter):
+    outbound = "No problem. I'll just ask you tomorrow morning."
+
 
 
 class MorningConfirmation(BaseRouter):

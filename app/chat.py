@@ -37,7 +37,7 @@ def main():
     elif parsed_inbound is not None:
 
         # give participation points
-        points_message = router.insert_points(user)
+        points_message = router.insert_points(user=user, inbound=parsed_inbound)
 
         # execute current exchange actions after getting inbound
         # this needs to run before selecting the next router, as 
