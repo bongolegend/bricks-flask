@@ -263,19 +263,39 @@ class ChooseTomorrowTask(BaseRouter):
 
 class DidYouDoIt(BaseRouter):
     pre_actions = (solo.get_latest_task,)
-    outbound = 'On a scale of 0 to 10, how well did you complete this? {get_latest_task}'
-    inbound_format = parsers.ZERO_TO_TEN
+    outbound = 'On a scale of 0 to 5, how well did you complete this: {get_latest_task}'
+    inbound_format = parsers.ZERO_TO_FIVE
 
     @classmethod
     def insert_points(self, inbound, user, **kwargs):
         '''insert points based on inbound and send a confirmation message.'''
-        solo.insert_points(user, inbound)
-        return Points.EARNED_MESSAGE.format(points=inbound)
+        value = 2 * inbound
+        solo.insert_points(user, value)
+        return Points.EARNED_MESSAGE.format(points=value)
 
     @classmethod
-    def next_router(self, inbound, **kwargs):
-        return TaskCompleted
+    def next_router(self, user, inbound, **kwargs):
+        if conditions.should_give_feedback(user):
+            return FeedbackPart1
+        else:
+            return TaskCompleted
 
+
+class FeedbackPart1(BaseRouter):
+    outbound = "FEEDBACK: what do you want me to add/change about this app?"
+
+    @classmethod
+    def next_router(self, **kwargs):
+        return TaskCompleted
+    
+
+class FeedbackPart2(BaseRouter):
+    outbound = "FEEDBACK (2/2): If you haven't invited friends yet, is there a reason why?"
+    confirmation = "Thanks for the feedback!"
+
+    @classmethod
+    def next_router(self, **kwargs):
+        return TaskCompleted
     
 class TaskCompleted(BaseRouter):
     pre_actions = (solo.get_total_points,)

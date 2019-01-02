@@ -57,3 +57,19 @@ def is_new_user(user, **kwargs):
         return True
     else:
         return False
+
+
+def should_give_feedback(user, **kwargs):
+    '''Check how many tasks the user has created. At specific counts of tasks
+    they should be solicited for feedback'''
+
+    time_to_give_feedback = (3,10,30)
+
+    tasks = db.session.query(Task.id).filter(
+        Task.user_id == user['id'],
+        Task.active == True).all()
+    
+    if len(tasks) in time_to_give_feedback:
+        return True
+    else:
+        return False

@@ -31,7 +31,7 @@ ADD_MEMBER = (f"{TEST_TEAM_ID}, 3124505311",)
 
 INTEGER = "INTEGER_PARSER"
 
-ZERO_TO_TEN = ('0','1','2','3','4','5','6','7','8','9','10')
+ZERO_TO_FIVE = ('0','1','2','3','4','5',)
 
 def parse(inbound, inbound_format):
     '''combine all parsers'''
@@ -46,11 +46,10 @@ def parse(inbound, inbound_format):
             return int(inbound)
         except:
             return None
-    elif inbound_format == ZERO_TO_TEN:
+    elif inbound_format == ZERO_TO_FIVE:
         try:
-            assert inbound in ZERO_TO_TEN
+            assert inbound in ZERO_TO_FIVE
             inbound = int(inbound)
-            assert 0 <= inbound <= 10
             return inbound
         except:
             return None
