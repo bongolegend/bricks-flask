@@ -11,7 +11,7 @@ def query_user_with_number(phone_number):
     returns the user object
     '''
 
-    user = db.session.query(AppUser).filter_by(phone_number=phone_number).first()
+    user = db.session.query(AppUser).filter(AppUser.phone_number == phone_number).first()
 
     if user is not None:
         return user.to_dict()
