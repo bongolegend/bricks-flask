@@ -8,6 +8,7 @@ Flask-Migrate
 Flask-Script
 gunicorn
 phonenumbers
-
+google-api-python-client
+passlib
 ### development
 # jupyter

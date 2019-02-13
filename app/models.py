@@ -2,6 +2,8 @@ from datetime import datetime as dt
 from sqlalchemy import func, UniqueConstraint
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.dialects import postgresql
+from passlib.hash import pbkdf2_sha256
+
 from app import db
 from app.constants import Reserved, Sizes
 
@@ -17,6 +19,13 @@ class AppUser(db.Model, Base):
     username = db.Column(db.String(64), default=Reserved.NEW_USER)
     phone_number = db.Column(db.String(32), unique=True, nullable=False)
     timezone = db.Column(db.String(32))
+    google_id_hash =  db.Column(db.String(128))
+
+    def hash_google_id(self, google_id):
+        self.google_id_hash = pbkdf2_sha256.hash(google_id)
+
+    def verify_google_id(self, google_id):
+        return pbkdf2_sha256.verify(google_id, self.google_id_hash)
 
     def to_dict(self):
         return dict(

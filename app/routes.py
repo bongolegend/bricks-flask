@@ -4,6 +4,7 @@ from datetime import timedelta
 from flask import Blueprint, current_app, session
 from app import chat 
 from app import notify
+from app import authenticate
 from app.security import validate_twilio_request, validate_google_cron_request
 
 main = Blueprint('main', __name__)
@@ -34,6 +35,11 @@ Please text {os.environ.get('TWILIO_PHONE_NUMBER')} to get started.
 @validate_google_cron_request
 def send_notifications_wrapper():
     return notify.main()
+
+
+@main.route("/authenticate", methods=['POST'])
+def authenticate_user_wrapper():
+    return authenticate.main()
 
 
 # TODO(Nico) is this the right place to put this?

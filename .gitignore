@@ -6,3 +6,12 @@ venv
 .DS_Store
 cloud_sql_proxy
 cloudsql
+
+# stuff needed to create a certificate
+*.key
+*.pem
+*.srl
+*.crt
+*.csr
+*.csr.cnf
+*.ext
