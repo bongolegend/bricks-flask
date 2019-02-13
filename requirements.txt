@@ -10,5 +10,6 @@ gunicorn
 phonenumbers
 google-api-python-client
 passlib
+itsdangerous
 ### development
 # jupyter
