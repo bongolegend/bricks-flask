@@ -5,6 +5,7 @@ from flask import Blueprint, current_app, session
 from app import chat 
 from app import notify
 from app import get_auth_token
+from app import get_friends
 from app.security import validate_twilio_request, validate_google_cron_request
 
 main = Blueprint('main', __name__)
@@ -40,6 +41,10 @@ def send_notifications_wrapper():
 @main.route("/api/get_auth_token", methods=['POST'])
 def get_auth_token_wrapper():
     return get_auth_token.main()
+
+@main.route("/api/get_friends", methods=['GET'])
+def get_friends_wrapper():
+    return get_friends.main()
 
 
 # TODO(Nico) is this the right place to put this?

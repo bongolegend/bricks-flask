@@ -1,6 +1,6 @@
 """source: https://developers.google.com/identity/sign-in/ios/backend-auth """
 import os
-from flask import request, jsonify
+from flask import request, jsonify, make_response
 from google.oauth2 import id_token
 from google.auth.transport import requests
 from app import db
@@ -13,7 +13,8 @@ def main():
     """
     data = request.get_json()
     if "google_token" not in data:
-        return jsonify({"error": "google_token is not present in request"})
+        json = jsonify({"error": "google_token is not present in request"})
+        return make_response(json, 400)
     else:
         try: # verify google token on google
             google_token = data['google_token']
@@ -25,7 +26,9 @@ def main():
             if google_info['iss'] not in ['accounts.google.com', 'https://accounts.google.com']:
                 raise ValueError('Wrong issuer for google token.')
         except ValueError: # notify client of invalid token
-            return jsonify({"error": f"The google token <{google_token}> was not accepted"})
+            json = jsonify({"error": f"The google token <{google_token}> was not accepted"})
+            return make_response(json, 400)
+
 
         google_id = google_info['sub']
         print("google_id: ", google_id, type(google_id))
@@ -34,7 +37,8 @@ def main():
 
         auth_token = user.generate_auth_token()
 
-        return jsonify({'auth_token': auth_token.decode('ascii'), 'duration': 600})
+        json = jsonify({'auth_token': auth_token.decode('ascii'), 'duration': 600})
+        return make_response(json, 202)
         
 
 def query_user(google_id):
