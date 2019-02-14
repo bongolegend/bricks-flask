@@ -4,8 +4,9 @@ from datetime import timedelta
 from flask import Blueprint, current_app, session
 from app import chat 
 from app import notify
-from app import get_auth_token
+from app import auth_token
 from app import get_friends
+from app import post_task
 from app.security import validate_twilio_request, validate_google_cron_request
 
 main = Blueprint('main', __name__)
@@ -40,11 +41,20 @@ def send_notifications_wrapper():
 
 @main.route("/api/get_auth_token", methods=['POST'])
 def get_auth_token_wrapper():
-    return get_auth_token.main()
+    return auth_token.get()
+
 
 @main.route("/api/get_friends", methods=['GET'])
-def get_friends_wrapper():
-    return get_friends.main()
+@auth_token.verify
+def get_friends_wrapper(user):
+    return get_friends.main(user)
+
+
+@main.route("/api/post_task", methods=['POST'])
+@auth_token.verify
+def post_task_wrapper(user):
+    return post_task.main(user)
+
 
 
 # TODO(Nico) is this the right place to put this?

@@ -3,9 +3,6 @@ from flask import current_app
 from sqlalchemy import func, UniqueConstraint
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.dialects import postgresql
-from passlib.hash import pbkdf2_sha256
-from itsdangerous import (TimedJSONWebSignatureSerializer
-                          as Serializer, BadSignature, SignatureExpired)
 
 from app import db
 from app.constants import Reserved, Sizes
@@ -24,23 +21,6 @@ class AppUser(db.Model, Base):
     timezone = db.Column(db.String(32))
     google_id =  db.Column(db.String(128), unique=True, nullable=False)
 
-    # source: https://blog.miguelgrinberg.com/post/restful-authentication-with-flask/page/3
-    def generate_auth_token(self, expiration = 600):
-        s = Serializer(current_app.config['SECRET_KEY'], expires_in = expiration)
-        return s.dumps({ 'id': self.id })
-
-    @staticmethod
-    def verify_auth_token(token):
-        s = Serializer(current_app.config['SECRET_KEY'])
-        try:
-            data = s.loads(token)
-        except SignatureExpired:
-            return None # valid token, but expired
-        except BadSignature:
-            return None # invalid token
-        user = AppUser.query.get(data['id'])
-        return user
-
     def to_dict(self):
         return dict(
             id = self.id, 
@@ -51,7 +31,7 @@ class AppUser(db.Model, Base):
         )
 
     def __repr__(self):
-        return '<AppUser %r>' % self.phone_number
+        return '<AppUser %r>' % self.username
 
 
 class Notification(db.Model, Base):
