@@ -106,11 +106,8 @@ class Point(db.Model, Base):
 
 class Task(db.Model, Base):
     description = db.Column(db.String(612), nullable=False)
-    due_date = db.Column(db.DateTime, nullable=False)
+    due_date = db.Column(db.DateTime(timezone=True), nullable=False)
     active = db.Column(db.Boolean, nullable=False)
-
-    exchange_id = db.Column(db.Integer, db.ForeignKey('exchange.id'), nullable=False)
-    exchange = db.relationship('Exchange', backref=db.backref('tasks', lazy=True))
 
     user_id = db.Column(db.Integer, db.ForeignKey('app_user.id'), nullable=False)
     user = db.relationship('AppUser', backref=db.backref('tasks', lazy=True))
