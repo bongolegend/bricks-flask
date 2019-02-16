@@ -32,7 +32,7 @@ def get():
             if google_info['iss'] not in ['accounts.google.com', 'https://accounts.google.com']:
                 raise ValueError('Wrong issuer for google token.')
         except ValueError: # notify client of invalid token
-            json = jsonify({"error": f"The google token <{google_token}> was not accepted"})
+            json = jsonify({"message": f"The google token was not accepted", "google_token": google_token})
             return make_response(json, 400)
 
 
