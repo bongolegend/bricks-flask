@@ -17,13 +17,13 @@ def get():
     Check if the google token passed from client is valid. 
     if yes, find matching user and issue flask token.
     """
-    data = request.get_json()
-    if "google_token" not in data:
-        json = jsonify({"error": "google_token is not present in request"})
+
+    if "Authorization" not in request.headers:
+        json = jsonify({"error": "Authorization with google tokne is not present in request header"})
         return make_response(json, 400)
     else:
-        try: # verify google token on google
-            google_token = data['google_token']
+        try:
+            google_token = request.headers["Authorization"]
             google_info = id_token.verify_oauth2_token(
                 google_token, 
                 requests.Request(), 
