@@ -106,8 +106,9 @@ class Point(db.Model, Base):
 
 class Task(db.Model, Base):
     description = db.Column(db.String(612), nullable=False)
-    due_date = db.Column(db.DateTime(timezone=True), nullable=False)
+    due_date = db.Column(db.DateTime(timezone=False), nullable=False)
     active = db.Column(db.Boolean, nullable=False)
+    grade = db.Column(db.Integer)
 
     user_id = db.Column(db.Integer, db.ForeignKey('app_user.id'), nullable=False)
     user = db.relationship('AppUser', backref=db.backref('tasks', lazy=True))
