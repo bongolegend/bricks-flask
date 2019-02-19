@@ -258,6 +258,26 @@ def get_current_team_members(user, exclude_user=True, **kwargs):
 
     return team_members
 
+def get_current_team_members_beta(user, exclude_user=True, **kwargs):
+    '''get the team members for this user. optionally exclude this user from the results.'''
+    team_ids = db.session.query(Team.id).join(TeamMember)\
+                .filter(
+                    TeamMember.user_id == user.id,
+                    TeamMember.status == Statuses.ACTIVE).all()
+
+    filters = [
+            TeamMember.team_id.in_(team_ids),
+            TeamMember.status == Statuses.ACTIVE]
+    
+    if exclude_user:
+        filters.append(TeamMember.user_id != user.id)
+
+    # TODO I removed the join on TeamMember.team because I don't yet care about team info
+    team_members = db.session.query(AppUser).join(TeamMember.user)\
+        .filter(*filters).distinct().all()
+
+    return team_members
+
 
 def notify_team_members(user, inbound, **kwargs):
     '''Send message to teammembers that user is doing inbound'''
