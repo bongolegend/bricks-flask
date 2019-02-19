@@ -3,7 +3,7 @@ import dateutil.parser
 from app.models import AppUser, Task
 from app import db
 
-def main(user):
+def post(user):
 
     data = request.get_json()
 
