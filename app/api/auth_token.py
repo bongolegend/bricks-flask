@@ -63,7 +63,7 @@ def query_user(google_id):
 
 
 # source: https://blog.miguelgrinberg.com/post/restful-authentication-with-flask/page/3
-def generate(user, duration=3600):
+def generate(user, duration=10):
     """generate a new token for the given user"""
     s = Serializer(current_app.config['SECRET_KEY'], expires_in = duration)
     return s.dumps({ 'id': user.id }), duration

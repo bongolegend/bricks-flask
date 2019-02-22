@@ -3,12 +3,12 @@ import dateutil.parser
 import datetime as dt
 import pytz
 from app.models import AppUser, Task, Team, TeamMember
-from app.actions.multiplayer import get_current_team_members
+from app.actions.multiplayer import get_current_team_members_beta
 from app import db
 
 def get(user):
     """
-    get today tasks for friends. return data format:
+    get today tasks for your friends and yourself. return data format:
     [
         {
             "name": "jo",
@@ -35,7 +35,7 @@ def get(user):
     today = dt.datetime(year=now.year, month=now.month, day=now.day)
 
     # find friends on team
-    team_members = get_current_team_members_beta(user)
+    team_members = get_current_team_members_beta(user, exclude_user=False)
     member_ids = [member.id for member in team_members]
     
     # filter on due date corresponding to today, irrespective of time zone
