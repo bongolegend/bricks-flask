@@ -43,7 +43,7 @@ def get():
 
         auth_token, duration = generate(user)
 
-        json = jsonify({'auth_token': auth_token.decode('ascii'), 'duration': duration})
+        json = jsonify({'auth_token': auth_token.decode('ascii'), 'user_id': user.id, 'duration': duration})
         return make_response(json, 202)
         
 

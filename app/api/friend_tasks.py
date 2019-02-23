@@ -11,17 +11,21 @@ def get(user):
     get today tasks for your friends and yourself. return data format:
     [
         {
-            "name": "jo",
+            "username": "jo",
             "task": "pay taxes",
             "grade": 5,
+            "user_id": 12
         }, {
             "name": "sally",
             "task": "meditate",
             "grade": null,
+            "id": 12,
+            "user_id": 13
         }, {
             "name": "mark",
             "task": null, <-- indicate that team member has not submitted a task yet TODO
             "grade": null,
+            "user_id": 14
         }
     ]
     """
@@ -39,13 +43,13 @@ def get(user):
     member_ids = [member.id for member in team_members]
     
     # filter on due date corresponding to today, irrespective of time zone
-    tasks = db.session.query(AppUser.username, Task.description, Task.grade).join(Task.user)\
+    tasks = db.session.query(AppUser.username, AppUser.id, Task.description, Task.grade).join(Task.user)\
         .filter(
         Task.due_date == today,
         Task.user_id.in_(member_ids),
         Task.active == True).all()
     
-    keys = ("username", "description", "grade")
+    keys = ("username", "user_id", "description", "grade")
     tasks = [dict(zip(keys, task)) for task in tasks]
 
     return make_response(jsonify(tasks), 200)
