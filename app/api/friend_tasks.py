@@ -44,7 +44,7 @@ def get(user):
         Task.due_date == today,
         Task.user_id.in_(member_ids),
         Task.active == True).all()
-
+    
     keys = ("username", "description", "grade")
     tasks = [dict(zip(keys, task)) for task in tasks]
 

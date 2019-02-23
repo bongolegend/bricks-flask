@@ -1,12 +1,11 @@
 from flask import jsonify, request, make_response
-import dateutil.parser
+import datetime as dt
 from app.models import AppUser, Task
 from app import db
 
 def post(user):
 
     data = request.get_json()
-
     if "today_task" not in data or "due_date" not in data:
         message = "today_task or due_date not in body"
         print(message)
@@ -14,8 +13,7 @@ def post(user):
         return make_response(json, 400)
 
     description = data["today_task"]
-    due_date = dateutil.parser.parse(data["due_date"])
-
+    due_date = dt.datetime.strptime(data["due_date"], "%Y-%m-%dT%H:%M:%SZ")
     task = Task(
         description=description,
         due_date=due_date,

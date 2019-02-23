@@ -50,11 +50,10 @@ def get():
 def query_user(google_id):
     """find the user that matches google_id, else generate new user"""
 
-    user = db.session.query(AppUser).filter(google_id == google_id).first()
-
-    if user:
+    try:
+        user = db.session.query(AppUser).filter(AppUser.google_id == google_id).one()
         return user
-    else:
+    except:
         new_user = AppUser(google_id=google_id)
         db.session.add(new_user)
         db.session.commit()
@@ -101,5 +100,6 @@ def validate(token):
         return "EXPIRED"
     except BadSignature:
         return "BAD_SIGNATURE"
+    print("DATA.ID: ", data)
     user = AppUser.query.get(data['id'])
     return user
