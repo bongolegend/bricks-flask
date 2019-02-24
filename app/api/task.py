@@ -17,9 +17,9 @@ def post(user):
 
     # set old task of today to inactive
     old_task = db.session.query(Task).filter(
-        user=user,
-        due_date=due_date,
-        active=True).first()
+        Task.user == user,
+        Task.due_date == due_date,
+        Task.active == True).first()
 
     if old_task:
         old_task.active = False
