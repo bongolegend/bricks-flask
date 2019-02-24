@@ -13,7 +13,19 @@ def post(user):
         return make_response(json, 400)
 
     description = data["today_task"]
-    due_date = dt.datetime.strptime(data["due_date"], "%Y-%m-%dT%H:%M:%SZ")
+    due_date = dt.datetime.strptime(data["due_date"], "%Y-%m-%d")
+
+    # set old task of today to inactive
+    old_task = db.session.query(Task).filter(
+        user=user,
+        due_date=due_date,
+        active=True).first()
+
+    if old_task:
+        old_task.active = False
+        db.session.add(old_task)
+
+    # create new task
     task = Task(
         description=description,
         due_date=due_date,

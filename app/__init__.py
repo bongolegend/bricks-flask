@@ -6,7 +6,7 @@ remember that you need to set the ngrok URL every time you restart the ngrok ser
 https://dashboard.ngrok.com/get-started
 '''
 import logging
-from app.base_init import init_db, init_app
+from app.base_init import init_db, init_app, CustomJSONEncoder
 
 
 # initialize logging so that `flask run` logs the scheduler
@@ -22,6 +22,7 @@ def create_app(test=False):
     
     app = init_app(test=test)
     db.init_app(app)
+    app.json_encoder = CustomJSONEncoder
     
     with app.app_context():
         from app.routes import main as main_blueprint
