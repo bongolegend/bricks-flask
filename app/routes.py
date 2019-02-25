@@ -17,10 +17,10 @@ def get_auth_token_wrapper():
     return auth_token.get()
 
 
-@main.route("/api/task", methods=['POST'])
+@main.route("/api/task", methods=['PUT'])
 @auth_token.verify
 def post_task_wrapper(user):
-    return task.post(user)
+    return task.put(user)
 
 @main.route("/api/friend_tasks", methods=["GET"])
 @auth_token.verify

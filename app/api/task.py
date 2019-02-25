@@ -3,39 +3,64 @@ import datetime as dt
 from app.models import AppUser, Task
 from app import db
 
-def post(user):
+
+def put(user):
 
     data = request.get_json()
-    if "today_task" not in data or "due_date" not in data:
-        message = "today_task or due_date not in body"
-        print(message)
-        json = jsonify({"error_code": "MISSING_KEY", "message": message})
-        return make_response(json, 400)
-
-    description = data["today_task"]
     due_date = dt.datetime.strptime(data["due_date"], "%Y-%m-%d")
 
-    # set old task of today to inactive
-    old_task = db.session.query(Task).filter(
-        Task.user == user,
-        Task.due_date == due_date,
-        Task.active == True).first()
+    if data["task_id"] is None:
+        # create new task
+        new_task = Task(
+            description=data["description"],
+            due_date=due_date,
+            active=True,
+            user=user)
+        
+        db.session.add(new_task)
 
-    if old_task:
-        old_task.active = False
-        db.session.add(old_task)
+        # set any existing tasks with same due_date to INACTIVE
+        old_task = db.session.query(Task).filter(
+            Task.user == user,
+            Task.due_date == due_date,
+            Task.active == True).first()
 
-    # create new task
-    task = Task(
-        description=description,
-        due_date=due_date,
-        active=True,
-        user=user)
+        if old_task:
+            old_task.active = False
+        
+        message = "new task successfully created"
+        return_task = new_task
+
     
-    db.session.add(task)
+    else:
+        # update values of existing task
+        existing_task = db.session.query(Task).filter(
+            Task.id == data["task_id"]).one()
+        
+        existing_task.description = data["description"]
+        existing_task.grade = data["grade"]
+        existing_task.due_date = due_date
+
+        message = "updated existing task"
+        return_task = existing_task
+
+    # for all
     db.session.commit()
-    
-    message = "today_task successfully inserted"
     print(message)
-    json = jsonify({"message": message, "task": description})
+
+    task_dict = {
+        "username": user.username,
+        "user_id": user.id,
+        "task_id": return_task.id,
+        "description": return_task.description,
+        "grade": return_task.grade,
+        "due_date": return_task.due_date
+    }
+
+    json = jsonify(task_dict)
     return make_response(json, 200)
+    
+
+    
+
+        

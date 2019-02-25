@@ -100,6 +100,5 @@ def validate(token):
         return "EXPIRED"
     except BadSignature:
         return "BAD_SIGNATURE"
-    print("DATA.ID: ", data)
     user = AppUser.query.get(data['id'])
     return user

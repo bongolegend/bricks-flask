@@ -1,4 +1,5 @@
 from flask import jsonify, request, make_response
+from sqlalchemy import func, and_
 import dateutil.parser
 import datetime as dt
 import pytz
@@ -8,7 +9,7 @@ from app import db
 
 def get(user):
     """
-    get today tasks for your friends and yourself. return data format:
+    get most recent tasks for your friends and yourself. return data format:
     [
         {
             "username": "jo",
@@ -38,13 +39,29 @@ def get(user):
     member_ids = [member.id for member in team_members]
     
     # filter on due date corresponding to today, irrespective of time zone
-    tasks = db.session.query(AppUser.username, AppUser.id, Task.description, Task.grade, Task.due_date).join(Task.user)\
-        .filter(
-        Task.due_date == today,
-        Task.user_id.in_(member_ids),
-        Task.active == True).all()
+    return_columns = [
+        AppUser.username, 
+        AppUser.id, 
+        Task.description, 
+        Task.grade, 
+        Task.due_date,
+        Task.id]
+    
+    # find latest task per user, on due_date
+    max_date_query = db.session.query(func.max(Task.due_date).label("due_date"), Task.user_id)\
+        .filter(Task.active == True)\
+        .group_by(Task.user_id).subquery()
+
+    tasks = db.session.query(*return_columns)\
+        .join(Task.user)\
+        .join( 
+            max_date_query, 
+            and_(
+            Task.user_id == max_date_query.c.user_id,
+            Task.due_date == max_date_query.c.due_date
+        )).all()
         
-    keys = ("username", "user_id", "description", "grade", "due_date")
+    keys = ("username", "user_id", "description", "grade", "due_date", "task_id")
     tasks = [dict(zip(keys, task)) for task in tasks]
 
     return make_response(jsonify(tasks), 200)
