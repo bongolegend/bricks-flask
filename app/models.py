@@ -20,6 +20,7 @@ class AppUser(db.Model, Base):
     phone_number = db.Column(db.String(32), unique=True)
     timezone = db.Column(db.String(32))
     google_id =  db.Column(db.String(128), unique=True, nullable=False)
+    device_token = db.Column(db.String(128), unique=True)
 
     def to_dict(self):
         return dict(

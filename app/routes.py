@@ -7,6 +7,7 @@ from app import notify
 from app.api import auth_token
 from app.api import task
 from app.api import friend_tasks
+from app.api import device_token
 from app.security import validate_twilio_request, validate_google_cron_request
 
 main = Blueprint('main', __name__)
@@ -15,7 +16,6 @@ main = Blueprint('main', __name__)
 @main.route("/api/auth_token", methods=['GET'])
 def get_auth_token_wrapper():
     return auth_token.get()
-
 
 @main.route("/api/task", methods=['PUT'])
 @auth_token.verify
@@ -27,6 +27,10 @@ def post_task_wrapper(user):
 def get_friend_tasks_wrapper(user):
     return friend_tasks.get(user)
 
+@main.route("/api/device_token", methods=["PUT"])
+@auth_token.verify
+def put_device_token_wrapper(user):
+    return device_token.put(user)
 
 @main.route("/")
 def landing_page():
@@ -43,6 +47,7 @@ def landing_page():
 
 Please text {os.environ.get('TWILIO_PHONE_NUMBER')} to get started.
 """
+
 
 @main.route( "/chat", methods=['GET', 'POST'])
 @validate_twilio_request
