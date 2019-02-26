@@ -57,8 +57,9 @@ def get(user):
         .join( 
             max_date_query, 
             and_(
-            Task.user_id == max_date_query.c.user_id,
-            Task.due_date == max_date_query.c.due_date
+                Task.user_id == max_date_query.c.user_id,
+                Task.due_date == max_date_query.c.due_date,
+                Task.active == True
         )).all()
         
     keys = ("username", "user_id", "description", "grade", "due_date", "task_id")
