@@ -2,6 +2,8 @@ from flask import jsonify, request, make_response
 import datetime as dt
 from app.models import AppUser, Task
 from app import db
+from app.actions.multiplayer import get_current_team_members_beta
+from app import push
 
 
 def put(user):
@@ -30,6 +32,10 @@ def put(user):
         
         message = "new task successfully created"
         return_task = new_task
+
+        # send push notification to friends
+        friends = get_current_team_members_beta(user, exclude_user=False)
+        push.main(friends, data["description"])
 
     
     else:
