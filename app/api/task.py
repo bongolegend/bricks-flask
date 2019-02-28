@@ -35,7 +35,7 @@ def put(user):
 
         # send push notification to friends
         friends = get_current_team_members_beta(user, exclude_user=False)
-        push.main(friends, data["description"])
+        push.main(user, friends, data["description"])
 
     
     else:

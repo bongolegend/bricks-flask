@@ -5,9 +5,9 @@ import calendar
 import time
 import jwt
 import json
-from app.constants.Push import ALGORITHM
+from app.constants import Push
 
-def main(friends, message):
+def main(user, friends, message):
 
     # TODO: Apple doesnt want you recreating new tokens all the time, so you may need to implement this section
     # last_token = get_last_token()
@@ -64,7 +64,7 @@ def create_jwt():
     """
 
     jwt_headers = {
-    "alg" : ALGORITHM,
+    "alg" : Push.ALGORITHM,
     "kid" : os.environ.get("APNS_KEY_ID")
     }
 
@@ -78,7 +78,7 @@ def create_jwt():
     encoded_jwt = jwt.encode(
         jwt_payload, 
         private_key, 
-        algorithm=ALGORITHM, 
+        algorithm=Push.ALGORITHM, 
         headers=jwt_headers)
 
     apple_formatted_jwt = f"bearer {encoded_jwt.decode('ascii')}"
