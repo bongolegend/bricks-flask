@@ -19,7 +19,7 @@ class AppUser(db.Model, Base):
     username = db.Column(db.String(64), default=Reserved.NEW_USER)
     phone_number = db.Column(db.String(32), unique=True)
     timezone = db.Column(db.String(32))
-    google_id =  db.Column(db.String(128), unique=True, nullable=False)
+    google_id =  db.Column(db.String(128), unique=True)
     device_token = db.Column(db.String(128), unique=True)
 
     def to_dict(self):
@@ -110,7 +110,9 @@ class Task(db.Model, Base):
     due_date = db.Column(db.DateTime(timezone=False), nullable=False)
     active = db.Column(db.Boolean, nullable=False)
     grade = db.Column(db.Integer)
+    exchange_id = db.Column(db.Integer, db.ForeignKey('exchange.id'))
 
+    exchange = db.relationship('Exchange', backref=db.backref('tasks', lazy=True))
     user_id = db.Column(db.Integer, db.ForeignKey('app_user.id'), nullable=False)
     user = db.relationship('AppUser', backref=db.backref('tasks', lazy=True))
     
