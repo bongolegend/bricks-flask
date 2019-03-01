@@ -13,6 +13,6 @@ passlib
 itsdangerous
 python-dateutil
 hyper
-jwt
+pyjwt
 ### development
 # jupyter

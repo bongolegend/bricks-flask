@@ -8,6 +8,18 @@ import jwt
 import json
 from app.constants import Push
 
+
+# GAE doesn't support `cryptography` lib, a dependency of pyjwt, according to
+# https://github.com/jpadilla/pyjwt/issues/181
+
+# Tell pyjwt to use pycrypto instead of cryptography, which isn't available on GAE
+# https://github.com/jpadilla/pyjwt/blob/master/docs/installation.rst#legacy-dependencies
+from jwt.contrib.algorithms.py_ecdsa import ECAlgorithm
+
+jwt.unregister_algorithm('ES256')
+jwt.register_algorithm('ES256', ECAlgorithm(ECAlgorithm.SHA256))
+
+
 def main(user, friends, message):
 
     # TODO: Apple doesnt want you recreating new tokens all the time, so you may need to implement this section
@@ -74,7 +86,9 @@ def create_jwt():
     "iat": calendar.timegm(time.gmtime())
     }
 
-    private_key = open(os.path.join(APP_ROOT, os.environ.get("AUTH_KEY_NAME")), "r").read()
+    key_file = open(os.path.join(APP_ROOT, os.environ.get("AUTH_KEY_NAME")), "r")
+    private_key = key_file.read()
+    key_file.close()
 
     encoded_jwt = jwt.encode(
         jwt_payload, 
