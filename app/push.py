@@ -1,6 +1,7 @@
 """module for creating push notifications"""
 from hyper import HTTPConnection
 import os
+from settings import APP_ROOT
 import calendar
 import time
 import jwt
@@ -73,7 +74,7 @@ def create_jwt():
     "iat": calendar.timegm(time.gmtime())
     }
 
-    private_key = open(os.environ.get("AUTH_KEY_PATH"), "r").read()
+    private_key = open(os.path.join(APP_ROOT, os.environ.get("AUTH_KEY_NAME")), "r").read()
 
     encoded_jwt = jwt.encode(
         jwt_payload, 
