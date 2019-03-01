@@ -19,7 +19,7 @@ def get():
     """
 
     if "Authorization" not in request.headers:
-        json = jsonify({"error": "Authorization with google tokne is not present in request header"})
+        json = jsonify({"error": "Authorization with google token is not present in request header"})
         return make_response(json, 400)
     else:
         try:

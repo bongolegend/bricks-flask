@@ -1,6 +1,5 @@
 from flask import jsonify, request, make_response
 from sqlalchemy import func, and_
-import dateutil.parser
 import datetime as dt
 import pytz
 from app.models import AppUser, Task, Team, TeamMember

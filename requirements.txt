@@ -12,5 +12,7 @@ google-api-python-client
 passlib
 itsdangerous
 python-dateutil
+hyper
+jwt
 ### development
 # jupyter
