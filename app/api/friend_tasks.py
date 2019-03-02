@@ -48,7 +48,10 @@ def get(user):
     
     # find latest task per user, on due_date
     max_date_query = db.session.query(func.max(Task.due_date).label("due_date"), Task.user_id)\
-        .filter(Task.active == True)\
+        .filter(
+            Task.active == True,
+            Task.user_id.in_(member_ids),
+            Task.due_date >= today)\
         .group_by(Task.user_id).subquery()
 
     tasks = db.session.query(*return_columns)\
