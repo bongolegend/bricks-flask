@@ -10,14 +10,13 @@ from app.constants import Push
 
 
 # GAE doesn't support `cryptography` lib, a dependency of pyjwt, according to
-# https://github.com/jpadilla/pyjwt/issues/181
-
+# https://pyjwt.readthedocs.io/en/latest/installation.html
 # Tell pyjwt to use pycrypto instead of cryptography, which isn't available on GAE
 # https://github.com/jpadilla/pyjwt/blob/master/docs/installation.rst#legacy-dependencies
-from jwt.contrib.algorithms.py_ecdsa import ECAlgorithm
+# from jwt.contrib.algorithms.py_ecdsa import ECAlgorithm
 
-jwt.unregister_algorithm('ES256')
-jwt.register_algorithm('ES256', ECAlgorithm(ECAlgorithm.SHA256))
+# jwt.unregister_algorithm('ES256')
+# jwt.register_algorithm('ES256', ECAlgorithm(ECAlgorithm.SHA256))
 
 
 def main(user, friends, message):
