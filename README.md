@@ -72,6 +72,9 @@ The point of this is to be able to run migrations. I haven't succeeded in access
 
 To whitelist phone numbers, go to https://www.twilio.com/console/phone-numbers/verified
 
+# How to run tests
+from root, run `python root_test.py`
+
 # Open Questions
 When do you close a sqlalchemy session, if ever?
 
