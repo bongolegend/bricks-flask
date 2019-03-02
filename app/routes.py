@@ -7,7 +7,7 @@ from app import notify
 from app.api import auth_token
 from app.api import task
 from app.api import friend_tasks
-from app.api import device_token
+from app.api import app_user
 from app.security import validate_twilio_request, validate_google_cron_request
 
 main = Blueprint('main', __name__)
@@ -27,10 +27,10 @@ def post_task_wrapper(user):
 def get_friend_tasks_wrapper(user):
     return friend_tasks.get(user)
 
-@main.route("/api/device_token", methods=["PUT"])
+@main.route("/api/app_user", methods=["PUT"])
 @auth_token.verify
-def put_device_token_wrapper(user):
-    return device_token.put(user)
+def put_app_user_wrapper(user):
+    return app_user.put(user)
 
 @main.route("/")
 def landing_page():

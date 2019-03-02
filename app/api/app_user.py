@@ -1,4 +1,5 @@
-""" save the ios device token to the user. this will be used to send push notifications"""
+""" save the values to app_user. 
+device token: this will be used to send push notifications"""
 
 
 from flask import jsonify, request, make_response
@@ -10,13 +11,11 @@ from app import db
 def put(user):
 
     data = request.get_json()
-
-    if data["device_token"] is None:
-        message = "missing key device_token"
-        
-        return make_response(jsonify(message), 400)
     
-    user.device_token = data["device_token"]
+    if "device_token" in data:
+        user.device_token = data["device_token"]
+    if "username" in data:
+        user.username = data["username"]
 
     db.session.commit()
 
