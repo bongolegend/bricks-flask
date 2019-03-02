@@ -12,6 +12,15 @@ def put(user):
     due_date = dt.datetime.strptime(data["due_date"], "%Y-%m-%d")
 
     if data["task_id"] is None:
+        # set any existing tasks with same due_date to INACTIVE
+        old_task = db.session.query(Task).filter(
+            Task.user == user,
+            Task.due_date == due_date,
+            Task.active == True).first()
+
+        if old_task:
+            old_task.active = False
+            
         # create new task
         new_task = Task(
             description=data["description"],
@@ -21,21 +30,14 @@ def put(user):
         
         db.session.add(new_task)
 
-        # set any existing tasks with same due_date to INACTIVE
-        old_task = db.session.query(Task).filter(
-            Task.user == user,
-            Task.due_date == due_date,
-            Task.active == True).first()
 
-        if old_task:
-            old_task.active = False
         
         message = "new task successfully created"
         return_task = new_task
 
         # send push notification to friends
-        friends = get_current_team_members_beta(user, exclude_user=False)
-        push.main(user, friends, data["description"])
+        # friends = get_current_team_members_beta(user, exclude_user=False)
+        # push.main(user, friends, data["description"])
 
     
     else:
