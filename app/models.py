@@ -111,6 +111,8 @@ class Task(db.Model, Base):
     active = db.Column(db.Boolean, nullable=False)
     grade = db.Column(db.Integer)
     exchange_id = db.Column(db.Integer, db.ForeignKey('exchange.id'))
+    points_earned = db.Column(db.Integer)
+    points_total = db.Column(db.Integer)
 
     exchange = db.relationship('Exchange', backref=db.backref('tasks', lazy=True))
     user_id = db.Column(db.Integer, db.ForeignKey('app_user.id'), nullable=False)

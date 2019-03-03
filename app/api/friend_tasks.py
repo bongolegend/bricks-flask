@@ -44,7 +44,19 @@ def get(user):
         Task.description, 
         Task.grade, 
         Task.due_date,
-        Task.id]
+        Task.id,
+        Task.points_earned,
+        Task.points_total]
+    
+    keys = (
+        "username", 
+        "user_id", 
+        "description", 
+        "grade", 
+        "due_date", 
+        "task_id",
+        "points_earned",
+        "points_total")
     
     # find latest task per user, on due_date
     max_date_query = db.session.query(func.max(Task.due_date).label("due_date"), Task.user_id)\
@@ -64,7 +76,6 @@ def get(user):
                 Task.active == True
         )).all()
         
-    keys = ("username", "user_id", "description", "grade", "due_date", "task_id")
     tasks = [dict(zip(keys, task)) for task in tasks]
 
     return make_response(jsonify(tasks), 200)

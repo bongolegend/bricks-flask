@@ -1,7 +1,7 @@
 import traceback
 from flask import jsonify, request, make_response
 import datetime as dt
-from app.models import AppUser, Task
+from app.models import AppUser, Task, Point
 from app import db
 from app.actions.multiplayer import get_current_team_members_beta
 from app import push
@@ -27,7 +27,8 @@ def put(user):
             description=data["description"],
             due_date=due_date,
             active=True,
-            user=user)
+            user=user,
+            points_total=get_total_points(user))
         
         db.session.add(new_task)
 
@@ -49,10 +50,9 @@ def put(user):
         # update values of existing task
         existing_task = db.session.query(Task).filter(
             Task.id == data["task_id"]).one()
-        
-        existing_task.description = data["description"]
         existing_task.grade = data["grade"]
-        existing_task.due_date = due_date
+        existing_task.points_earned = add_points(user, data["grade"])
+        existing_task.points_total = get_total_points(user)
 
         message = "updated existing task"
         return_task = existing_task
@@ -67,13 +67,33 @@ def put(user):
         "task_id": return_task.id,
         "description": return_task.description,
         "grade": return_task.grade,
-        "due_date": return_task.due_date
+        "due_date": return_task.due_date,
+        "points_earned": return_task.points_earned,
+        "points_total": return_task.points_total
     }
 
     json = jsonify(task_dict)
     return make_response(json, 200)
     
 
-    
+def add_points(user, grade):
+    """Give the user points based on their multiplier"""
+    value = grade * 2
+    point = Point(user=user, value=value)
+    db.session.add(point)
+    db.session.commit()
+
+    return value
+
+
+def get_total_points(user):
+    '''Get the total points for this user'''
+    value = db.session.query(func.sum(Point.value))\
+        .filter(Point.user == user).one()[0]
+
+    if value is None:
+        return 0
+    else:
+        return value
 
         
