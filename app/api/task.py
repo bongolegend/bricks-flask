@@ -1,3 +1,4 @@
+import traceback
 from flask import jsonify, request, make_response
 import datetime as dt
 from app.models import AppUser, Task
@@ -36,8 +37,12 @@ def put(user):
         return_task = new_task
 
         # send push notification to friends
-        # friends = get_current_team_members_beta(user, exclude_user=False)
-        # push.main(user, friends, data["description"])
+        try:
+            friends = get_current_team_members_beta(user, exclude_user=False)
+            push.main(user, friends, data["description"])
+        except Exception as e:
+            print("ERROR: PUSH NOTIFICATION FAILED")
+            traceback.print_exc()
 
     
     else:
