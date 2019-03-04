@@ -1,5 +1,6 @@
 import traceback
 from flask import jsonify, request, make_response
+from sqlalchemy import func
 import datetime as dt
 from app.models import AppUser, Task, Point
 from app import db
