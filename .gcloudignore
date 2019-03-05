@@ -6,3 +6,4 @@
 #!include:.gitignore
 !.env
 !apns_auth_key.p8
+!firebase_auth_key.json

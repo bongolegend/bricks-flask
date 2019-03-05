@@ -92,6 +92,11 @@ def get_total_points(user):
     value = db.session.query(func.sum(Point.value))\
         .filter(Point.user == user).one()[0]
 
+    # if isinstance(value, int):
+    #     return value
+    # else:
+    #     return 0
+
     if value is None:
         return 0
     else:
