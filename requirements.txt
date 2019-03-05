@@ -12,11 +12,4 @@ google-api-python-client
 passlib
 itsdangerous
 python-dateutil
-hyper
-pyjwt
-
-pycrypto 
-#ecdsa - breaks...not sure why
-
-### development
-# jupyter
+firebase-admin

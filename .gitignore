@@ -16,5 +16,7 @@ cloudsql
 *.csr.cnf
 *.ext
 
+# keys
 *.p8
 *.pyc
+firebase_auth_key.json

@@ -21,6 +21,7 @@ class AppUser(db.Model, Base):
     timezone = db.Column(db.String(32))
     google_id =  db.Column(db.String(128), unique=True)
     device_token = db.Column(db.String(128), unique=True)
+    firebase_token = db.Column(db.String(256), unique=True)
 
     def to_dict(self):
         return dict(
