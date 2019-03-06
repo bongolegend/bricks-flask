@@ -1,11 +1,18 @@
 import traceback
 from flask import jsonify, request, make_response
-from sqlalchemy import func
-import datetime as dt
-from app.models import AppUser, Task, Point, Team
+from app.models import AppUser, Team, TeamMember
 from app import db
 from app.actions.multiplayer import insert_team_beta
-from app import push
+from app.constants import Statuses
+
+
+def main(user):
+    if request.method == "PUT":
+        return put(user)
+    if request.method == "GET":
+        return get(user)
+    else:
+        raise Exception
 
 
 def put(user):
@@ -30,7 +37,23 @@ def put(user):
     json = jsonify(team_dict)
     return make_response(json, 200)
 
+
 def get(user):
     """return all teams for user"""
-    pass
+
+    keys = ("team_id", "name", "founder_id", "founder")
+    teams = db.session.query(Team.id, Team.name, Team.founder_id, AppUser.username)\
+        .join(Team.founder, Team.members)\
+        .filter(
+            TeamMember.user_id == user.id,
+            TeamMember.status == Statuses.ACTIVE).all()
+
+    if len(teams) > 0:
+        teams = [dict(zip(keys, team)) for team in teams]
+
+        return make_response(jsonify(teams), 200)
+    
+    else:
+        return make_response(jsonify(list()), 200)
+
         

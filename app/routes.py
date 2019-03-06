@@ -35,10 +35,10 @@ def get_friend_tasks_wrapper(user):
 def put_app_user_wrapper(user):
     return app_user.put(user)
 
-@main.route("/api/team", methods=["PUT"])
+@main.route("/api/team", methods=["GET", "PUT"])
 @auth_token.verify
-def put_team_wrapper(user):
-    return team.put(user)
+def team_wrapper(user):
+    return team.main(user)
 
 @main.route("/")
 def landing_page():
