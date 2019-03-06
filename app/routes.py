@@ -4,10 +4,13 @@ from datetime import timedelta
 from flask import Blueprint, current_app, session
 from app import chat 
 from app import notify
-from app.api import auth_token
-from app.api import task
-from app.api import friend_tasks
-from app.api import app_user
+from app.api import (
+    auth_token,
+    task,
+    friend_tasks,
+    app_user,
+    team
+)
 from app.security import validate_twilio_request, validate_google_cron_request
 
 main = Blueprint('main', __name__)
@@ -31,6 +34,11 @@ def get_friend_tasks_wrapper(user):
 @auth_token.verify
 def put_app_user_wrapper(user):
     return app_user.put(user)
+
+@main.route("/api/team", methods=["PUT"])
+@auth_token.verify
+def put_team_wrapper(user):
+    return team.put(user)
 
 @main.route("/")
 def landing_page():

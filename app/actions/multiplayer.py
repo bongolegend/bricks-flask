@@ -71,6 +71,24 @@ def insert_team(user, inbound, **kwargs):
     print(f"USER {user['username']} CREATED TEAM {team.name}")
 
 
+def insert_team_beta(user, name, **kwargs):
+    '''Create a new team with the user as the founder. 
+     add this user to this team in TeamMember'''
+    team = Team(founder_id=user.id, name=name)
+
+    member = TeamMember(
+        user_id=user.id,
+        team=team,
+        inviter_id=user.id,
+        status=Statuses.ACTIVE)
+
+    db.session.add(team)
+    db.session.add(member)
+    db.session.commit()
+
+    return team
+
+
 def list_teams(user, **kwargs):
     '''List the teams that user is a member of'''
     teams = db.session.query(Team.id, Team.name).join(TeamMember)\
