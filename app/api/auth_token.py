@@ -19,7 +19,8 @@ def get():
     """
 
     if "Authorization" not in request.headers:
-        json = jsonify({"error": "Authorization with google token is not present in request header"})
+        message = "Authorization with google token is not present in request header"
+        json = jsonify({"message": message})
         return make_response(json, 400)
     else:
         try:
@@ -32,7 +33,9 @@ def get():
             if google_info['iss'] not in ['accounts.google.com', 'https://accounts.google.com']:
                 raise ValueError('Wrong issuer for google token.')
         except ValueError: # notify client of invalid token
-            json = jsonify({"message": f"The google token was not accepted", "google_token": google_token})
+            message = "The google token was not accepted"
+            print(message)
+            json = jsonify({"message": message, "google_token": google_token})
             return make_response(json, 400)
 
 
