@@ -9,7 +9,8 @@ from app.api import (
     task,
     friend_tasks,
     app_user,
-    team
+    team,
+    invite
 )
 from app.security import validate_twilio_request, validate_google_cron_request
 
@@ -39,6 +40,11 @@ def put_app_user_wrapper(user):
 @auth_token.verify
 def team_wrapper(user):
     return team.main(user)
+
+@main.route("/api/invite", methods=["POST"])
+@auth_token.verify
+def invite_wrapper(user):
+    return invite.post(user)
 
 @main.route("/")
 def landing_page():

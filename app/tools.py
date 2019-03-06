@@ -87,8 +87,6 @@ def send_message(user, outbound):
         to=user['phone_number'],
         body=outbound)
     
-    print(f"MESSAGE SENT TO {user['username']}: {outbound}")
-
     return message
 
 
