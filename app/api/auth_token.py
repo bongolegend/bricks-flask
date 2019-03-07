@@ -82,24 +82,28 @@ def verify(func):
 
         auth_token = request.headers["Authorization"].split(" ")[1]
 
-        user = validate(auth_token)
+        error, data = validate(auth_token)
 
-        if user in ["EXPIRED", "BAD_SIGNATURE"]:
-            message = f"auth token failed verification because it is {user}"
+        if error:
+            message = f"auth token failed verification: {error}"
             print(message)
             return make_response(jsonify({"message": message}), 401)
-        
+        elif data:
+            user = db.session.query(AppUser).filter(AppUser.id == data["id"]).one()            
+        else:
+            raise Exception
+            
         return func(user, *args, **kwargs)
     return wrapper
 
 
 def validate(token):
+    """read the auth token and return """
     s = Serializer(current_app.config['SECRET_KEY'])
     try:
         data = s.loads(token)
+        return None, data
     except SignatureExpired:
-        return "EXPIRED"
+        return "EXPIRED", None
     except BadSignature:
-        return "BAD_SIGNATURE"
-    user = AppUser.query.get(data['id'])
-    return user
+        return "BAD_SIGNATURE", None
