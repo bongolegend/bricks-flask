@@ -1,17 +1,24 @@
 from flask import jsonify, request, make_response
+from phonenumbers import parse
+from phonenumbers.phonenumberutil import NumberParseException
 from app.models import Team
 from app import db
-from app import push
 from app.tools import send_message
-from phonenumbers import parse
-
+ 
 
 def post(user):
     """send invitation to phone number. confirmation code is deterministic based on team info"""
 
     data = request.get_json()
 
-    number = parse(data["phone_number"], "US")
+    try:
+        number = parse(data["phone_number"], "US")
+    except NumberParseException:
+        message = "The number supplied does not seem to be valid. Please try again."
+        print(message)
+        return make_response(jsonify({"message": message}), 400)
+
+
     number = f"+{number.country_code}{number.national_number}"
 
     # generate a confirmation code

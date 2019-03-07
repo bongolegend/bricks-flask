@@ -20,8 +20,7 @@ def get():
 
     if "Authorization" not in request.headers:
         message = "Authorization with google token is not present in request header"
-        json = jsonify({"message": message})
-        return make_response(json, 400)
+        return make_response(jsonify({"message": message}), 401)
     else:
         try:
             google_token = request.headers["Authorization"]
@@ -35,8 +34,7 @@ def get():
         except ValueError: # notify client of invalid token
             message = "The google token was not accepted"
             print(message)
-            json = jsonify({"message": message, "google_token": google_token})
-            return make_response(json, 400)
+            return make_response(jsonify({"message": message}), 401)
 
 
         google_id = google_info['sub']
@@ -65,7 +63,7 @@ def query_user(google_id):
 
 
 # source: https://blog.miguelgrinberg.com/post/restful-authentication-with-flask/page/3
-def generate(user, duration=10):
+def generate(user, duration=86400):
     """generate a new token for the given user"""
     s = Serializer(current_app.config['SECRET_KEY'], expires_in = duration)
     return s.dumps({ 'id': user.id }), duration
@@ -80,7 +78,7 @@ def verify(func):
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
         if "Authorization" not in request.headers:
-            return make_response(jsonify({"error": "provide an auth token as an 'Authorization' header value."}), 409)
+            return make_response(jsonify({"error": "provide an auth token as an 'Authorization' header value."}), 401)
 
         auth_token = request.headers["Authorization"].split(" ")[1]
 
@@ -89,7 +87,7 @@ def verify(func):
         if user in ["EXPIRED", "BAD_SIGNATURE"]:
             message = f"auth token failed verification because it is {user}"
             print(message)
-            return make_response(jsonify({"error_code": user, "message": message, "auth_token": auth_token}), 400)
+            return make_response(jsonify({"message": message}), 401)
         
         return func(user, *args, **kwargs)
     return wrapper
