@@ -159,3 +159,10 @@ class TeamMember(db.Model, Base):
 
     def __repr__(self):
         return f"<TeamMember {self.user} team={self.team} >"
+
+
+class Feedback(db.Model, Base):
+    user_id = db.Column(db.Integer, db.ForeignKey('app_user.id'), nullable=False)
+    text = db.Column(db.String(612), nullable=False)
+
+    user = db.relationship('AppUser', foreign_keys=[user_id], backref=db.backref('feedback', lazy=True))
