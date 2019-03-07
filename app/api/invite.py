@@ -27,14 +27,13 @@ def post(user):
     code = encode(team)
 
     # format message
-    message = f"""
-Your friend {user.username} invited you to join their team {team.name} on the Bricks app. Use this code after you log in:"""
+    message = f"{user.username} invited you to join their team {team.name} on the Bricks app. Use this code after you log in:"
 
     # send message to number with Twilio
     send_message({"phone_number": number}, message)
     send_message({"phone_number": number}, code)
 
-    message = "Invitation sent"
+    message = f"Invitation sent to {number}"
     return make_response(jsonify({"message": message}), 200)
 
 
