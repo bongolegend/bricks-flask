@@ -28,18 +28,19 @@ def post(user):
 
     # format message
     message = f"""
-Your friend {user.username} just invited you to join their team {team.name} on Bricks. 
-Download the app and use this code after you log in: {code}"""
+Your friend {user.username} invited you to join their team {team.name} on the Bricks app. Use this code after you log in:"""
 
     # send message to number with Twilio
     send_message({"phone_number": number}, message)
+    send_message({"phone_number": number}, code)
 
     message = "Invitation sent"
     return make_response(jsonify({"message": message}), 200)
 
 
 def encode(team):
-    code = str(team.id)[:3].ljust(3, "Q") + str(team.founder_id)[:3].ljust(3, team.name[0])
+    code = str(team.id)[:3].ljust(3, "q") + str(team.founder_id)[:3].ljust(3, team.name[0])
+    code = code.lower()
     # reverse
     code = code[::-1]
 
@@ -49,8 +50,9 @@ def encode(team):
 def decode(code):
     # reverse
     code = code[::-1]
+    code = code.lower()
 
-    team_code = code[:3].strip("Q")
+    team_code = code[:3].strip("q")
     team_id = int(team_code)
 
     team = db.session.query(Team).filter(Team.id == team_id).one()
