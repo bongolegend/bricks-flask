@@ -5,7 +5,7 @@ import pytz
 from app.models import AppUser, Task, Team, TeamMember
 from app.actions.multiplayer import get_current_team_members_beta
 from app import db
-from app.constants import Statuses
+from app.constants import Statuses, Tasks
 
 def get(user):
     """
@@ -99,7 +99,9 @@ def query_team_data(user, today):
         Task.id.label("task_id"),
         Task.due_date,
         Task.description,
-        Task.grade
+        Task.grade,
+        Task.points_earned,
+        Task.points_total
     ).join(
         due_dates,
         and_(
@@ -124,27 +126,17 @@ def query_team_data(user, today):
         tasks.c.task_id,
         tasks.c.due_date,
         tasks.c.description,
-        tasks.c.grade
+        tasks.c.grade,
+        tasks.c.points_earned,
+        tasks.c.points_total
         ).outerjoin(
             tasks,
             members.c.user_id == tasks.c.user_id
         ).all()
     
-    keys = (
-        "username",
-        "user_id", 
-        "member_id",
 
-        "team_name", 
-        "team_id", 
-        
-        "task_id",
-        "due_date",
-        "description",
-        "grade"
-    )
 
-    team_data = [dict(zip(keys, values)) for values in complete_query]
+    team_data = [dict(zip(Tasks.KEYS, values)) for values in complete_query]
     return team_data
 
 
