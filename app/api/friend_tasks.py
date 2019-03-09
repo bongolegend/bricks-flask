@@ -74,6 +74,8 @@ def query_team_data(user, today):
         TeamMember.team_id == teams.c.team_id
     ).join(
         TeamMember.user
+    ).filter(
+        TeamMember.user != user # exclude this user
     )
 
     members = members_query.subquery()
