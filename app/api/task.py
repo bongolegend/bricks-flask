@@ -8,6 +8,15 @@ from app.actions.multiplayer import get_current_team_members_beta
 from app import push
 
 
+def main(user):
+    if request.method == "PUT":
+        return put(user)
+    if request.method == "GET":
+        return get(user)
+    else:
+        raise Exception
+
+
 def put(user):
 
     data = request.get_json()
@@ -76,6 +85,32 @@ def put(user):
     json = jsonify(task_dict)
     return make_response(json, 200)
     
+
+def get(user):
+    """get the latest task from user"""
+
+    task = db.session.query(Task).filter(
+        Task.user == user,
+        Task.active == True
+    ).order_by(
+        Task.due_date.desc()
+    ).first()
+
+    task_dict = {
+        "username": user.username,
+        "user_id": user.id,
+
+        "task_id": task.id,
+        "due_date": task.due_date,
+        "description": task.description,
+        "grade": task.grade,
+        
+        "points_earned": task.points_earned,
+        "points_total": task.points_total
+    }
+
+    return make_response(jsonify(task_dict), 200)
+
 
 def add_points(user, grade):
     """Give the user points based on their multiplier"""

@@ -23,10 +23,10 @@ main = Blueprint('main', __name__)
 def get_auth_token_wrapper():
     return auth_token.get()
 
-@main.route("/api/task", methods=['PUT'])
+@main.route("/api/task", methods=["GET", "PUT"])
 @auth_token.verify
 def post_task_wrapper(user):
-    return task.put(user)
+    return task.main(user)
 
 @main.route("/api/friend_tasks", methods=["GET"])
 @auth_token.verify

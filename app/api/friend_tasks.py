@@ -41,7 +41,7 @@ def get(user):
     team_data = query_team_data(user, today)
 
     team_data = format_team_data(team_data)
-    print(team_data)
+    # print(team_data)
 
     return make_response(jsonify(team_data), 200)
 
