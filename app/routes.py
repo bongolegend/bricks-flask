@@ -7,7 +7,6 @@ from app import notify
 from app.api import (
     auth_token,
     task,
-    friend_tasks,
     app_user,
     team,
     invite,
@@ -20,22 +19,17 @@ main = Blueprint('main', __name__)
 
 
 @main.route("/api/auth_token", methods=['GET'])
-def get_auth_token_wrapper():
+def auth_token_wrapper():
     return auth_token.get()
 
 @main.route("/api/task", methods=["GET", "PUT"])
 @auth_token.verify
-def post_task_wrapper(user):
+def task_wrapper(user):
     return task.main(user)
-
-@main.route("/api/friend_tasks", methods=["GET"])
-@auth_token.verify
-def get_friend_tasks_wrapper(user):
-    return friend_tasks.get(user)
 
 @main.route("/api/app_user", methods=["PUT"])
 @auth_token.verify
-def put_app_user_wrapper(user):
+def app_user_wrapper(user):
     return app_user.put(user)
 
 @main.route("/api/team", methods=["GET", "PUT"])
