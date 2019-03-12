@@ -118,6 +118,18 @@ class Task(db.Model, Base):
     exchange = db.relationship('Exchange', backref=db.backref('tasks', lazy=True))
     user_id = db.Column(db.Integer, db.ForeignKey('app_user.id'), nullable=False)
     user = db.relationship('AppUser', backref=db.backref('tasks', lazy=True))
+
+    def to_dict(self):
+        return dict(
+            username=self.user.username,
+            user_id=self.user_id,
+            task_id=self.id,
+            due_date=self.due_date,
+            description=self.description,
+            grade=self.grade,
+            points_earned=self.points_earned,
+            points_total=self.points_total
+        )
     
     def __repr__(self):
         return f'<Task {self.description[:10]}>'

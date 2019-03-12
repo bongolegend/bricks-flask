@@ -1,4 +1,5 @@
 import traceback
+import pytz
 from flask import jsonify, request, make_response
 from sqlalchemy import func
 import datetime as dt
@@ -89,27 +90,31 @@ def put(user):
 def get(user):
     """get the latest task from user"""
 
+    if "TZ" not in request.headers:
+        message = "Provide TZ in headers"
+        return make_response(jsonify({"message": message}), 400)
+    
+    # get today in user's tz
+    now = dt.datetime.now(tz=pytz.timezone(request.headers["TZ"]))
+    today = dt.datetime(year=now.year, month=now.month, day=now.day)
+
     task = db.session.query(Task).filter(
         Task.user == user,
-        Task.active == True
+        Task.active == True,
+        Task.due_date >= today,
     ).order_by(
         Task.due_date.desc()
     ).first()
 
-    task_dict = {
-        "username": user.username,
-        "user_id": user.id,
+    if task is None:
+        return_object = {
+            "username": user.username,
+            "user_id": user.id
+        }
+    else:
+        return_object = task.to_dict()
 
-        "task_id": task.id,
-        "due_date": task.due_date,
-        "description": task.description,
-        "grade": task.grade,
-        
-        "points_earned": task.points_earned,
-        "points_total": task.points_total
-    }
-
-    return make_response(jsonify(task_dict), 200)
+    return make_response(jsonify(return_object), 200)
 
 
 def add_points(user, grade):

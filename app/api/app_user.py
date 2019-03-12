@@ -9,6 +9,7 @@ from app import db
 
 
 def put(user):
+    """update user in db, and return user stats"""
 
     data = request.get_json()
     
@@ -21,5 +22,15 @@ def put(user):
 
     db.session.commit()
 
-    message = "success"
-    return make_response(jsonify(message), 200)
+    points_total = db.session.query(Task.points_total).filter(
+        Task.user == user,
+        Task.active == True
+    ).order_by(
+        Task.due_date.desc()
+    ).first()[0]
+
+    stats_dict = {
+        "points_total": points_total
+    }
+
+    return make_response(jsonify(stats_dict), 200)
