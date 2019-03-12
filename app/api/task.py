@@ -88,7 +88,7 @@ def put(user):
     
 
 def get(user):
-    """get the latest task from user"""
+    """get the last week's worth of tasks from user"""
 
     if "TZ" not in request.headers:
         message = "Provide TZ in headers"
@@ -97,24 +97,22 @@ def get(user):
     # get today in user's tz
     now = dt.datetime.now(tz=pytz.timezone(request.headers["TZ"]))
     today = dt.datetime(year=now.year, month=now.month, day=now.day)
+    week_ago = today - dt.timedelta(days=7)
 
-    task = db.session.query(Task).filter(
+    tasks = db.session.query(Task).filter(
         Task.user == user,
         Task.active == True,
-        Task.due_date >= today,
+        Task.due_date >= week_ago,
     ).order_by(
         Task.due_date.desc()
-    ).first()
+    ).all()
 
-    if task is None:
-        return_object = {
-            "username": user.username,
-            "user_id": user.id
-        }
-    else:
-        return_object = task.to_dict()
+    tasks_list = list()
+    if len(tasks) > 0:
+        for task in tasks:
+            tasks_list.append(task.to_dict())
 
-    return make_response(jsonify(return_object), 200)
+    return make_response(jsonify(tasks_list), 200)
 
 
 def add_points(user, grade):
