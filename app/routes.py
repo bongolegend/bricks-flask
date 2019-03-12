@@ -11,7 +11,8 @@ from app.api import (
     team,
     invite,
     join,
-    feedback
+    feedback,
+    stats
 )
 from app.security import validate_twilio_request, validate_google_cron_request
 
@@ -51,6 +52,11 @@ def join_wrapper(user):
 @auth_token.verify
 def feedback_wrapper(user):
     return feedback.post(user)
+
+@main.route("/api/stats", methods=["GET"])
+@auth_token.verify
+def stats_wrapper(user):
+    return stats.get(user)
 
 @main.route("/")
 def landing_page():

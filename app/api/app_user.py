@@ -22,4 +22,5 @@ def put(user):
 
     db.session.commit()
 
-    return make_response(jsonify({"message": success}), 200)
+    message = "success"
+    return make_response(jsonify({"message": message}), 200)
