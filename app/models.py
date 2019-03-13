@@ -113,7 +113,6 @@ class Task(db.Model, Base):
     grade = db.Column(db.Integer)
     exchange_id = db.Column(db.Integer, db.ForeignKey('exchange.id'))
     points_earned = db.Column(db.Integer)
-    points_total = db.Column(db.Integer)
 
     exchange = db.relationship('Exchange', backref=db.backref('tasks', lazy=True))
     user_id = db.Column(db.Integer, db.ForeignKey('app_user.id'), nullable=False)
@@ -121,14 +120,11 @@ class Task(db.Model, Base):
 
     def to_dict(self):
         return dict(
-            username=self.user.username,
-            user_id=self.user_id,
             task_id=self.id,
-            due_date=self.due_date,
             description=self.description,
+            due_date=self.due_date,
             grade=self.grade,
-            points_earned=self.points_earned,
-            points_total=self.points_total
+            points_earned=self.points_earned
         )
     
     def __repr__(self):
@@ -144,8 +140,9 @@ class Team(db.Model, Base):
     def to_dict(self):
         return dict(
             id = self.id,
-            founder_id = self.founder_id,
-            name = self.name)
+            name = self.name,
+            # members = self.members)
+        )
 
     def __repr__(self):
         return f"<Team {self.name}>"
@@ -163,8 +160,11 @@ class TeamMember(db.Model, Base):
 
     def to_dict(self):
         return dict(
+            username = self.user.username,
             user_id = self.user_id,
+            member_id = self.id,
             team_id = self.team_id,
+            # tasks = self.user.tasks,
             inviter_id = self.inviter_id,
             status = self.status)
 
