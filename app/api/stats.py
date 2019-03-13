@@ -10,7 +10,7 @@ from app.api.task import get_total_points
 def get(user):
     """return user stats"""
 
-    points = get_total_points(user)
+    points = get_total_points(user.id)
 
     stats_dict = {
         "points_total": points,
