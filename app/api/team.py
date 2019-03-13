@@ -101,23 +101,35 @@ def query_team_data(current_user, lookback):
     # print("\nmembers query: ", str(members))
 
     tasks = db.session.query(
-        members,
         Task.id.label("task_id"),
         Task.description,
         Task.due_date,
         Task.grade,
-        Task.points_earned
-    ).outerjoin(
-        Task,
-        members.c.user_id == Task.user_id
+        Task.points_earned,
+        Task.user_id
     ).filter(
         Task.active == True,
         Task.due_date >= lookback
     ).order_by(
         Task.due_date.desc()
+    ).subquery()
+
+    # combine members and tasks
+    final_result = db.session.query(
+        members,
+        tasks.c.task_id,
+        tasks.c.description,
+        tasks.c.due_date,
+        tasks.c.grade,
+        tasks.c.points_earned
+    ).outerjoin(
+        tasks,
+        members.c.user_id == tasks.c.user_id
     ).all()
 
-    team_data = [dict(zip(TeamMemberTasks.KEYS, values)) for values in tasks]
+    # print("FINAL QUERY: ", str(final_result))
+
+    team_data = [dict(zip(TeamMemberTasks.KEYS, values)) for values in final_result]
     # print("TEAM DATA: ", team_data)
     return team_data
 
@@ -141,7 +153,8 @@ def format_team_data(current_user, task_list):
         member_dict[member_id]["name"] = task.pop("name")
         member_dict[member_id]["team_id"] = task.pop("team_id")
         
-        member_dict[member_id]["tasks"].append(task)
+        if task["task_id"] is not None:
+            member_dict[member_id]["tasks"].append(task)
     
     member_list = member_dict.values()
 
