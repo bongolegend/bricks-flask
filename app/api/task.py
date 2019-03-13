@@ -49,7 +49,7 @@ def put(user):
 
         # send push notification to friends
         try:
-            friends = get_current_team_members_beta(user, exclude_user=False)
+            friends = get_current_team_members_beta(user, exclude_user=True)
             push.task_created(user, friends, data["description"])
         except Exception as e:
             print("ERROR: PUSH NOTIFICATION FAILED")

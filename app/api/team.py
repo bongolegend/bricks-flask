@@ -96,6 +96,8 @@ def query_team_data(current_user, lookback):
         teams.c.team_id == TeamMember.team_id
     ).join(
         TeamMember.user
+    ).filter(
+        TeamMember.status == Statuses.ACTIVE
     ).subquery()
 
     # print("\nmembers query: ", str(members))
