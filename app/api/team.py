@@ -5,7 +5,8 @@ import pytz
 from app.models import AppUser, Task, Team, TeamMember
 from app.actions.multiplayer import get_current_team_members_beta
 from app import db
-from app.constants import Statuses, Tasks
+from app.constants import Statuses, TeamMemberTasks
+from app.api.task import get_total_points
 
 def main(user):
     if request.method == "PUT":
@@ -42,7 +43,16 @@ def put(user):
 
 def get(user):
     """
-    get most recent tasks for your friends and yourself.
+    get the following data:
+        team:
+            name
+            id
+            members:
+                member:
+                    username
+                    id
+                    memberid
+                    tasks
     """
 
     if "TZ" not in request.headers:
@@ -52,128 +62,105 @@ def get(user):
     # get today in user's tz
     now = dt.datetime.now(tz=pytz.timezone(request.headers["TZ"]))
     today = dt.datetime(year=now.year, month=now.month, day=now.day)
+    week_ago = today - dt.timedelta(days=7)
 
-    team_data = query_team_data(user, today)
+    team_data = query_team_data(user, week_ago)
 
     team_data = format_team_data(user, team_data)
 
     return make_response(jsonify(team_data), 200)
 
 
-def query_team_data(current_user, today):
+def query_team_data(current_user, lookback):
 
     # get teams the user is on
     teams = db.session.query(
-        Team.name.label("team_name"), 
+        Team.name,
         Team.id.label("team_id")
     ).join(
         TeamMember.team
     ).filter(
         TeamMember.user_id == current_user.id,
         TeamMember.status == Statuses.ACTIVE
-    ).subquery().alias("teams")
+    ).subquery()
     # print("\nteams query: ", str(teams))
 
     # get members by team, non-distinct
-    members_query = db.session.query(
-        teams.c.team_id, 
-        teams.c.team_name,
+    members = db.session.query(
+        teams,
         TeamMember.id.label("member_id"),
-        AppUser.username,
-        AppUser.id.label("user_id")
+        AppUser.id.label("user_id"),
+        AppUser.username
     ).join(
         TeamMember,
         teams.c.team_id == TeamMember.team_id
     ).join(
         TeamMember.user
-    )
-
-    members = members_query.subquery()
-    members_data = members_query.all()
-    user_ids = [member.user_id for member in members_data]
-
-    # print("\nmembers query: ", str(members))
-    # print("\nmembers data: ", str(members_data))
-    
-    # get all latest due dates
-    due_dates = db.session.query(
-        func.max(Task.due_date).label("due_date"), 
-        Task.user_id, 
-    ).filter(
-        Task.active == True,
-        Task.user_id.in_(user_ids),
-        Task.due_date >= today 
-    ).group_by(Task.user_id).subquery()
-
-    # print("\ndue dates query: ", str(due_dates))
-
-    tasks = db.session.query(
-        Task.user_id,
-        Task.id.label("task_id"),
-        Task.due_date,
-        Task.description,
-        Task.grade,
-        Task.points_earned,
-        Task.points_total
-    ).join(
-        due_dates,
-        and_(
-            Task.due_date == due_dates.c.due_date,
-            Task.user_id == due_dates.c.user_id
-    )).filter(
-        Task.active == True
     ).subquery()
 
-    # print("\ntasks query: ", str(tasks))
+    # print("\nmembers query: ", str(members))
 
+    tasks = db.session.query(
+        members,
+        Task.id.label("task_id"),
+        Task.description,
+        Task.due_date,
+        Task.grade,
+        Task.points_earned
+    ).outerjoin(
+        Task,
+        members.c.user_id == Task.user_id
+    ).filter(
+        Task.active == True,
+        Task.due_date >= lookback
+    ).order_by(
+        Task.due_date.desc()
+    ).all()
 
-    # join tasks to team members
-    complete_query = db.session.query(
-        members.c.username,
-        members.c.user_id, 
-        members.c.member_id,
-
-        members.c.team_name, 
-        members.c.team_id, 
-        
-        tasks.c.task_id,
-        tasks.c.due_date,
-        tasks.c.description,
-        tasks.c.grade,
-        tasks.c.points_earned,
-        tasks.c.points_total
-        ).outerjoin(
-            tasks,
-            members.c.user_id == tasks.c.user_id
-        ).all()
-    
-
-
-    team_data = [dict(zip(Tasks.KEYS, values)) for values in complete_query]
+    team_data = [dict(zip(TeamMemberTasks.KEYS, values)) for values in tasks]
     # print("TEAM DATA: ", team_data)
     return team_data
 
 
-def format_team_data(current_user, team_data):
+def format_team_data(current_user, task_list):
     """make data adhere to API format. do not add current user to the member_tasks list"""
-
-    teams_dict = dict()
-
-    for member_task in team_data:
-        team_id = member_task["team_id"]
-        # add entries for new teams
-        if team_id not in teams_dict.keys():
-            teams_dict[team_id] = dict(
-                team_name=member_task["team_name"],
-                team_id=team_id,
-                member_tasks=list()
-            )
-
-        if member_task["user_id"] != current_user.id:
-            teams_dict[team_id]["member_tasks"].append(member_task)
     
-    return_object = teams_dict.values()
-    # print("RETURN OBJECT: ", return_object)
-    return return_object
+    # sort tasks by member
+    member_dict = dict()
+    for task in task_list:
+        member_id = task["member_id"]
+
+        if member_id not in member_dict.keys():
+            member_dict[member_id] = { "tasks": list() }
+
+        # move values out of task and into member
+        member_dict[member_id]["username"] = task.pop("username")
+        member_dict[member_id]["user_id"] = task.pop("user_id")
+        member_dict[member_id]["member_id"] = task.pop("member_id")
+        member_dict[member_id]["points_total"] = get_total_points(member_dict[member_id]["user_id"])
+        member_dict[member_id]["name"] = task.pop("name")
+        member_dict[member_id]["team_id"] = task.pop("team_id")
+        
+        member_dict[member_id]["tasks"].append(task)
+    
+    member_list = member_dict.values()
+
+    # sort members by team
+    team_dict = dict()
+
+    for member in member_list:
+        team_id = member["team_id"]
+        # add entries for new teams
+        if team_id not in team_dict.keys():
+            team_dict[team_id] = { "members": list() }
+        
+        team_dict[team_id]["name"] = member.pop("name")
+        team_dict[team_id]["team_id"] = member.pop("team_id")
+
+        team_dict[team_id]["members"].append(member)
+    
+    team_list = team_dict.values()
+    print("RETURN OBJECT: ", team_list)
+    return team_list
 
 

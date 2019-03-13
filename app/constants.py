@@ -118,20 +118,18 @@ WEEKDAYS = {
 class Push:
     ALGORITHM = "ES256"
 
-class Tasks:
+class TeamMemberTasks:
     KEYS = (
-        "username",
-        "user_id", 
-        "member_id",
-
-        "team_name", 
+        "name", 
         "team_id", 
         
-        "task_id",
-        "due_date",
-        "description",
-        "grade",
+        "member_id",
+        "user_id",
+        "username",
         
-        "points_earned",
-        "points_total"
+        "task_id",
+        "description",
+        "due_date",
+        "grade",     
+        "points_earned"
     )
