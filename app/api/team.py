@@ -6,7 +6,7 @@ from app.models import AppUser, Task, Team, TeamMember
 from app.actions.multiplayer import get_current_team_members_beta
 from app import db
 from app.constants import Statuses, TeamMemberTasks
-from app.api.task import get_total_points
+from app.api.task import get_points_total
 
 def main(user):
     if request.method == "PUT":
@@ -137,7 +137,7 @@ def format_team_data(current_user, task_list):
         member_dict[member_id]["username"] = task.pop("username")
         member_dict[member_id]["user_id"] = task.pop("user_id")
         member_dict[member_id]["member_id"] = task.pop("member_id")
-        member_dict[member_id]["points_total"] = get_total_points(member_dict[member_id]["user_id"])
+        member_dict[member_id]["points_total"] = get_points_total(member_dict[member_id]["user_id"])
         member_dict[member_id]["name"] = task.pop("name")
         member_dict[member_id]["team_id"] = task.pop("team_id")
         

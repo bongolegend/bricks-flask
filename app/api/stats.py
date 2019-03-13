@@ -4,13 +4,13 @@ from app import db
 from app.models import TeamMember
 from app.constants import Statuses
 from app.api.invite import decode
-from app.api.task import get_total_points
+from app.api.task import get_points_total
 
 
 def get(user):
     """return user stats"""
 
-    points = get_total_points(user.id)
+    points = get_points_total(user.id)
 
     stats_dict = {
         "points_total": points,

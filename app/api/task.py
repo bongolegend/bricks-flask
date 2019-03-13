@@ -38,8 +38,7 @@ def put(user):
             description=data["description"],
             due_date=due_date,
             active=True,
-            user=user,
-            points_total=get_total_points(user.id))
+            user=user)
         
         db.session.add(new_task)
 
@@ -63,7 +62,6 @@ def put(user):
             Task.id == data["task_id"]).one()
         existing_task.grade = data["grade"]
         existing_task.points_earned = add_points(user, data["grade"])
-        existing_task.points_total = get_total_points(user.id)
 
         message = "updated existing task"
         return_task = existing_task
@@ -79,8 +77,7 @@ def put(user):
         "description": return_task.description,
         "grade": return_task.grade,
         "due_date": return_task.due_date,
-        "points_earned": return_task.points_earned,
-        "points_total": return_task.points_total
+        "points_earned": return_task.points_earned
     }
 
     json = jsonify(task_dict)
@@ -125,7 +122,7 @@ def add_points(user, grade):
     return value
 
 
-def get_total_points(user_id):
+def get_points_total(user_id):
     '''Get the total points for this user'''
     value = db.session.query(func.sum(Point.value))\
         .filter(Point.user_id == user_id).one()[0]
