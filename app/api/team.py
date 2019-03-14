@@ -3,7 +3,7 @@ from sqlalchemy import func, and_
 import datetime as dt
 import pytz
 from app.models import AppUser, Task, Team, TeamMember
-from app.actions.multiplayer import get_current_team_members_beta
+from app.actions.multiplayer import get_current_team_members_beta, insert_team_beta
 from app import db
 from app.constants import Statuses, TeamMemberTasks
 from app.api.task import get_points_total
@@ -28,17 +28,9 @@ def put(user):
         # update_team(user, data["team_id"], data["name"])
         pass
         
-    message = "new team successfully created"
+    message = f"New team {data['name']} successfully created."
 
-    team_dict = {
-        "name": team.name,
-        "team_id": team.id,
-        "founder": user.username,
-        "founder_id": team.founder_id
-    }
-
-    json = jsonify(team_dict)
-    return make_response(json, 200)
+    return make_response(jsonify({"message": message}), 200)
 
 
 def get(user):

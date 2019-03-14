@@ -20,8 +20,8 @@ class AppUser(db.Model, Base):
     phone_number = db.Column(db.String(32), unique=True)
     timezone = db.Column(db.String(32))
     google_id =  db.Column(db.String(128), unique=True)
-    device_token = db.Column(db.String(128), unique=True)
-    firebase_token = db.Column(db.String(256), unique=True)
+    device_token = db.Column(db.String(128), unique=False)
+    firebase_token = db.Column(db.String(256), unique=False)
 
     def to_dict(self):
         return dict(
