@@ -12,7 +12,8 @@ from app.api import (
     invite,
     join,
     feedback,
-    stats
+    stats,
+    privacy_policy
 )
 from app.security import validate_twilio_request, validate_google_cron_request
 
@@ -57,6 +58,10 @@ def feedback_wrapper(user):
 @auth_token.verify
 def stats_wrapper(user):
     return stats.get(user)
+
+@main.route("/privacy-policy", methods=["GET"])
+def policy_wrapper():
+    return privacy_policy.get()
 
 @main.route("/")
 def landing_page():
