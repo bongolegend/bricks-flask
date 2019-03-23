@@ -22,7 +22,7 @@ def put(user):
 
     data = request.get_json()
 
-    if data["team_id"] is None:
+    if not hasattr(data, "team_id"):
         team = insert_team_beta(user, data["name"])
     else:
         # update_team(user, data["team_id"], data["name"])
