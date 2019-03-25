@@ -27,6 +27,13 @@ def notify_user(firebase_token, title, body):
             title=title,
             body=body,
         ),
+        apns=messaging.APNSConfig(
+            payload=messaging.APNSPayload(
+                aps=messaging.Aps(
+                    sound="default"
+                )
+            )
+        ),
         token=firebase_token,
     )
 
