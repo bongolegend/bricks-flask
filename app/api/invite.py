@@ -1,7 +1,7 @@
 from flask import jsonify, request, make_response
 from phonenumbers import parse
 from phonenumbers.phonenumberutil import NumberParseException
-from app.models import Team
+from app.models import Team, Invitation
 from app import db
 from app.tools import send_message
  
@@ -35,6 +35,16 @@ def post(user):
     send_message(recipient, message)
     send_message(recipient, code)
     send_message(recipient, "Download the app here: https://testflight.apple.com/join/k4evaAed")
+
+    # add invitation to db
+    invitation = Invitation(
+        user = user,
+        team = team,
+        invitee_phone = number,
+        code = code
+    )
+    db.session.add(invitation)
+    db.session.commit()
 
     message = f"Invitation sent to {number}"
     return make_response(jsonify({"message": message}), 200)
