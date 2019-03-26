@@ -7,7 +7,7 @@ from app.models import AppUser, Task, Point
 from app import db
 from app.actions.multiplayer import get_current_team_members_beta
 from app import push
-
+import os
 
 def main(user):
     if request.method == "PUT":
@@ -47,10 +47,20 @@ def put(user):
         message = "new task successfully created"
         return_task = new_task
 
-        # send push notification to friends
+
         try:
-            friends = get_current_team_members_beta(user, exclude_user=True)
-            push.task_created(user, friends, data["description"])
+            if user.id == os.environ.get("NICO_USER_ID"):
+                # send push notification to everyone
+                all_users = db.session.query(AppUser).filter(
+                    AppUser.firebase_token != None,
+                    AppUser.id != user.id
+                ).all()
+                push.task_created(user, all_users, data["description"])
+            else:
+                # send push notification to friends
+                friends = get_current_team_members_beta(user, exclude_user=True)
+                push.task_created(user, friends, data["description"])
+        
         except Exception as e:
             print("ERROR: PUSH NOTIFICATION FAILED")
             traceback.print_exc()
