@@ -178,3 +178,14 @@ class Feedback(db.Model, Base):
     text = db.Column(db.String(612), nullable=False)
 
     user = db.relationship('AppUser', foreign_keys=[user_id], backref=db.backref('feedback', lazy=True))
+
+
+class Invitation(db.Model, Base):
+    user_id = db.Column(db.Integer, db.ForeignKey('app_user.id'), nullable=False)
+    team_id = db.Column(db.Integer, db.ForeignKey('team.id'), nullable=False)
+    invitee_phone = db.Column(db.String(32))
+    invitee_email = db.Column(db.String(64))
+    code = db.Column(db.String(32))
+    
+    user = db.relationship('AppUser', foreign_keys=[user_id], backref=db.backref('invitations', lazy=True))
+    team = db.relationship('Team', backref=db.backref('invitations', lazy=True))
