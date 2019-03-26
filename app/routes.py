@@ -76,7 +76,9 @@ def landing_page():
     |______|_______|/
 
 
-Please text {os.environ.get('TWILIO_PHONE_NUMBER')} to get started.
+If you encounter any issues while using this product, please contact the 
+developer at ncernek [at] gmail [dot] com.
+
 """
 
 
