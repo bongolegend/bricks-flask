@@ -50,6 +50,8 @@ def get_weekly_grades(user, today):
 def get_streak(user, today):
     """count the number of consecutive days the user has created a task"""
 
+    streak = 0
+
     # do not include today
     task_dates = db.session.query(Task.due_date).filter(
         Task.due_date < today,
@@ -57,13 +59,16 @@ def get_streak(user, today):
         Task.user == user
     ).order_by(Task.due_date.desc()).all()
 
-    task_dates = [x[0] for x in task_dates]
-    task_range = range( (task_dates[0] - task_dates[-1]).days )
-    all_dates = [task_dates[0] - dt.timedelta(x) for x in task_range]
+    if len(task_dates) > 0:
 
-    missing = sorted(set(all_dates) - set(task_dates), reverse=True)
+        task_dates = [x[0] for x in task_dates]
+        task_range = range( (task_dates[0] - task_dates[-1]).days )
+        all_dates = [task_dates[0] - dt.timedelta(x) for x in task_range]
 
-    streak = all_dates.index(missing[0])
+        missing = sorted(set(all_dates) - set(task_dates), reverse=True)
+        
+        if len(missing) > 0:
+            streak = all_dates.index(missing[0])
 
     today_task = db.session.query(Task).filter(
         Task.due_date == today,
@@ -75,3 +80,4 @@ def get_streak(user, today):
         return streak + 1
     else:
         return streak
+        
