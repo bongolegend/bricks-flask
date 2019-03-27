@@ -1,5 +1,6 @@
 """API that returns the user stats. I expect this to be called frequently as different actions occur."""
-import datetime
+import datetime as dt
+import pytz
 from flask import jsonify, request, make_response
 from app import db
 from app.models import TeamMember, Task
@@ -11,21 +12,22 @@ from app.api.task import get_points_total
 def get(user):
     """return user stats"""
 
-    points = get_points_total(user.id)
-    weekly_grades = get_weekly_grades(user)
+    now = dt.datetime.now(tz=pytz.timezone(request.headers["TZ"]))
+    today = dt.datetime(year=now.year, month=now.month, day=now.day)
+
     stats_dict = {
-        "points_total": points,
-        "weekly_grades": weekly_grades
+        "points_total": get_points_total(user.id),
+        "weekly_grades": get_weekly_grades(user, today),
+        "streak": get_streak(user, today)
     }
 
     return make_response(jsonify(stats_dict), 200)
 
 
-def get_weekly_grades(user):
+def get_weekly_grades(user, today):
     """return a list of ints, one for each day of the week. Days without a grade get a zero by default"""
     # find the most recent monday
-    today = datetime.date.today()
-    last_monday = today - datetime.timedelta(days=today.weekday())
+    last_monday = today - dt.timedelta(days=today.weekday())
 
     # extract the weekday, grade pairings
     tasks_this_week = db.session.query(Task.due_date, Task.grade).filter(
@@ -44,3 +46,32 @@ def get_weekly_grades(user):
   
 
     return grades
+
+def get_streak(user, today):
+    """count the number of consecutive days the user has created a task"""
+
+    # do not include today
+    task_dates = db.session.query(Task.due_date).filter(
+        Task.due_date < today,
+        Task.active == True,
+        Task.user == user
+    ).order_by(Task.due_date.desc()).all()
+
+    task_dates = [x[0] for x in task_dates]
+    task_range = range( (task_dates[0] - task_dates[-1]).days )
+    all_dates = [task_dates[0] - dt.timedelta(x) for x in task_range]
+
+    missing = sorted(set(all_dates) - set(task_dates), reverse=True)
+
+    streak = all_dates.index(missing[0])
+
+    today_task = db.session.query(Task).filter(
+        Task.due_date == today,
+        Task.active == True,
+        Task.user == user
+    ).first()
+
+    if today_task is not None:
+        return streak + 1
+    else:
+        return streak

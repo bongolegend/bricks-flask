@@ -167,7 +167,7 @@ def format_team_data(current_user, task_list):
         team_dict[team_id]["members"].append(member)
     
     team_list = team_dict.values()
-    print("RETURN OBJECT: ", team_list)
+    # print("RETURN OBJECT: ", team_list)
     return team_list
 
 
