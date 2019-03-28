@@ -3,15 +3,16 @@ def get():
 <div>
 <h1>Bricks - Privacy Policy</h1>
 <h2>SECURITY</h2>
-Access to your account is restricted by the use of Google Sign-In, a third-party authentication system in which you use your google account to authenticate your Bricks account.
+Access to your account is restricted by the use of Firebase Auth, a third-party authentication system in which you use your google account or your email/password to authenticate your Bricks account.
 Bricks does not have access to the login credentials you use for your google account.
-Bricks only records your google ID, as a way to match your Bricks account with the Google Sign-In process.
+Bricks only records your firebase auth ID, as a way to match your Bricks account with the authentication process.
+
 
 
 <h2>DATA</h2>
 By using the Bricks app, you agree to the following data policy:
 <h4>Data Collection</h4>
-Bricks collects personal identification: your google account ID, your username, your email address.
+Bricks collects personal identification: your fir auth ID, your username, your email address, your google photo.
 Bricks collects app usage data, i.e. when you log in.
 Bricks collects the tasks and grades that you submit through the platform.
 Bricks collects the actions you take on the platform, such as “liking” or commenting on a task, including other people’s tasks.

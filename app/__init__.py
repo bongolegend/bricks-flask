@@ -17,7 +17,7 @@ logging.basicConfig(format='%(asctime)s - %(message)s')
 logger.setLevel(logging.INFO)
 
 # initialize firebase for authentication and push notifications
-cred = firebase_admin.credentials.Certificate(os.path.join(APP_ROOT, os.environ.get("GOOGLE_APPLICATION_CREDENTIALS")))
+cred = firebase_admin.credentials.Certificate(os.path.join(APP_ROOT, os.environ.get("FIR_AUTH_KEY")))
 firebase_admin.initialize_app(cred)
 
 db = init_db() # this needs to be instantiated here, else the manage.py and models.py import different `db`

@@ -1,4 +1,4 @@
-"""source: https://developers.google.com/identity/sign-in/ios/backend-auth """
+"""source: https://firebase.google.com/docs/auth/admin/verify-id-tokens """
 import os
 import functools
 import traceback
@@ -15,12 +15,12 @@ from app.models import AppUser
 def get():
     """
     api endpoint
-    Check if the google token passed from client is valid. 
+    Check if the fir token passed from client is valid. 
     if yes, find matching user and issue flask token.
     """
 
     if "Authorization" not in request.headers:
-        message = "Authorization with google token is not present in request header"
+        message = "Authorization with fir token is not present in request header"
         return make_response(jsonify({"message": message}), 401)
     else:
         try:
@@ -29,7 +29,7 @@ def get():
             fir_auth_id = decoded_token["uid"]
         except:
             traceback.print_exc()
-            message = "The google token was not accepted"
+            message = "The fir token was not accepted"
             print(message)
             return make_response(jsonify({"message": message}), 401)
 
