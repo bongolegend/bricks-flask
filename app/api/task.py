@@ -132,13 +132,5 @@ def add_points(user, grade):
     return value
 
 
-def get_points_total(user_id):
-    '''Get the total points for this user'''
-    value = db.session.query(func.sum(Point.value))\
-        .filter(Point.user_id == user_id).one()[0]
 
-    if isinstance(value, int):
-        return value
-    else:
-        return 0
        

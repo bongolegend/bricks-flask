@@ -6,7 +6,7 @@ from app.models import AppUser, Task, Team, TeamMember
 from app.actions.multiplayer import get_current_team_members_beta, insert_team_beta
 from app import db
 from app.constants import Statuses, TeamMemberTasks
-from app.api.task import get_points_total
+from app.api.stats import get_points_total
 
 def main(user):
     if request.method == "PUT":
