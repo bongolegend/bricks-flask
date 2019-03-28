@@ -1,14 +1,15 @@
 """source: https://developers.google.com/identity/sign-in/ios/backend-auth """
 import os
 import functools
+import traceback
 from flask import request, jsonify, make_response, current_app
-from google.oauth2 import id_token
-from google.auth.transport import requests
+from firebase_admin import auth
 from passlib.hash import pbkdf2_sha256
 from itsdangerous import (TimedJSONWebSignatureSerializer
                           as Serializer, BadSignature, SignatureExpired)
 from app import db
 from app.models import AppUser
+
 
 
 def get():
@@ -23,24 +24,16 @@ def get():
         return make_response(jsonify({"message": message}), 401)
     else:
         try:
-            google_token = request.headers["Authorization"]
-            google_info = id_token.verify_oauth2_token(
-                google_token, 
-                requests.Request(), 
-                os.environ.get("IOS_GOOGLE_CLIENT_ID"))
-
-            if google_info['iss'] not in ['accounts.google.com', 'https://accounts.google.com']:
-                raise ValueError('Wrong issuer for google token.')
-        except ValueError: # notify client of invalid token
+            fir_token = request.headers["Authorization"]
+            decoded_token = auth.verify_id_token(fir_token)
+            fir_auth_id = decoded_token["uid"]
+        except:
+            traceback.print_exc()
             message = "The google token was not accepted"
             print(message)
             return make_response(jsonify({"message": message}), 401)
 
-
-        google_id = google_info['sub']
-        print("google_id: ", google_id, type(google_id))
-        
-        user = query_user(google_id)
+        user = query_user(fir_auth_id)
 
         auth_token, duration = generate(user)
 
@@ -48,14 +41,14 @@ def get():
         return make_response(json, 202)
         
 
-def query_user(google_id):
-    """find the user that matches google_id, else generate new user"""
+def query_user(fir_auth_id):
+    """find the user that matches fir_auth_id, else generate new user"""
 
     try:
-        user = db.session.query(AppUser).filter(AppUser.google_id == google_id).one()
+        user = db.session.query(AppUser).filter(AppUser.fir_auth_id == fir_auth_id).one()
         return user
     except:
-        new_user = AppUser(google_id=google_id)
+        new_user = AppUser(fir_auth_id=fir_auth_id)
         db.session.add(new_user)
         db.session.commit()
 

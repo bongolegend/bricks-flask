@@ -1,11 +1,4 @@
-from firebase_admin import messaging, credentials
-import firebase_admin
-from settings import APP_ROOT
-import os
-
-
-cred = credentials.Certificate(os.path.join(APP_ROOT, os.environ.get("GOOGLE_APPLICATION_CREDENTIALS")))
-firebase_admin.initialize_app(cred)
+from firebase_admin import messaging
 
 
 def task_created(user, friends, task_description):

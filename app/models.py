@@ -18,10 +18,12 @@ Base = declarative_base(cls=Base)
 class AppUser(db.Model, Base):
     username = db.Column(db.String(64), default=Reserved.NEW_USER)
     phone_number = db.Column(db.String(32), unique=True)
+    email = db.Column(db.String(64), unique=False)
     timezone = db.Column(db.String(32))
     google_id =  db.Column(db.String(128), unique=True)
     device_token = db.Column(db.String(128), unique=False)
     firebase_token = db.Column(db.String(256), unique=False)
+    fir_auth_id = db.Column(db.String(256), unique=True)
 
     def to_dict(self):
         return dict(
