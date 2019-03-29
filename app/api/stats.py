@@ -110,6 +110,8 @@ def get_rank(user, today):
         totals.c.user_id == AppUser.id
     ).all()
 
+
+
     data = pd.DataFrame(data, columns=["user_id", "time","total"])
 
     data["score"] = data.total / data.time.apply(lambda x: x.days + 1)
@@ -118,8 +120,13 @@ def get_rank(user, today):
 
     data = data.reset_index(drop=True)
 
-    rank = data.index[
+    rank_list = data.index[
         data.user_id == user.id
-    ].tolist()[0] + 1
+    ].tolist()
+
+    if len(rank_list) > 0:
+        rank = rank_list[0] + 1
+    else:
+        rank = len(data.index)
 
     return rank, len(data.index)
