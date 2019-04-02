@@ -3,8 +3,8 @@ def get():
 <div>
 <h2>Welcome to Stack a Brick!</h2>
 
-<div>Download the app on the App Store by searching for <strong>Stack a Brick</strong></div>
-<br/>
-Contact the developer: nico [at] stackabrick [dot] C-O-M
+Download the app on the 
+<a href="https://itunes.apple.com/us/app/stack-a-brick/id1456194944#?platform=iphone">App Store</a>.
+
 </div>
 """

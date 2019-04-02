@@ -27,15 +27,15 @@ def post(user):
     code = encode(team)
 
     # format message
-    message = f"{user.username} invited you to join their team {team.name} on the Bricks app. Use this code to join their team:"
+    message = f"{user.username} invited you to join their team {team.name} on the Bricks app."
 
     # send message to number with Twilio
     recipient = {"phone_number": number}
 
     send_message(recipient, message)
+    send_message(recipient, "Download the app here: https://itunes.apple.com/us/app/stack-a-brick/id1456194944#?platform=iphone")
+    send_message(recipient, "Use this code to join their team:")
     send_message(recipient, code)
-    send_message(recipient, "Download the app here: https://testflight.apple.com/join/k4evaAed")
-
     # add invitation to db
     invitation = Invitation(
         user = user,
