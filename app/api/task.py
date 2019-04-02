@@ -41,8 +41,6 @@ def put(user):
             user=user)
         
         db.session.add(new_task)
-
-
         
         message = "new task successfully created"
         return_task = new_task
@@ -89,6 +87,7 @@ def put(user):
         "due_date": return_task.due_date,
         "points_earned": return_task.points_earned
     }
+    db.session.close()
 
     json = jsonify(task_dict)
     return make_response(json, 200)
@@ -113,6 +112,7 @@ def get(user):
     ).order_by(
         Task.due_date.desc()
     ).all()
+    db.session.close()
 
     tasks_list = list()
     if len(tasks) > 0:
@@ -127,7 +127,6 @@ def add_points(user, grade):
     value = grade * 2
     point = Point(user=user, value=value)
     db.session.add(point)
-    db.session.commit()
 
     return value
 

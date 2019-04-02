@@ -43,5 +43,6 @@ def post(user):
         "team_id": team.id,
         "founder_id": team.founder_id
     }
+    db.session.close()
 
     return make_response(jsonify(team_dict), 200)

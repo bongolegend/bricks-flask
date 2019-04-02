@@ -60,6 +60,7 @@ def get(user):
 
     team_data = format_team_data(user, team_data)
 
+    db.session.close()
     return make_response(jsonify(team_data), 200)
 
 

@@ -16,6 +16,7 @@ def post(user):
     
     db.session.add(feedback)
     db.session.commit()
+    db.session.close()
 
     message = f"{user.username} suggests: {data['text']}"
     

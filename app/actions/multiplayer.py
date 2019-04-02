@@ -85,6 +85,7 @@ def insert_team_beta(user, name, **kwargs):
     db.session.add(team)
     db.session.add(member)
     db.session.commit()
+    db.session.close()
 
     return team
 
@@ -372,3 +373,4 @@ def leave_team(user, inbound, **kwargs):
     membership.status = Statuses.LEFT
 
     db.session.commit()
+    db.session.close()

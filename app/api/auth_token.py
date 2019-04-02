@@ -37,6 +37,8 @@ def get():
 
         auth_token, duration = generate(user)
 
+        db.session.expunge(user)
+        db.session.close()
         json = jsonify({'auth_token': auth_token.decode('ascii'), 'user_id': user.id, 'duration': duration})
         return make_response(json, 202)
         
@@ -82,7 +84,9 @@ def verify(func):
             print(message)
             return make_response(jsonify({"message": message}), 401)
         elif data:
-            user = db.session.query(AppUser).filter(AppUser.id == data["id"]).one()            
+            user = db.session.query(AppUser).filter(AppUser.id == data["id"]).one()       
+            db.session.expunge(user)
+            db.session.close()     
         else:
             raise Exception
             

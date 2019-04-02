@@ -45,6 +45,7 @@ def post(user):
     )
     db.session.add(invitation)
     db.session.commit()
+    db.session.close()
 
     message = f"Invitation sent to {number}"
     return make_response(jsonify({"message": message}), 200)

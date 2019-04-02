@@ -24,6 +24,7 @@ def get(user):
         "rank": rank,
         "total_users": total_users
     }
+    db.session.close()
 
 
     return make_response(jsonify(stats_dict), 200)

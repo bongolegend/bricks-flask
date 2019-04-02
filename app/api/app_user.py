@@ -25,6 +25,7 @@ def put(user):
         user.email = data["email"]
 
     db.session.commit()
+    db.session.close()
 
     message = "success"
     return make_response(jsonify({"message": message}), 200)
