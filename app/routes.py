@@ -13,7 +13,8 @@ from app.api import (
     join,
     feedback,
     stats,
-    privacy_policy
+    privacy_policy,
+    landing_page
 )
 from app.security import validate_twilio_request, validate_google_cron_request
 
@@ -64,22 +65,8 @@ def policy_wrapper():
     return privacy_policy.get()
 
 @main.route("/")
-def landing_page():
-    return f"""
-<plaintext>
-
-   welcome to Bricks.
-
-         _______
-      __/______/|___  
-    /___|__ ___|/__/|
-    |______|_______|/
-
-
-If you encounter any issues while using this product, please contact the 
-developer at ncernek [at] gmail [dot] com.
-
-"""
+def landing_page_wrapper():
+    return landing_page.get()
 
 
 @main.route( "/chat", methods=['GET', 'POST'])

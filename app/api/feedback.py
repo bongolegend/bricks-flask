@@ -16,7 +16,6 @@ def post(user):
     
     db.session.add(feedback)
     db.session.commit()
-    db.session.close()
 
     message = f"{user.username} suggests: {data['text']}"
     
@@ -24,6 +23,7 @@ def post(user):
 
     message = "Thanks! Feedback received."
     print(message)
+    db.session.close()
     return make_response(jsonify({"message": message}), 200)
 
     
