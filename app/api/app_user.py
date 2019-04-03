@@ -19,7 +19,6 @@ def put(user):
         user.username = data["username"]
     if "fir_push_notif_token" in data:
         user.fir_push_notif_token = data["fir_push_notif_token"]
-        print(user.fir_push_notif_token)
     if "fir_auth_id" in data:
         user.fir_auth_id = data["fir_auth_id"]
     if "email" in data:
