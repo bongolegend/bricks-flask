@@ -50,7 +50,7 @@ def put(user):
             if user.id == os.environ.get("NICO_USER_ID"):
                 # send push notification to everyone
                 all_users = db.session.query(AppUser).filter(
-                    AppUser.firebase_token != None,
+                    AppUser.fir_push_notif_token != None,
                     AppUser.id != user.id
                 ).all()
                 push.task_created(user, all_users, data["description"])

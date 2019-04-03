@@ -85,8 +85,6 @@ def verify(func):
             return make_response(jsonify({"message": message}), 401)
         elif data:
             user = db.session.query(AppUser).filter(AppUser.id == data["id"]).one()       
-            db.session.expunge(user)
-            db.session.close()     
         else:
             raise Exception
             

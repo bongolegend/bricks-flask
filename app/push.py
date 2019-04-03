@@ -9,11 +9,11 @@ def task_created(user, friends, task_description):
     body = f"{task_description}"
 
     for user in friends:
-        if user.firebase_token is not None:
-            notify_user(user.firebase_token, title, body)
+        if user.fir_push_notif_token is not None:
+            notify_user(user.fir_push_notif_token, title, body)
 
 
-def notify_user(firebase_token, title, body):
+def notify_user(fir_push_notif_token, title, body):
     # See documentation on defining a message payload.
     message = messaging.Message(
         notification=messaging.Notification(
@@ -27,7 +27,7 @@ def notify_user(firebase_token, title, body):
                 )
             )
         ),
-        token=firebase_token,
+        token=fir_push_notif_token,
     )
 
     # Send a message to the device corresponding to the provided

@@ -22,7 +22,7 @@ class AppUser(db.Model, Base):
     timezone = db.Column(db.String(32))
     google_id =  db.Column(db.String(128), unique=True)
     device_token = db.Column(db.String(128), unique=False)
-    firebase_token = db.Column(db.String(256), unique=False)
+    fir_push_notif_token = db.Column(db.String(256), unique=False)
     fir_auth_id = db.Column(db.String(256), unique=True)
 
     def to_dict(self):

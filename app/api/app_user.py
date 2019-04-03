@@ -17,8 +17,9 @@ def put(user):
         user.device_token = data["device_token"]
     if "username" in data:
         user.username = data["username"]
-    if "firebase_token" in data:
-        user.firebase_token = data["firebase_token"]
+    if "fir_push_notif_token" in data:
+        user.fir_push_notif_token = data["fir_push_notif_token"]
+        print(user.fir_push_notif_token)
     if "fir_auth_id" in data:
         user.fir_auth_id = data["fir_auth_id"]
     if "email" in data:
