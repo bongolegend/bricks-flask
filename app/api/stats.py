@@ -16,13 +16,14 @@ def get(user):
     now = dt.datetime.now(tz=pytz.timezone(request.headers["TZ"]))
     today = dt.datetime(year=now.year, month=now.month, day=now.day)
 
-    rank, total_users = get_rank(user, today)
+    rank, total_users, consistency = get_rank(user, today)
     stats_dict = {
         "points_total": get_points_total(user.id),
         "weekly_grades": get_weekly_grades(user, today),
         "streak": get_streak(user, today),
         "rank": rank,
-        "total_users": total_users
+        "total_users": total_users,
+        "consistency": consistency
     }
     db.session.close()
 
@@ -99,8 +100,12 @@ def get_streak(user, today):
 def get_rank(user, today):
     """get the overall rank for the user"""
 
-    totals = db.session.query(Point.user_id, func.sum(Point.value).label("total"))\
-        .group_by(Point.user_id).subquery()
+    # totals = db.session.query(Point.user_id, func.sum(Point.value).label("total"))\
+    #     .group_by(Point.user_id).subquery()
+
+    totals = db.session.query(Task.user_id, func.count(Task.id).label("total"))\
+        .filter(Task.active == True)\
+        .group_by(Task.user_id).subquery()
     
     data = db.session.query(
         AppUser.id, 
@@ -115,9 +120,9 @@ def get_rank(user, today):
 
     data = pd.DataFrame(data, columns=["user_id", "time","total"])
 
-    data["score"] = data.total / data.time.apply(lambda x: x.days + 1)
+    data["consistency"] = data.total / data.time.apply(lambda x: x.days + 1)
 
-    data = data.sort_values("score", ascending=False)
+    data = data.sort_values("consistency", ascending=False)
 
     data = data.reset_index(drop=True)
 
@@ -130,4 +135,8 @@ def get_rank(user, today):
     else:
         rank = len(data.index)
 
-    return rank, len(data.index)
+    consistency = data[
+        data.user_id == user.id
+    ].consistency.tolist()[0]
+
+    return rank, len(data.index), round(consistency, 2)
