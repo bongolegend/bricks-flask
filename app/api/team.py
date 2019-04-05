@@ -6,7 +6,7 @@ from app.models import AppUser, Task, Team, TeamMember
 from app.actions.multiplayer import get_current_team_members_beta, insert_team_beta
 from app import db
 from app.constants import Statuses, TeamMemberTasks
-from app.api.stats import get_points_total
+from app.api.stats import get_points_total, get_consistency
 
 def main(user):
     if request.method == "PUT":
@@ -147,6 +147,9 @@ def format_team_data(current_user, task_list):
         member_dict[member_id]["points_total"] = get_points_total(member_dict[member_id]["user_id"])
         member_dict[member_id]["name"] = task.pop("name")
         member_dict[member_id]["team_id"] = task.pop("team_id")
+        consistency, count_graded_tasks = get_consistency(member_dict[member_id]["user_id"])
+        member_dict[member_id]["consistency"] = consistency
+        member_dict[member_id]["count_graded_tasks"] = count_graded_tasks
         
         if task["task_id"] is not None:
             member_dict[member_id]["tasks"].append(task)

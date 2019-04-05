@@ -16,14 +16,16 @@ def get(user):
     now = dt.datetime.now(tz=pytz.timezone(request.headers["TZ"]))
     today = dt.datetime(year=now.year, month=now.month, day=now.day)
 
-    rank, total_users, consistency = get_rank(user, today)
+    rank, total_users = get_rank(user, today)
+    consistency, count_graded_tasks = get_consistency(user.id)
     stats_dict = {
         "points_total": get_points_total(user.id),
         "weekly_grades": get_weekly_grades(user, today),
         "streak": get_streak(user, today),
         "rank": rank,
         "total_users": total_users,
-        "consistency": consistency
+        "consistency": consistency,
+        "count_graded_tasks": count_graded_tasks
     }
     db.session.close()
 
@@ -64,7 +66,7 @@ def get_weekly_grades(user, today):
     return grades
 
 def get_streak(user, today):
-    """count the number of consecutive days the user has created a task"""
+    """count the number of consecutive days the user has graded a task"""
 
     streak = 0
 
@@ -72,6 +74,7 @@ def get_streak(user, today):
     task_dates = db.session.query(Task.due_date).filter(
         Task.due_date < today,
         Task.active == True,
+        Task.grade != None,
         Task.user == user
     ).order_by(Task.due_date.desc()).all()
 
@@ -89,6 +92,7 @@ def get_streak(user, today):
     today_task = db.session.query(Task).filter(
         Task.due_date == today,
         Task.active == True,
+        Task.grade != None,
         Task.user == user
     ).first()
 
@@ -104,8 +108,10 @@ def get_rank(user, today):
     #     .group_by(Point.user_id).subquery()
 
     totals = db.session.query(Task.user_id, func.count(Task.id).label("total"))\
-        .filter(Task.active == True)\
-        .group_by(Task.user_id).subquery()
+        .filter(
+            Task.active == True,
+            Task.grade != None
+        ).group_by(Task.user_id).subquery()
     
     data = db.session.query(
         AppUser.id, 
@@ -135,8 +141,27 @@ def get_rank(user, today):
     else:
         rank = len(data.index)
 
-    consistency = data[
-        data.user_id == user.id
-    ].consistency.tolist()[0]
+    return rank, len(data.index)
 
-    return rank, len(data.index), round(consistency, 2)
+def get_consistency(user_id):
+    """calculate consistency score as tasks graded / days on platform"""
+
+    now = dt.datetime.now(tz=pytz.timezone(request.headers["TZ"]))
+    today = dt.datetime(year=now.year, month=now.month, day=now.day)
+
+    tasks = db.session.query(func.count(Task.id))\
+        .filter(
+            Task.active == True,
+            Task.user_id == user_id,
+            Task.grade != None
+        ).one()
+    
+    days = db.session.query(
+        (today - AppUser.created).label("time")
+    ).filter(
+        AppUser.id == user_id
+    ).one()
+
+    consistency = tasks[0] / (days[0].days + 1 )
+
+    return round(consistency, 2), tasks[0]
