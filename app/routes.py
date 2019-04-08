@@ -14,7 +14,8 @@ from app.api import (
     feedback,
     stats,
     privacy_policy,
-    landing_page
+    landing_page,
+    nudge
 )
 from app.security import validate_twilio_request, validate_google_cron_request
 
@@ -59,6 +60,11 @@ def feedback_wrapper(user):
 @auth_token.verify
 def stats_wrapper(user):
     return stats.get(user)
+
+@main.route("/api/nudge", methods=["POST"])
+@auth_token.verify
+def nudge_wrapper(user):
+    return nudge.post(user)
 
 @main.route("/privacy-policy", methods=["GET"])
 def policy_wrapper():

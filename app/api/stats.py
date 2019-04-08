@@ -162,6 +162,9 @@ def get_consistency(user_id):
         AppUser.id == user_id
     ).one()
 
-    consistency = tasks[0] / (days[0].days + 1 )
+    consistency = tasks[0] / (days[0].days + 1 ) * 100
 
-    return round(consistency, 2), tasks[0]
+    if consistency is None:
+        return 0, 0
+    else:
+        return round(consistency), tasks[0]
