@@ -6,7 +6,7 @@ import pandas as pd
 from flask import jsonify, request, make_response
 from sqlalchemy import func
 from app import db
-from app.models import TeamMember, Task, Point, AppUser
+from app.models import TeamMember, Task, Point, AppUser, Assist
 from app.constants import Statuses
 from app.api.invite import decode
 
@@ -18,6 +18,7 @@ def get(user):
 
     rank, total_users = get_rank(user, today)
     consistency, count_graded_tasks = get_consistency(user.id)
+    assistance, today_assist = get_assistance(user.id, today)
     stats_dict = {
         "points_total": get_points_total(user.id),
         "weekly_grades": get_weekly_grades(user, today),
@@ -25,7 +26,9 @@ def get(user):
         "rank": rank,
         "total_users": total_users,
         "consistency": consistency,
-        "count_graded_tasks": count_graded_tasks
+        "count_graded_tasks": count_graded_tasks,
+        "assistance": assistance,
+        "today_assist": today_assist
     }
     db.session.close()
 
@@ -172,3 +175,40 @@ def get_consistency(user_id):
         return 0, 0
     else:
         return round(consistency), tasks[0]
+
+
+def get_assistance(user_id, today):
+    """percent of days user assisted a team mate"""
+
+    today_assist = False
+
+    # get assist dates
+    distinct_days_with_assists = db.session.query(func.date(Assist.created)).distinct(
+        func.date(Assist.created)
+    ).filter(
+        Assist.user_id == user_id
+    ).all()
+
+    # did you assist someone today?
+    distinct_days_with_assists = [x[0] for x in distinct_days_with_assists]
+
+    print("TODAY: ", today)
+    print("distinct_days_with_assists: ", distinct_days_with_assists)
+    if today.date() in distinct_days_with_assists:
+        today_assist = True
+
+
+    # get total days on platform
+    days_query = db.session.query(
+        (today - AppUser.created)
+    ).filter(
+        AppUser.id == user_id
+    ).one()
+
+    count_distinct_assist_days = len(distinct_days_with_assists)
+    days = days_query[0].days
+
+    if days <= 1:
+        return count_distinct_assist_days, today_assist
+    else:
+        return round(count_distinct_assist_days / days * 100), today_assist
