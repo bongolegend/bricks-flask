@@ -191,3 +191,12 @@ class Invitation(db.Model, Base):
     
     user = db.relationship('AppUser', foreign_keys=[user_id], backref=db.backref('invitations', lazy=True))
     team = db.relationship('Team', backref=db.backref('invitations', lazy=True))
+
+
+class Assist(db.Model, Base):
+    user_id = db.Column(db.Integer, db.ForeignKey('app_user.id'), nullable=False)
+    assistee_member_id = db.Column(db.Integer, db.ForeignKey('team_member.id'), nullable=False)
+    action = db.Column(db.String(32))
+
+    user = db.relationship('AppUser', foreign_keys=[user_id], backref=db.backref('assists_given', lazy=True))
+    member = db.relationship('TeamMember', foreign_keys=[assistee_member_id], backref=db.backref('assists_received', lazy=True))

@@ -15,7 +15,8 @@ from app.api import (
     stats,
     privacy_policy,
     landing_page,
-    nudge
+    nudge,
+    assist
 )
 from app.security import validate_twilio_request, validate_google_cron_request
 
@@ -65,6 +66,11 @@ def stats_wrapper(user):
 @auth_token.verify
 def nudge_wrapper(user):
     return nudge.post(user)
+
+@main.route("/api/assist", methods=["POST"])
+@auth_token.verify
+def assist_wrapper(user):
+    return assist.post(user)
 
 @main.route("/privacy-policy", methods=["GET"])
 def policy_wrapper():
