@@ -69,6 +69,7 @@ def get_streak(user, today):
     """count the number of consecutive days the user has graded a task"""
 
     streak = 0
+    yesterday = today - dt.timedelta(1)
 
     # do not include today
     task_dates = db.session.query(Task.due_date).filter(
@@ -81,8 +82,10 @@ def get_streak(user, today):
     if len(task_dates) > 0:
 
         task_dates = [x[0] for x in task_dates]
-        task_range = range( (task_dates[0] - task_dates[-1]).days )
-        all_dates = [task_dates[0] - dt.timedelta(x) for x in task_range]
+        # number of days since your first task
+        task_range = range( (yesterday - task_dates[-1]).days )
+        # all dates since your first task
+        all_dates = [yesterday - dt.timedelta(x) for x in task_range]
 
         missing = sorted(set(all_dates) - set(task_dates), reverse=True)
         
@@ -96,6 +99,7 @@ def get_streak(user, today):
         Task.user == user
     ).first()
 
+    # count today as part of the streak
     if today_task is not None:
         return streak + 1
     else:
