@@ -195,7 +195,7 @@ def get_assistance(user_id, today):
     # did you assist someone today?
     distinct_days_with_assists = [x[0] for x in distinct_days_with_assists]
 
-    if today.date() in distinct_days_with_assists:
+    if dt.datetime.now().date() in distinct_days_with_assists:
         today_assist = True
 
 
