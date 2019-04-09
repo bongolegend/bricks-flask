@@ -167,7 +167,7 @@ def get_consistency(user_id):
         ).one()
     
     days = db.session.query(
-        (today - AppUser.created).label("time")
+        (dt.datetime.now() - AppUser.created).label("time")
     ).filter(
         AppUser.id == user_id
     ).one()
