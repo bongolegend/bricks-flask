@@ -1,5 +1,6 @@
 """API that returns the user stats. I expect this to be called frequently as different actions occur."""
 import datetime as dt
+from dateutil.relativedelta import relativedelta
 import pytz
 import traceback
 import pandas as pd
@@ -9,6 +10,7 @@ from app import db
 from app.models import TeamMember, Task, Point, AppUser, Assist
 from app.constants import Statuses
 from app.api.invite import decode
+
 
 def get(user):
     """return user stats"""
@@ -28,7 +30,8 @@ def get(user):
         "consistency": consistency,
         "count_graded_tasks": count_graded_tasks,
         "assistance": assistance,
-        "today_assist": today_assist
+        "today_assist": today_assist,
+        "monthly_graded_tasks": get_tasks_this_month(user.id, today)
     }
     db.session.close()
 
@@ -192,8 +195,6 @@ def get_assistance(user_id, today):
     # did you assist someone today?
     distinct_days_with_assists = [x[0] for x in distinct_days_with_assists]
 
-    print("TODAY: ", today)
-    print("distinct_days_with_assists: ", distinct_days_with_assists)
     if today.date() in distinct_days_with_assists:
         today_assist = True
 
@@ -212,3 +213,19 @@ def get_assistance(user_id, today):
         return count_distinct_assist_days, today_assist
     else:
         return round(count_distinct_assist_days / days * 100), today_assist
+
+def get_tasks_this_month(user_id, today):
+    """get number of tasks this month"""
+
+    start_of_month = today.replace(day=1)
+    next_month = start_of_month + relativedelta(months=1)
+
+    graded_tasks = db.session.query(Task.id).filter(
+        Task.user_id == user_id,
+        Task.active == True,
+        Task.grade != None,
+        Task.due_date >= start_of_month,
+        Task.due_date < next_month
+    ).count()
+
+    return graded_tasks
