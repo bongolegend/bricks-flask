@@ -24,16 +24,19 @@ class AppUser(db.Model, Base):
     device_token = db.Column(db.String(128), unique=False)
     fir_push_notif_token = db.Column(db.String(256), unique=False)
     fir_auth_id = db.Column(db.String(256), unique=True)
-    chat_muted = db.Column(db.Boolean, default=False)
-    tasks_muted = db.Column(db.Boolean, default=False)
+    chat_notifs = db.Column(db.Boolean, default=True)
+    task_notifs = db.Column(db.Boolean, default=True)
 
     def to_dict(self):
         return dict(
+            created = self.created,
             id = self.id, 
             username = self.username,
             phone_number = self.phone_number,
+            email = self.email,
             timezone = self.timezone,
-            created = self.created
+            chat_notifs = self.chat_notifs,
+            task_notifs = self.task_notifs
         )
 
     def __repr__(self):

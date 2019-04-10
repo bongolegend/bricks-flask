@@ -23,9 +23,13 @@ def put(user):
         user.fir_auth_id = data["fir_auth_id"]
     if "email" in data:
         user.email = data["email"]
+    if "chat_notifs" in data:
+        user.chat_notifs = data["chat_notifs"]
+    if "task_notifs" in data:
+        user.task_notifs = data["task_notifs"]
 
+    user_dict = user.to_dict()
     db.session.commit()
     db.session.close()
 
-    message = "success"
-    return make_response(jsonify({"message": message}), 200)
+    return make_response(jsonify(user_dict), 200)

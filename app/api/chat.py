@@ -24,10 +24,10 @@ def post(user):
     ).all()
 
     for member in team_members:
-        if member.chat_muted:
-            send_message_notif(member.fir_push_notif_token, 1)
-        else:
+        if member.chat_notifs:
             send_message_notif(member.fir_push_notif_token, 1, title=user.username, body=content)
+        else:
+            send_message_notif(member.fir_push_notif_token, 1)
 
     message = "Data notifications sent to team members"
     return make_response(jsonify({"message": message}), 200)

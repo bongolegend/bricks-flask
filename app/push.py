@@ -9,7 +9,7 @@ def task_created(user, friends, task_description):
     body = f"{task_description}"
 
     for user in friends:
-        if user.fir_push_notif_token is not None and user.tasks_muted == False:
+        if user.fir_push_notif_token is not None and user.task_notifs:
             notify_user(user.fir_push_notif_token, title, body)
 
 
