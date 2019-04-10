@@ -35,3 +35,20 @@ def notify_user(fir_push_notif_token, title, body):
     response = messaging.send(message)
     # Response is a message ID string.
     print('Successfully sent message:', response)
+
+
+def send_data_notif(fir_push_notif_token, badge_number):
+    """update badge icon"""
+
+    message = messaging.Message(
+        token=fir_push_notif_token,
+        apns=messaging.APNSConfig(
+            payload=messaging.APNSPayload(
+                aps=messaging.Aps(
+                    badge=badge_number
+                )
+            )
+        )
+    )
+
+    messaging.send(message)

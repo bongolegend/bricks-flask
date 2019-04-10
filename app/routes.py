@@ -2,7 +2,7 @@
 import os
 from datetime import timedelta
 from flask import Blueprint, current_app, session
-from app import chat 
+from app import chat as old_chat
 from app import notify
 from app.api import (
     auth_token,
@@ -16,7 +16,8 @@ from app.api import (
     privacy_policy,
     landing_page,
     nudge,
-    assist
+    assist,
+    chat
 )
 from app.security import validate_twilio_request, validate_google_cron_request
 
@@ -72,6 +73,11 @@ def nudge_wrapper(user):
 def assist_wrapper(user):
     return assist.post(user)
 
+@main.route("/api/chat", methods=["POST"])
+@auth_token.verify
+def chat_wrapper(user):
+    return chat.post(user)
+
 @main.route("/privacy-policy", methods=["GET"])
 def policy_wrapper():
     return privacy_policy.get()
@@ -84,7 +90,7 @@ def landing_page_wrapper():
 @main.route( "/chat", methods=['GET', 'POST'])
 @validate_twilio_request
 def conduct_conversations_wrapper():
-    return chat.main()
+    return old_chat.main()
 
 
 @main.route("/notify", methods=['GET'])
