@@ -9,7 +9,7 @@ def task_created(user, friends, task_description):
     body = f"{task_description}"
 
     for user in friends:
-        if user.fir_push_notif_token is not None:
+        if user.fir_push_notif_token is not None and user.tasks_muted == False:
             notify_user(user.fir_push_notif_token, title, body)
 
 
@@ -37,9 +37,8 @@ def notify_user(fir_push_notif_token, title, body):
     print('Successfully sent message:', response)
 
 
-def send_data_notif(fir_push_notif_token, badge_number):
-    """update badge icon"""
-
+def send_message_notif(fir_push_notif_token, badge_number, title=None, body=None):
+    """send message notif and update badge icon"""
     message = messaging.Message(
         token=fir_push_notif_token,
         apns=messaging.APNSConfig(
@@ -50,5 +49,11 @@ def send_data_notif(fir_push_notif_token, badge_number):
             )
         )
     )
+
+    if title is not None and body is not None:
+        message.notification = messaging.Notification(
+                title=title,
+                body=body,
+            )
 
     messaging.send(message)

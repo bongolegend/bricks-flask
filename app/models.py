@@ -24,6 +24,8 @@ class AppUser(db.Model, Base):
     device_token = db.Column(db.String(128), unique=False)
     fir_push_notif_token = db.Column(db.String(256), unique=False)
     fir_auth_id = db.Column(db.String(256), unique=True)
+    chat_muted = db.Column(db.Boolean, default=False)
+    tasks_muted = db.Column(db.Boolean, default=False)
 
     def to_dict(self):
         return dict(
