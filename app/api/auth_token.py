@@ -27,8 +27,7 @@ def get():
             fir_token = request.headers["Authorization"]
             decoded_token = auth.verify_id_token(fir_token)
             fir_auth_id = decoded_token["uid"]
-        except:
-            traceback.print_exc()
+        except ValueError:
             message = "The fir token was not accepted"
             print(message)
             return make_response(jsonify({"message": message}), 401)
