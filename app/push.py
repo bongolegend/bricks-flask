@@ -10,10 +10,10 @@ def task_created(user, friends, task_description):
 
     for user in friends:
         if user.fir_push_notif_token is not None and user.task_notifs:
-            notify_user(user.fir_push_notif_token, title, body)
+            notify_user(user, title, body)
 
 
-def notify_user(fir_push_notif_token, title, body):
+def notify_user(user, title, body):
     # See documentation on defining a message payload.
     message = messaging.Message(
         notification=messaging.Notification(
@@ -27,15 +27,15 @@ def notify_user(fir_push_notif_token, title, body):
                 )
             )
         ),
-        token=fir_push_notif_token,
+        token=user.fir_push_notif_token,
     )
 
     # Send a message to the device corresponding to the provided
     # registration token.
-    response = messaging.send(message)
-    # Response is a message ID string.
-    print('Successfully sent message:', response)
-
+    try:
+        response = messaging.send(message)
+    except messaging.ApiCallError:
+        print(f"ApiCallError. the following user's token is invalid: {user.id} - {user.username}")
 
 def send_message_notif(fir_push_notif_token, badge_number, title=None, body=None):
     """send message notif and update badge icon"""

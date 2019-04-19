@@ -18,7 +18,7 @@ def post(user):
     if nudgee.fir_push_notif_token is not None:
         title = f"Nudge from {user.username}"
         body = "Choose your top task!"
-        notify_user(nudgee.fir_push_notif_token, title, body)
+        notify_user(nudgee, title, body)
 
         message = f"Nudge sent to {nudgee.username}"
         return make_response(jsonify({"message": message}), 200)
