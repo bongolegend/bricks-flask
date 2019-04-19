@@ -30,12 +30,9 @@ def notify_user(user, title, body):
         token=user.fir_push_notif_token,
     )
 
-    # Send a message to the device corresponding to the provided
-    # registration token.
-    try:
-        response = messaging.send(message)
-    except messaging.ApiCallError:
-        print(f"ApiCallError. the following user's token is invalid: {user.id} - {user.username}")
+    _send(message, user)
+
+
 
 def send_message_notif(fir_push_notif_token, badge_number, title=None, body=None):
     """send message notif and update badge icon"""
@@ -56,4 +53,14 @@ def send_message_notif(fir_push_notif_token, badge_number, title=None, body=None
                 body=body,
             )
 
-    messaging.send(message)
+    _send(message, user)
+
+
+def _send(message, user):
+    """wrap the fcm send method with a try except"""
+    # Send a message to the device corresponding to the provided
+    # registration token.
+    try:
+        response = messaging.send(message)
+    except messaging.ApiCallError:
+        print(f"ApiCallError. the following user's token is invalid: {user.id} - {user.username}")
