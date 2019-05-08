@@ -27,3 +27,5 @@ cron.yaml
 
 # other
 .gitignore
+.env
+secrets/

@@ -20,3 +20,6 @@ cloudsql
 *.p8
 *.pyc
 firebase_auth_key.json
+
+# kubernetes
+secrets/

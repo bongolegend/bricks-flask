@@ -1,0 +1,33 @@
+# deployment and service for the Postgres db
+
+kind: Deployment
+apiVersion: extensions/v1beta1
+metadata:
+  name: pg-db
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: pg-db
+    spec:
+      containers:
+        - name: pg-container
+          image: postgres
+          ports:
+            - containerPort: 3000
+          envFrom:
+            - secretRef:
+                name: pg-secret
+          
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: pg-service
+spec:
+  selector:
+    app: pg
+  type: ClusterIP
+  ports:
+    - port: 3000

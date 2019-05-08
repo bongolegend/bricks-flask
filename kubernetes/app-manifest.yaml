@@ -1,0 +1,47 @@
+# this file creates a Deployment and Service for the whole flask monolith
+
+kind: Deployment
+apiVersion: extensions/v1beta1
+metadata:
+  name: flask-app
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: flask-app
+    spec:
+      # volumes:
+      #   - name: secret-volume
+      #     secret:
+      #       secretName: apns-auth-key
+      containers:
+        - name: flask-container
+          image: ncernek/bricks:latest
+          ports:
+            - containerPort: 8000
+          envFrom:
+            - secretRef:
+                name: app-secret
+          # volumeMounts:
+          #   - name: secret-volume
+          #     readOnly: true
+          #     mountPath: "/"
+      imagePullSecrets:
+        - name: regcred
+
+
+---
+  
+kind: Service
+apiVersion: v1
+metadata:
+  name: flask-service
+spec:
+  selector:
+    app: flask-app
+  # type of LoadBalancer only works for GKE, otherwise use NodePort
+  # type: LoadBalancer
+  type: NodePort
+  ports:
+    - port: 8000
