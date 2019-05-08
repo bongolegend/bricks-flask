@@ -15,10 +15,18 @@ spec:
         - name: pg-container
           image: postgres
           ports:
-            - containerPort: 3000
+            - containerPort: 5432
           envFrom:
             - secretRef:
                 name: pg-secret
+          volumeMounts:
+            - mountPath: /var/lib/postgresql/data
+              name: pg-volume-claim
+      volumes:
+        - name: pg-volume-claim
+          persistentVolumeClaim:
+            claimName: pg-volume-claim
+
           
 ---
 kind: Service
@@ -27,7 +35,7 @@ metadata:
   name: pg-service
 spec:
   selector:
-    app: pg
+    app: pg-db
   type: ClusterIP
   ports:
-    - port: 3000
+    - port: 5432
