@@ -26,16 +26,3 @@ spec:
         - name: pg-volume-claim
           persistentVolumeClaim:
             claimName: pg-volume-claim
-
-          
----
-kind: Service
-apiVersion: v1
-metadata:
-  name: pg-service
-spec:
-  selector:
-    app: pg-db
-  type: ClusterIP
-  ports:
-    - port: 5432

@@ -1,0 +1,11 @@
+# clusterIP service to allow flask-app to connect
+kind: Service
+apiVersion: v1
+metadata:
+  name: pg-service
+spec:
+  selector:
+    app: pg-db
+  type: ClusterIP
+  ports:
+    - port: 5432

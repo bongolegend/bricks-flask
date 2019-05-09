@@ -21,20 +21,3 @@ spec:
                 name: app-secret
       imagePullSecrets:
         - name: regcred
-
-
----
-  
-kind: Service
-apiVersion: v1
-metadata:
-  name: flask-service
-spec:
-  selector:
-    app: flask-app
-  # type of LoadBalancer only works for GKE, otherwise use NodePort
-  # type: LoadBalancer
-  type: NodePort
-  ports:
-    - port: 8000
-      nodePort: 30008

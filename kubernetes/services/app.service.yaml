@@ -1,0 +1,14 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: flask-service
+spec:
+  selector:
+    app: flask-app
+  # type of LoadBalancer only works for GKE, otherwise use NodePort
+  # if you use NodePort on GKE, you also need to create an Ingress
+  type: LoadBalancer
+  # type: NodePort
+  ports:
+    - port: 8000
+      # nodePort: 30008
