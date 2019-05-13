@@ -1,0 +1,13 @@
+# LoadBalancer service to allow external client tool like TablePlus to connect
+kind: Service
+apiVersion: v1
+metadata:
+  name: pg-external-service
+spec:
+  selector:
+    app: pg-db
+  # type: LoadBalancer
+  type: NodePort
+  ports:
+    - port: 5432
+      nodePort: 30009
