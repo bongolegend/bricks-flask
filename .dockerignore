@@ -5,18 +5,6 @@ venv
 .DS_Store
 cloud_sql_proxy
 cloudsql
-
-# stuff needed to create a certificate
-*.key
-*.pem
-*.srl
-*.crt
-*.csr
-*.csr.cnf
-*.ext
-
-# keys
-*.p8
 *.pyc
 
 # google cloud
@@ -29,3 +17,4 @@ cron.yaml
 .gitignore
 .env
 secrets/
+keys/

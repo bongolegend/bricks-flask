@@ -7,8 +7,8 @@ spec:
     app: flask-app
   # type of LoadBalancer only works for GKE, otherwise use NodePort
   # if you use NodePort on GKE, you also need to create an Ingress
-  # type: LoadBalancer
-  type: NodePort
+  type: LoadBalancer
+  # type: NodePort
   ports:
     - port: 8000
       nodePort: 30008

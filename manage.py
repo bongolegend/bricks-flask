@@ -8,7 +8,8 @@ db.init_app(app)
 manager = Manager(app)
 migrate = Migrate(app, db)
 
-# note the limitations of Alembic auto-migrate https://alembic.sqlalchemy.org/en/latest/autogenerate.html
+# note the limitations of Alembic auto-migrate
+# https://alembic.sqlalchemy.org/en/latest/autogenerate.html
 manager.add_command('db', MigrateCommand)
 
 

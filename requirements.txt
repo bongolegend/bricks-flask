@@ -13,3 +13,5 @@ passlib
 itsdangerous
 python-dateutil
 firebase-admin
+flake8
+flake8-mypy

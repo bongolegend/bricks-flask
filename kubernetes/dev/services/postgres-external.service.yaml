@@ -6,8 +6,8 @@ metadata:
 spec:
   selector:
     app: pg-db
-  # type: LoadBalancer
-  type: NodePort
+  type: LoadBalancer
+  # type: NodePort
   ports:
     - port: 5432
       nodePort: 30009
