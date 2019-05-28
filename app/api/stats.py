@@ -93,10 +93,15 @@ def get_streak(user, today):
         # all dates since your first task
         all_dates = [yesterday - dt.timedelta(x) for x in task_range]
 
+        # get all the dates that you didn't create a task
         missing = sorted(set(all_dates) - set(task_dates), reverse=True)
         
         if len(missing) > 0:
+            # how many days back was the first day you missed?
             streak = all_dates.index(missing[0])
+        else:
+            # if you didn't miss any dates, then your streak is all the days
+            streak = len(all_dates)
 
     today_task = db.session.query(Task).filter(
         Task.due_date == today,
