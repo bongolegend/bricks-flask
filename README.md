@@ -1,10 +1,9 @@
 # Intro
-This is a chatbot app that reminds you once a day via text to decide the most important thing you want to get done. At the end of the day, it asks you if you followed through. If you did, you get a point. Keep stacking those bricks and build a strong life.
+This is an iOS native app that reminds you once a day via text to decide the most important thing you want to get done. At the end of the day, it asks you if you followed through. If you did, you get a point. Keep stacking those bricks and build a strong life.
 
-This project is built on Flask, using the Twilio API.
+This project is built on Flask
 * DB: PostgreSQL
 * DB manager: Alembic
-* scheduler: APScheduler
 * deployment: GAE and Cloud SQL (by Google)
 
 # Running Flask Locally
@@ -32,9 +31,6 @@ To test the production server tool: `gunicorn main:app`. This runs the app from 
 * GAE will install dependencies as defined in your `requirements.txt`.
 
 * When you want to deploy, use this from within the directory: `gcloud app deploy --project bricks-app`.
-
-### Deploying Google Cron Jobs
-You must deploy your cron jobs (defined in `cron.yaml`) separately from the rest of the app by running `gcloud app deploy cron.yaml`.
 
 ### Testing your deployment locally
 
@@ -74,10 +70,3 @@ To whitelist phone numbers, go to https://www.twilio.com/console/phone-numbers/v
 
 # How to run tests
 from root, run `python root_test.py`
-
-# Open Questions
-When do you close a sqlalchemy session, if ever?
-
-https://docs.sqlalchemy.org/en/latest/orm/session_basics.html#when-do-i-construct-a-session-when-do-i-commit-it-and-when-do-i-close-it
-
-https://groups.google.com/forum/#!topic/sqlalchemy/4mj8zQy_Lr0
