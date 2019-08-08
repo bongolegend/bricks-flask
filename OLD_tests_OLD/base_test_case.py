@@ -10,11 +10,12 @@ def clean_db(db):
 
 
 class BaseTestCase(unittest.TestCase):
-
     @classmethod
     def setUpClass(cls):
         super(BaseTestCase, cls).setUpClass()
-        cls.app = create_app(test=True)  # need to create app because you want to test flask apis
+        cls.app = create_app(
+            test=True
+        )  # need to create app because you want to test flask apis
         cls.client = cls.app.test_client()
         cls.db = db
         cls.db.app = cls.app
@@ -36,7 +37,7 @@ class BaseTestCase(unittest.TestCase):
     def tearDown(self):
         self.db.session.rollback()
         self.app_context.pop()
-        
+
         # TODO(Nico) figure out how to clear the db, as rolling back the session doesn't work if your code
         # I'm commenting this out to see if it breaks anything
         # clean_db(self.db)
