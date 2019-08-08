@@ -75,6 +75,8 @@ To whitelist phone numbers, go to https://www.twilio.com/console/phone-numbers/v
 # How to run tests
 from root, run `python root_test.py`
 
+You need to have a test database already in existence on your local Postgres server. The name of the test database should be specified in your .env file.
+
 # Open Questions
 When do you close a sqlalchemy session, if ever?
 
