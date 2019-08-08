@@ -1,3 +1,4 @@
+import logging
 from app.models import Exchange
 
 
@@ -5,6 +6,7 @@ def generator(router, inbound=str()):
     """function that returns one test function per router"""
 
     def test(self):
+        logging.info(f"Test for: {router.__name__}")
         exchange = Exchange(router=router.__name__, user=self.mitch)
         self.db.session.add(exchange)
         self.client.post("/chat", data=dict(Body=inbound, From=self.mitch.phone_number))

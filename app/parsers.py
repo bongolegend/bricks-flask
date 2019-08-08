@@ -1,40 +1,40 @@
 import phonenumbers as phone
 from app.models import Team
 from app.constants import Redirects, Sizes
-from tests.constants import TEST_TEAM_ID
 
 
-ANY = '*'
+ANY = "*"
 
 MULTIPLE_CHOICE = {
-    'a': ['a', 'a)'],
-    'b': ['b', 'b)'],
-    'c': ['c', 'c)'],
-    'd': ['d', 'd)']
+    "a": ["a", "a)"],
+    "b": ["b", "b)"],
+    "c": ["c", "c)"],
+    "d": ["d", "d)"],
 }
 
 MAIN_MENU = {
-    'a': ['a', 'a)'],
-    'b': ['b', 'b)'],
-    'c': ['c', 'c)'],
-    'd': ['d', 'd)'],
-    'e': ['e', 'e)'],
-    'f': ['f', 'f)'],
+    "a": ["a", "a)"],
+    "b": ["b", "b)"],
+    "c": ["c", "c)"],
+    "d": ["d", "d)"],
+    "e": ["e", "e)"],
+    "f": ["f", "f)"],
 }
 
 YES_NO = {
-    'yes': ['yes', 'y', 'ye', 'ya', 'yea', 'yep', 'yup', 'yeah'],
-    'no': ['no', 'n', 'na', 'nope'],
+    "yes": ["yes", "y", "ye", "ya", "yea", "yep", "yup", "yeah"],
+    "no": ["no", "n", "na", "nope"],
 }
 
-ADD_MEMBER = (f"{TEST_TEAM_ID}, 3124505311",)
+ADD_MEMBER = (f"999, 3124505311",)
 
 INTEGER = "INTEGER_PARSER"
 
-ZERO_TO_FIVE = ('0','1','2','3','4','5',)
+ZERO_TO_FIVE = ("0", "1", "2", "3", "4", "5")
+
 
 def parse(inbound, inbound_format):
-    '''combine all parsers'''
+    """combine all parsers"""
     if len(inbound) > Sizes.INBOUND_MAX_LENGTH:
         return None
     if inbound_format == ANY:
@@ -63,16 +63,16 @@ def parse(inbound, inbound_format):
 
 
 def parse_add_member(inbound):
-    '''
+    """
     Take inbound as a string "123, 123-456-7890" and return Tuple(int(123), int(1234567890)).
     This can handle many phone number formats.
     If inbound == 'menu', return to menu
-    '''
+    """
 
-    if inbound.lower() == 'menu':
+    if inbound.lower() == "menu":
         return Redirects.MAIN_MENU
 
-    parts = inbound.split(',')
+    parts = inbound.split(",")
     if len(parts) != 2:
         return None
 
@@ -83,4 +83,3 @@ def parse_add_member(inbound):
     phone_number = f"+{parsed.country_code}{parsed.national_number}"
 
     return team_id, phone_number
-    

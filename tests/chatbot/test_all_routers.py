@@ -6,7 +6,6 @@ from app.constants import US_TIMEZONES, RouterNames, Statuses
 from app.get_router import get_router
 from app.models import AppUser, Exchange, Notification, Point, Task, Team, TeamMember
 from tests.base_test_case import BaseTestCase
-from tests.constants import TEST_TEAM_ID
 
 
 class TestAllRouters(BaseTestCase):
@@ -29,7 +28,6 @@ class TestAllRouters(BaseTestCase):
         )
 
         self.db.session.add(self.mitch)
-        # self.db.session.add(self.blair)
 
         # add a notif
         self.notif = Notification(
@@ -66,7 +64,7 @@ class TestAllRouters(BaseTestCase):
 
         self.db.session.add(self.task)
 
-        self.inteam = Team(id=TEST_TEAM_ID, founder=self.mitch, name="inteam")
+        self.inteam = Team(id=999, founder=self.mitch, name="inteam")
         self.db.session.add(self.inteam)
 
         self.pendingteam = Team(founder=self.mitch, name="pendingteam")
