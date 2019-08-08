@@ -16,3 +16,4 @@ firebase-admin
 
 # dev
 pre-commit
+pytest
