@@ -22,6 +22,7 @@ def init_app(test=False):
 
 
 def init_db(app=None):
+    "create sqlalchemy connector to flask"
     db = SQLAlchemy()
     if app is not None:
         db.init_app(app)
