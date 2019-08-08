@@ -2,7 +2,7 @@
 import datetime as dt
 import os
 import unittest
-from tests.config_test import BaseTestCase
+from tests.base_test_case import BaseTestCase
 from tests.constants import TEST_TEAM_ID
 from app.models import AppUser, Exchange, Task, Team, TeamMember, Notification, Point
 from app import models

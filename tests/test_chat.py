@@ -1,5 +1,5 @@
 import os
-from tests.config_test import BaseTestCase
+from tests.base_test_case import BaseTestCase
 
 
 class TestChat(BaseTestCase):

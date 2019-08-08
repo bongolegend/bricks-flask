@@ -1,6 +1,6 @@
 import os
 import datetime as dt
-from tests.config_test import BaseTestCase
+from tests.base_test_case import BaseTestCase
 from app.actions import solo
 from app.constants import US_TIMEZONES, Statuses, RouterNames
 from app.models import AppUser, Task, Exchange

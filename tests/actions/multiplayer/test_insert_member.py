@@ -1,5 +1,5 @@
 import os
-from tests.config_test import BaseTestCase
+from tests.base_test_case import BaseTestCase
 from app.actions import multiplayer
 from sqlalchemy.orm.exc import NoResultFound
 from app.constants import US_TIMEZONES, Statuses
