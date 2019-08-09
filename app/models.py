@@ -7,10 +7,20 @@ from sqlalchemy.dialects import postgresql
 from app import db
 from app.constants import Reserved, Sizes
 
+
 class Base:
     id = db.Column(db.Integer, primary_key=True)
-    created = db.Column(db.DateTime, nullable=False, default=func.now(), server_default=func.now())
-    updated = db.Column(db.DateTime, nullable=False, default=func.now(), server_default=func.now(), onupdate=func.current_timestamp())
+    created = db.Column(
+        db.DateTime, nullable=False, default=func.now(), server_default=func.now()
+    )
+    updated = db.Column(
+        db.DateTime,
+        nullable=False,
+        default=func.now(),
+        server_default=func.now(),
+        onupdate=func.current_timestamp(),
+    )
+
 
 Base = declarative_base(cls=Base)
 
@@ -20,7 +30,7 @@ class AppUser(db.Model, Base):
     phone_number = db.Column(db.String(32), unique=True)
     email = db.Column(db.String(64), unique=False)
     timezone = db.Column(db.String(32))
-    google_id =  db.Column(db.String(128), unique=True)
+    google_id = db.Column(db.String(128), unique=True)
     device_token = db.Column(db.String(128), unique=False)
     fir_push_notif_token = db.Column(db.String(256), unique=False)
     fir_auth_id = db.Column(db.String(256), unique=True)
@@ -29,45 +39,50 @@ class AppUser(db.Model, Base):
 
     def to_dict(self):
         return dict(
-            created = self.created,
-            id = self.id, 
-            username = self.username,
-            phone_number = self.phone_number,
-            email = self.email,
-            timezone = self.timezone,
-            chat_notifs = self.chat_notifs,
-            task_notifs = self.task_notifs
+            created=self.created,
+            id=self.id,
+            username=self.username,
+            phone_number=self.phone_number,
+            email=self.email,
+            timezone=self.timezone,
+            chat_notifs=self.chat_notifs,
+            task_notifs=self.task_notifs,
+            device_token=self.device_token,
+            fir_auth_id=self.fir_auth_id,
+            fir_push_notif_token=self.fir_push_notif_token,
         )
 
     def __repr__(self):
-        return '<AppUser %r>' % self.username
+        return "<AppUser %r>" % self.username
 
 
 class Notification(db.Model, Base):
     router = db.Column(db.String(32), nullable=False)
-    day_of_week = db.Column(db.String(32)) 
+    day_of_week = db.Column(db.String(32))
     hour = db.Column(db.Integer, nullable=False)
     minute = db.Column(db.Integer, nullable=False)
     active = db.Column(db.Boolean, nullable=False)
 
-    user_id = db.Column(db.Integer, db.ForeignKey('app_user.id'),
-        nullable=False)
-    user = db.relationship('AppUser',
-        backref=db.backref('notifications', lazy=True))
+    user_id = db.Column(db.Integer, db.ForeignKey("app_user.id"), nullable=False)
+    user = db.relationship("AppUser", backref=db.backref("notifications", lazy=True))
 
-    __table_args__ = (UniqueConstraint('user_id', 'router', 'active', name='unique_router_user_active'),)
-    
+    __table_args__ = (
+        UniqueConstraint(
+            "user_id", "router", "active", name="unique_router_user_active"
+        ),
+    )
+
     def to_dict(self):
         return dict(
-            router = self.router,
-            day_of_week = self.day_of_week, 
-            hour = self.hour,
-            minute = self.minute,
-            active = self.active)
-
+            router=self.router,
+            day_of_week=self.day_of_week,
+            hour=self.hour,
+            minute=self.minute,
+            active=self.active,
+        )
 
     def __repr__(self):
-        return '<Notification %r>' % self.router
+        return "<Notification %r>" % self.router
 
 
 class Exchange(db.Model, Base):
@@ -76,41 +91,39 @@ class Exchange(db.Model, Base):
     inbound = db.Column(db.String(Sizes.INBOUND_MAX_LENGTH))
     confirmation = db.Column(db.String(128))
     next_router = db.Column(db.String(32))
-    next_exchange_id = db.Column(db.Integer) # this needs to be nullable because it is not known when an exchange is first created
+    next_exchange_id = db.Column(
+        db.Integer
+    )  # this needs to be nullable because it is not known when an exchange is first created
 
-    user_id = db.Column(db.Integer, db.ForeignKey('app_user.id'),
-        nullable=False)
-    user = db.relationship('AppUser',
-        backref=db.backref('exchanges', lazy=True))
-    
+    user_id = db.Column(db.Integer, db.ForeignKey("app_user.id"), nullable=False)
+    user = db.relationship("AppUser", backref=db.backref("exchanges", lazy=True))
+
     def to_dict(self):
         return dict(
-            id = self.id,
-            router = self.router, 
-            outbound = self.outbound,
-            inbound = self.inbound,
-            confirmation = self.confirmation,
-            next_router = self.next_router,
-            next_exchange_id = self.next_exchange_id,
-            user_id = self.user_id,
-            created = self.created,
-            updated = self.updated
+            id=self.id,
+            router=self.router,
+            outbound=self.outbound,
+            inbound=self.inbound,
+            confirmation=self.confirmation,
+            next_router=self.next_router,
+            next_exchange_id=self.next_exchange_id,
+            user_id=self.user_id,
+            created=self.created,
+            updated=self.updated,
         )
-    
+
     def __repr__(self):
-        return '<Exchange %r>' % self.router
-    
+        return "<Exchange %r>" % self.router
+
 
 class Point(db.Model, Base):
     value = db.Column(db.Integer, nullable=False)
 
-    user_id = db.Column(db.Integer, db.ForeignKey('app_user.id'),
-        nullable=False)
-    user = db.relationship('AppUser',
-        backref=db.backref('points', lazy=True))
-    
+    user_id = db.Column(db.Integer, db.ForeignKey("app_user.id"), nullable=False)
+    user = db.relationship("AppUser", backref=db.backref("points", lazy=True))
+
     def __repr__(self):
-        return f'<Point user={self.user_id}; value={self.value}>'
+        return f"<Point user={self.user_id}; value={self.value}>"
 
 
 class Task(db.Model, Base):
@@ -118,12 +131,12 @@ class Task(db.Model, Base):
     due_date = db.Column(db.DateTime(timezone=False), nullable=False)
     active = db.Column(db.Boolean, nullable=False)
     grade = db.Column(db.Integer)
-    exchange_id = db.Column(db.Integer, db.ForeignKey('exchange.id'))
+    exchange_id = db.Column(db.Integer, db.ForeignKey("exchange.id"))
     points_earned = db.Column(db.Integer)
 
-    exchange = db.relationship('Exchange', backref=db.backref('tasks', lazy=True))
-    user_id = db.Column(db.Integer, db.ForeignKey('app_user.id'), nullable=False)
-    user = db.relationship('AppUser', backref=db.backref('tasks', lazy=True))
+    exchange = db.relationship("Exchange", backref=db.backref("tasks", lazy=True))
+    user_id = db.Column(db.Integer, db.ForeignKey("app_user.id"), nullable=False)
+    user = db.relationship("AppUser", backref=db.backref("tasks", lazy=True))
 
     def to_dict(self):
         return dict(
@@ -131,23 +144,23 @@ class Task(db.Model, Base):
             description=self.description,
             due_date=self.due_date,
             grade=self.grade,
-            points_earned=self.points_earned
+            points_earned=self.points_earned,
         )
-    
+
     def __repr__(self):
-        return f'<Task {self.description[:10]}>'
+        return f"<Task {self.description[:10]}>"
 
 
 class Team(db.Model, Base):
-    founder_id = db.Column(db.Integer, db.ForeignKey('app_user.id'), nullable=False)
+    founder_id = db.Column(db.Integer, db.ForeignKey("app_user.id"), nullable=False)
     name = db.Column(db.String(32), nullable=False)
 
-    founder = db.relationship('AppUser', backref=db.backref('teams', lazy=True))
+    founder = db.relationship("AppUser", backref=db.backref("teams", lazy=True))
 
     def to_dict(self):
         return dict(
-            id = self.id,
-            name = self.name,
+            id=self.id,
+            name=self.name,
             # members = self.members)
         )
 
@@ -156,52 +169,70 @@ class Team(db.Model, Base):
 
 
 class TeamMember(db.Model, Base):
-    user_id = db.Column(db.Integer, db.ForeignKey('app_user.id'), nullable=False)
-    team_id = db.Column(db.Integer, db.ForeignKey('team.id'), nullable=False)
-    inviter_id = db.Column(db.Integer, db.ForeignKey('app_user.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey("app_user.id"), nullable=False)
+    team_id = db.Column(db.Integer, db.ForeignKey("team.id"), nullable=False)
+    inviter_id = db.Column(db.Integer, db.ForeignKey("app_user.id"), nullable=False)
     status = db.Column(db.String(32), nullable=False)
 
-    user = db.relationship('AppUser', foreign_keys=[user_id], backref=db.backref('is_member', lazy=True))
-    team = db.relationship('Team', backref=db.backref('members', lazy=True))
-    inviter = db.relationship('AppUser', foreign_keys=[inviter_id], backref=db.backref('inviter', lazy=True))
+    user = db.relationship(
+        "AppUser", foreign_keys=[user_id], backref=db.backref("is_member", lazy=True)
+    )
+    team = db.relationship("Team", backref=db.backref("members", lazy=True))
+    inviter = db.relationship(
+        "AppUser", foreign_keys=[inviter_id], backref=db.backref("inviter", lazy=True)
+    )
 
     def to_dict(self):
         return dict(
-            username = self.user.username,
-            user_id = self.user_id,
-            member_id = self.id,
-            team_id = self.team_id,
+            username=self.user.username,
+            user_id=self.user_id,
+            member_id=self.id,
+            team_id=self.team_id,
             # tasks = self.user.tasks,
-            inviter_id = self.inviter_id,
-            status = self.status)
-
+            inviter_id=self.inviter_id,
+            status=self.status,
+        )
 
     def __repr__(self):
         return f"<TeamMember {self.user} team={self.team} >"
 
 
 class Feedback(db.Model, Base):
-    user_id = db.Column(db.Integer, db.ForeignKey('app_user.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey("app_user.id"), nullable=False)
     text = db.Column(db.String(612), nullable=False)
 
-    user = db.relationship('AppUser', foreign_keys=[user_id], backref=db.backref('feedback', lazy=True))
+    user = db.relationship(
+        "AppUser", foreign_keys=[user_id], backref=db.backref("feedback", lazy=True)
+    )
 
 
 class Invitation(db.Model, Base):
-    user_id = db.Column(db.Integer, db.ForeignKey('app_user.id'), nullable=False)
-    team_id = db.Column(db.Integer, db.ForeignKey('team.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey("app_user.id"), nullable=False)
+    team_id = db.Column(db.Integer, db.ForeignKey("team.id"), nullable=False)
     invitee_phone = db.Column(db.String(32))
     invitee_email = db.Column(db.String(64))
     code = db.Column(db.String(32))
-    
-    user = db.relationship('AppUser', foreign_keys=[user_id], backref=db.backref('invitations', lazy=True))
-    team = db.relationship('Team', backref=db.backref('invitations', lazy=True))
+
+    user = db.relationship(
+        "AppUser", foreign_keys=[user_id], backref=db.backref("invitations", lazy=True)
+    )
+    team = db.relationship("Team", backref=db.backref("invitations", lazy=True))
 
 
 class Assist(db.Model, Base):
-    user_id = db.Column(db.Integer, db.ForeignKey('app_user.id'), nullable=False)
-    assistee_member_id = db.Column(db.Integer, db.ForeignKey('team_member.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey("app_user.id"), nullable=False)
+    assistee_member_id = db.Column(
+        db.Integer, db.ForeignKey("team_member.id"), nullable=False
+    )
     action = db.Column(db.String(32))
 
-    user = db.relationship('AppUser', foreign_keys=[user_id], backref=db.backref('assists_given', lazy=True))
-    member = db.relationship('TeamMember', foreign_keys=[assistee_member_id], backref=db.backref('assists_received', lazy=True))
+    user = db.relationship(
+        "AppUser",
+        foreign_keys=[user_id],
+        backref=db.backref("assists_given", lazy=True),
+    )
+    member = db.relationship(
+        "TeamMember",
+        foreign_keys=[assistee_member_id],
+        backref=db.backref("assists_received", lazy=True),
+    )

@@ -8,3 +8,9 @@ def client():
     client = app.test_client()
 
     yield client
+
+
+@pytest.fixture
+def app():
+    app = create_app(test=True)
+    yield app
