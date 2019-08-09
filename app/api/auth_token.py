@@ -5,11 +5,14 @@ import traceback
 from flask import request, jsonify, make_response, current_app
 from firebase_admin import auth
 from passlib.hash import pbkdf2_sha256
-from itsdangerous import (TimedJSONWebSignatureSerializer
-                          as Serializer, BadSignature, SignatureExpired)
+from itsdangerous import (
+    TimedJSONWebSignatureSerializer as Serializer,
+    BadSignature,
+    SignatureExpired,
+)
 from app import db
 from app.models import AppUser
-
+from tests.api.auth_token_test import MOCK_TOKEN, FIR_AUTH_ID
 
 
 def get():
@@ -25,8 +28,7 @@ def get():
     else:
         try:
             fir_token = request.headers["Authorization"]
-            decoded_token = auth.verify_id_token(fir_token)
-            fir_auth_id = decoded_token["uid"]
+            fir_auth_id = verify_token(fir_token)
         except ValueError:
             message = "The fir token was not accepted"
             print(message)
@@ -38,15 +40,23 @@ def get():
 
         db.session.expunge(user)
         db.session.close()
-        json = jsonify({'auth_token': auth_token.decode('ascii'), 'user_id': user.id, 'duration': duration})
+        json = jsonify(
+            {
+                "auth_token": auth_token.decode("ascii"),
+                "user_id": user.id,
+                "duration": duration,
+            }
+        )
         return make_response(json, 202)
-        
+
 
 def query_user(fir_auth_id):
     """find the user that matches fir_auth_id, else generate new user"""
 
     try:
-        user = db.session.query(AppUser).filter(AppUser.fir_auth_id == fir_auth_id).one()
+        user = (
+            db.session.query(AppUser).filter(AppUser.fir_auth_id == fir_auth_id).one()
+        )
         return user
     except:
         new_user = AppUser(fir_auth_id=fir_auth_id)
@@ -59,20 +69,28 @@ def query_user(fir_auth_id):
 # source: https://blog.miguelgrinberg.com/post/restful-authentication-with-flask/page/3
 def generate(user, duration=86400):
     """generate a new token for the given user"""
-    s = Serializer(current_app.config['SECRET_KEY'], expires_in = duration)
-    return s.dumps({ 'id': user.id }), duration
+    s = Serializer(current_app.config["SECRET_KEY"], expires_in=duration)
+    return s.dumps({"id": user.id}), duration
 
 
 def verify(func):
-    '''
+    """
     wrapper that verifies the token is correct. 
     if yes, passes request to target api endpoint.
     if no, prompts client to re-authenticate.
-    '''
+    """
+
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
         if "Authorization" not in request.headers:
-            return make_response(jsonify({"error": "provide an auth token as an 'Authorization' header value."}), 401)
+            return make_response(
+                jsonify(
+                    {
+                        "error": "provide an auth token as an 'Authorization' header value."
+                    }
+                ),
+                401,
+            )
 
         auth_token = request.headers["Authorization"].split(" ")[1]
 
@@ -83,17 +101,18 @@ def verify(func):
             print(message)
             return make_response(jsonify({"message": message}), 401)
         elif data:
-            user = db.session.query(AppUser).filter(AppUser.id == data["id"]).one()       
+            user = db.session.query(AppUser).filter(AppUser.id == data["id"]).one()
         else:
             raise Exception
-            
+
         return func(user, *args, **kwargs)
+
     return wrapper
 
 
 def validate(token):
     """read the auth token and return """
-    s = Serializer(current_app.config['SECRET_KEY'])
+    s = Serializer(current_app.config["SECRET_KEY"])
     try:
         data = s.loads(token)
         return None, data
@@ -101,3 +120,15 @@ def validate(token):
         return "EXPIRED", None
     except BadSignature:
         return "BAD_SIGNATURE", None
+
+
+def verify_token(fir_token):
+    """toggle between a mock verifier and the real fir verifier"""
+    if current_app.config["TESTING"] == True:
+        if fir_token == MOCK_TOKEN:
+            return FIR_AUTH_ID
+        else:
+            raise ValueError
+    else:
+        decoded_token = auth.verify_id_token(fir_token)
+        return decoded_token["uid"]
