@@ -1,5 +1,5 @@
 import pytest
-from tests.fixtures import client, app
+from tests.conftest import client, app
 from app.api.app_user import put
 from app.models import AppUser
 

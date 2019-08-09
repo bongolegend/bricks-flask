@@ -1,4 +1,4 @@
-from tests.fixtures import client
+from tests.conftest import client
 
 
 def test_html_is_correct(client):
