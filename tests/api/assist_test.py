@@ -8,11 +8,9 @@ def test_post_without_authtoken_fails(client):
 
 
 def test_post_with_authtoken_succeeds(client, user1, team1, team_member1):
-
     json = {"action": "NUDGE", "assistee_member_id": user1.id}
     headers = {"Authorization": get_auth_token(client)}
     response = client.post("/api/assist", headers=headers, json=json)
-    print(response.get_json())
     assert response.status_code == 200
 
 
