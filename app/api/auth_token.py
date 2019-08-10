@@ -12,7 +12,7 @@ from itsdangerous import (
 )
 from app import db
 from app.models import AppUser
-from tests.api.auth_token_test import MOCK_TOKEN, FIR_AUTH_ID
+from tests.conftest import MOCK_TOKEN, FIR_AUTH_ID
 
 
 def get():
