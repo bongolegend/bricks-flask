@@ -10,9 +10,8 @@ def test_api_without_authtoken(client):
 
 
 def test_api_with_authtoken(client):
-    json = {}
     headers = {"Authorization": get_auth_token(client)}
-    response = client.put("/api/app_user", headers=headers, json=json)
+    response = client.put("/api/app_user", headers=headers, json={})
     assert response.status_code == 200
 
 
@@ -38,6 +37,15 @@ def test_response_contains_updated_user(app, user, json, attribute):
         assert response.get_json()[attribute] == json[attribute]
 
 
-@pytest.mark.xfail()
-def test_updated_user_saved_to_db():
-    assert False
+def test_updated_user_saved_to_db(app, session):
+    user = AppUser(username="mia")
+    session.add(user)
+    session.commit()
+
+    json = {"username": "bob"}
+    with app.test_request_context(json=json):
+        put(user)
+
+    session.add(user)
+    updated_user = session.query(AppUser).filter_by(id=user.id).one()
+    assert updated_user.username == "bob"
