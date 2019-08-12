@@ -52,7 +52,7 @@ def session(db):
 def user1(session):
     user1 = AppUser()
     session.add(user1)
-    session.flush()
+    session.commit()
     return user1
 
 
@@ -60,7 +60,7 @@ def user1(session):
 def team1(session, user1):
     team1 = Team(founder=user1, name="Tigers")
     session.add(team1)
-    session.flush()
+    session.commit()
     return team1
 
 
@@ -68,7 +68,7 @@ def team1(session, user1):
 def team_member1(session, user1, team1):
     team_member1 = TeamMember(user=user1, team=team1, inviter=user1, status="ACTIVE")
     session.add(team_member1)
-    session.flush()
+    session.commit()
     return team_member1
 
 
