@@ -1,5 +1,5 @@
 import pytest
-from tests.conftest import client, app
+from tests.conftest import get_auth_token
 from app.api.app_user import put
 from app.models import AppUser
 
@@ -9,9 +9,11 @@ def test_api_without_authtoken(client):
     assert response.status_code == 401
 
 
-@pytest.mark.xfail()
 def test_api_with_authtoken(client):
-    assert False
+    json = {}
+    headers = {"Authorization": get_auth_token(client)}
+    response = client.put("/api/app_user", headers=headers, json=json)
+    assert response.status_code == 200
 
 
 @pytest.mark.parametrize(
