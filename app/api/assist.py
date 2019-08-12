@@ -8,11 +8,16 @@ def post(user):
 
     data = request.get_json()
 
-    assist = Assist(
-        user = user,
-        action = data["action"],
-        assistee_member_id = data["assistee_member_id"]
-    )
+    try:
+        assist = Assist(
+            user=user,
+            action=data["action"],
+            assistee_member_id=data["assistee_member_id"],
+        )
+    except KeyError as e:
+        return make_response(
+            jsonify({"message": f"Missing the following key in json: {e}"}), 401
+        )
 
     db.session.add(assist)
     db.session.commit()
