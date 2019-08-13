@@ -78,3 +78,17 @@ def get_auth_token(some_client):
     response = some_client.get("/api/auth_token", headers=headers)
 
     return f"token {response.get_json()['auth_token']}"
+
+
+from _pytest.reports import TestReport
+
+# https://stackoverflow.com/questions/57469379/pytest-show-test-module-name-in-output/57475619#57475619
+class CustomReport(TestReport):
+    @TestReport.head_line.getter
+    def head_line(self):
+        return f"{self.nodeid}"
+
+
+@pytest.hookimpl(tryfirst=True)
+def pytest_runtest_makereport(item, call):
+    return CustomReport.from_item_and_call(item, call)
