@@ -80,6 +80,11 @@ def get_auth_token(some_client):
     return f"token {response.get_json()['auth_token']}"
 
 
+###################################
+#     pytest logging parameters
+###################################
+
+
 from _pytest.reports import TestReport
 
 # https://stackoverflow.com/questions/57469379/pytest-show-test-module-name-in-output/57475619#57475619
