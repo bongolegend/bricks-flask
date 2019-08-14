@@ -19,12 +19,13 @@ def test_post_with_authtoken_succeeds(client, team1):
 
 @pytest.mark.parametrize("json", [{"team_id": 1}, {"content": "DUMMY MESSAGE"}])
 def test_post_missing_attributes_fails(app, user1, json):
-    with pytest.raises(KeyError):
-        with app.test_request_context(json=json):
-            post(user1)
+    with app.test_request_context(json=json):
+        response = post(user1)
+    assert response.status_code == 401
+    assert "Missing key" in response.get_json()["message"]
 
 
-def test_module_filters_team_members_correctly(app, session, team1, user1):
+def test_module_filters_team_members_correctly(session, team1, user1):
     jim = AppUser(username="jim", chat_notifs=False)
     bill = AppUser(username="bill", chat_notifs=True, fir_push_notif_token="FAKE TOKEN")
     session.add(jim)
@@ -43,9 +44,11 @@ def test_module_filters_team_members_correctly(app, session, team1, user1):
     assert expected_members == filtered_members
 
 
-@pytest.mark.xfail()
-def test_post_with_nonexistent_team_id_fails():
-    assert 0
+def test_post_with_nonexistent_team_id_fails(app, user1):
+    json = {"team_id": 999, "content": "DUMMY CONTENT"}
+    with app.test_request_context(json=json):
+        response = post(user1)
+    assert response.status_code == 401
 
 
 # I need to write tests else-where to make sure the notifications get sent

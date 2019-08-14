@@ -1,24 +1,38 @@
 from flask import jsonify, request, make_response
-from app.models import AppUser, TeamMember
+from app.models import AppUser, TeamMember, Team
 from app import db
 from app.push import notify_user, send_message_notif
 from app.constants import Statuses
+from sqlalchemy.orm.exc import NoResultFound
 
 
 def post(user):
-    """send a push notification containing a new message to team members"""
+    """send a push notification containing a new message to team members of a specific team"""
 
     data = request.get_json()
 
-    team_id = data["team_id"]
-    content = data["content"]
+    for key in ["team_id", "content"]:
+        if key not in data:
+            return make_response(
+                jsonify({"message": f"Missing key from json: {key}"}), 401
+            )
 
-    team_members = get_team_members(team_id, user.id)
+    try:
+        db.session.query(Team).filter_by(id=data["team_id"]).one()
+    except NoResultFound:
+        return make_response(
+            jsonify({"message": f"Team with id {data['team_id']} does not exist"}), 401
+        )
+
+    team_members = get_team_members(data["team_id"], user.id)
 
     for member in team_members:
         if member.chat_notifs:
             send_message_notif(
-                member.fir_push_notif_token, 1, title=user.username, body=content
+                member.fir_push_notif_token,
+                1,
+                title=user.username,
+                body=data["content"],
             )
         else:
             send_message_notif(member.fir_push_notif_token, 1)
