@@ -1,48 +1,55 @@
 from flask import jsonify, request, make_response
-from phonenumbers import parse
+from phonenumbers import parse, is_valid_number_for_region
 from phonenumbers.phonenumberutil import NumberParseException
 from app.models import Team, Invitation
 from app import db
 from app.tools import send_message
- 
+from sqlalchemy.orm.exc import NoResultFound
+
 
 def post(user):
     """send invitation to phone number. confirmation code is deterministic based on team info"""
 
     data = request.get_json()
 
+    for key in ["team_id", "phone_number"]:
+        if key not in data:
+            return make_response(
+                jsonify({"message": f"Missing key from json: {key}"}), 401
+            )
+
     try:
         number = parse(data["phone_number"], "US")
+        if not is_valid_number_for_region(number, "US"):
+            raise NumberParseException(1, "not valid")
     except NumberParseException:
-        message = "The number supplied does not seem to be valid. Please try again."
-        print(message)
-        return make_response(jsonify({"message": message}), 400)
+        return make_response(
+            jsonify({"message": "Invalid phone number. Please try again."}), 401
+        )
 
+    try:
+        team = db.session.query(Team).filter(Team.id == data["team_id"]).one()
+    except NoResultFound:
+        return make_response(
+            jsonify({"message": f"Team with id {data['team_id']} not found."}), 401
+        )
 
     number = f"+{number.country_code}{number.national_number}"
-
-    # generate a confirmation code
-    team = db.session.query(Team).filter(Team.id == data["team_id"]).one()
-
     code = encode(team)
-
-    # format message
-    message = f"{user.username} invited you to join their team {team.name} on the Bricks app."
-
-    # send message to number with Twilio
+    message = (
+        f"{user.username} invited you to join their team {team.name} on the Bricks app."
+    )
     recipient = {"phone_number": number}
 
     send_message(recipient, message)
-    send_message(recipient, "Download the app here: https://itunes.apple.com/us/app/stack-a-brick/id1456194944#?platform=iphone")
+    send_message(
+        recipient,
+        "Download the app here: https://itunes.apple.com/us/app/stack-a-brick/id1456194944#?platform=iphone",
+    )
     send_message(recipient, "Use this code to join their team:")
     send_message(recipient, code)
     # add invitation to db
-    invitation = Invitation(
-        user = user,
-        team = team,
-        invitee_phone = number,
-        code = code
-    )
+    invitation = Invitation(user=user, team=team, invitee_phone=number, code=code)
     db.session.add(invitation)
     db.session.commit()
     db.session.close()
@@ -52,7 +59,9 @@ def post(user):
 
 
 def encode(team):
-    code = str(team.id)[:3].ljust(3, "q") + str(team.founder_id)[:3].ljust(3, team.name[0])
+    code = str(team.id)[:3].ljust(3, "q") + str(team.founder_id)[:3].ljust(
+        3, team.name[0]
+    )
     code = code.lower()
     # reverse
     code = code[::-1]
