@@ -71,12 +71,16 @@ def encode(team):
 
 def decode(code):
     # reverse
-    code = code[::-1]
-    code = code.lower()
+    try:
+        code = code[::-1]
+        code = code.lower()
+        team_code = code[:3].strip("q")
+        team_id = int(team_code)
+        team = db.session.query(Team).filter(Team.id == team_id).one()
+        return team
+    except:
+        raise InvalidCodeError
 
-    team_code = code[:3].strip("q")
-    team_id = int(team_code)
 
-    team = db.session.query(Team).filter(Team.id == team_id).one()
-
-    return team
+class InvalidCodeError(Exception):
+    pass

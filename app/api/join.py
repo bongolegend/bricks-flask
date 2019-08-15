@@ -2,7 +2,7 @@ from flask import jsonify, request, make_response
 from app import db
 from app.models import TeamMember
 from app.constants import Statuses
-from app.api.invite import decode
+from app.api.invite import decode, InvalidCodeError
 
 
 def post(user):
@@ -10,39 +10,40 @@ def post(user):
 
     data = request.get_json()
 
+    for key in ["code"]:
+        if key not in data:
+            return make_response(
+                jsonify({"message": f"Missing key in json: {key}"}), 401
+            )
+
     try:
         team = decode(data["code"])
-    except Exception:
-        message = f"The code {data['code']} was not accepted. Please try again."
-        print(message)
-        return make_response(jsonify({"message": message}), 400)
+    except InvalidCodeError:
+        return make_response(jsonify({"message": f"Invalid code: {data['code']}"}), 401)
 
     # ensure user is not already on team
-    already_team_member = db.session.query(TeamMember).filter(
-        TeamMember.user == user,
-        TeamMember.team == team).all()
+    is_already_member = (
+        db.session.query(TeamMember)
+        .filter(TeamMember.user == user, TeamMember.team == team)
+        .one_or_none()
+    )
 
-    if len(already_team_member) > 0:
-        message = f"You are already a team member of {team.name}."
-        print(message)
-        return make_response(jsonify({"message": message}), 400)
-    
+    if is_already_member:
+        return make_response(
+            jsonify({"message": f"You are already a team member of {team.name}."}), 401
+        )
+
     # add user to team
     team_member = TeamMember(
         user=user,
         team=team,
-        inviter=user, # TODO you can only correct this if you make codes specific
-        status=Statuses.ACTIVE)
+        inviter=user,  # TODO you can only correct this if you make codes specific
+        status=Statuses.ACTIVE,
+    )
 
     db.session.add(team_member)
+
+    response = make_response(jsonify(team.to_dict()), 200)
     db.session.commit()
-
-    # return team
-    team_dict = {
-        "name": team.name,
-        "team_id": team.id,
-        "founder_id": team.founder_id
-    }
     db.session.close()
-
-    return make_response(jsonify(team_dict), 200)
+    return response

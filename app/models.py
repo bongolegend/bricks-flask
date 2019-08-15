@@ -161,6 +161,7 @@ class Team(db.Model, Base):
         return dict(
             id=self.id,
             name=self.name,
+            founder_id=self.founder_id
             # members = self.members)
         )
 
